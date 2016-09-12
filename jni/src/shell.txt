@@ -1,0 +1,2 @@
+notify-send 显示气泡
+

@@ -1,0 +1,16 @@
+*.swp
+*.keystore
+*.so
+*.a
+*.d
+*.o
+*.out
+*.ap_
+*.mp3
+bin
+gen
+libs
+obj
+-
+--
+---

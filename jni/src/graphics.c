@@ -242,7 +242,7 @@ int main(int argc, char *argv[])
 		sprite->data3d = &userData;
 		sprite->showFunc = Data3d_show;
 		sprite->destroyFunc = Data3d_destroy;
-		//Sprite_addChild(stage,sprite);
+		//Sprite_addChild(stage->sprite,sprite);
 
 		Sprite*container= Sprite_new();
 		Sprite_addChildAt(stage,container,0);

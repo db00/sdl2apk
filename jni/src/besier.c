@@ -1,6 +1,6 @@
 /**
  * @file besier.c
- gcc -g -Wall -I"include" -I"../SDL2/include/" besier.c -D DEBUG_BESIER  array.c tween.c ease.c base64.c ipstring.c sprite.c httploader.c mystring.c  files.c matrix.c -lssl -lcrypto  -LGLESv2 -lm -lSDL2  && ./a.out
+ gcc -g -Wall -I"include" -I"../SDL2/include/" besier.c -D DEBUG_BESIER  array.c tween.c ease.c base64.c ipstring.c sprite.c mystring.c  files.c matrix.c -lssl -lcrypto  -LGLESv2 -lm -lSDL2  && ./a.out
 
  * @author db0@qq.com
  * @version 1.0.1
@@ -376,7 +376,7 @@ int main()
 	sprite->data3d = &userData;
 	sprite->showFunc = Data3d_show;
 	sprite->destroyFunc = Data3d_destroy;
-	Sprite_addChild(stage,sprite);
+	Sprite_addChild(stage->sprite,sprite);
 
 
 	Stage_loopEvents();

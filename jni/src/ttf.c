@@ -1,6 +1,6 @@
 /**
  * @file ttf.c
- gcc -g -D debug_ttf -Wall -I"../SDL2/include/" -I"../SDL2_image" -I"../SDL2_ttf/" -lSDL2_ttf -lSDL2_image -lSDL2 textfield.c httpserver.c array.c filetypes.c urlcode.c dict.c sqlite.c tween.c ease.c sprite.c matrix.c myregex.c ttf.c files.c httploader.c ipstring.c mystring.c base64.c -lssl -lsqlite3 -lpthread -ldl -lcrypto -lm && ./a.out  
+ gcc -g -D debug_ttf -Wall -I"../SDL2/include/" -I"../SDL2_image" -I"../SDL2_ttf/" -lSDL2_ttf -lSDL2_image -lSDL2 utf8.c textfield.c httpserver.c array.c filetypes.c urlcode.c dict.c sqlite.c tween.c ease.c sprite.c matrix.c myregex.c ttf.c files.c httploader.c ipstring.c mystring.c base64.c -lssl -lsqlite3 -lpthread -ldl -lcrypto -lm && ./a.out  
  gcc -Wall ttf.c && ./a.out  
  * @author db0@qq.com
  * @version 1.0.1
@@ -122,7 +122,7 @@ static void showBox(int x,int y,int w)
 	sprite->name = malloc(sizeof(sname)+1);
 	memset(sprite->name,0,sizeof(sname)+1);
 	strcpy(sprite->name,sname);
-	sprite->is3D = 1;
+	stage->is3D = 1;
 #ifdef __ANDROID__
 	sprite->surface = IMG_Load("/sdcard/1.bmp");
 #else
@@ -186,7 +186,7 @@ int main(int argc,char** argv)
 {
 	Stage_init(1);
 	container = Sprite_new();
-	Sprite_addChild(stage,container);
+	Sprite_addChild(stage->sprite,container);
 	container->mouseChildren = 0;
 	container->x = stage->stage_w/2;
 	container->y = stage->stage_h/2;

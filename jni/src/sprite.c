@@ -2145,7 +2145,7 @@ static void mouseDown(SpriteEvent*e)
 		   );
 	if(e->target->parent)
 		Sprite_addChild(e->target->parent,e->target);
-	if(e->target!= stage)e->target->y++;
+	if(e->target!= stage->sprite)e->target->y++;
 }
 
 static void mouseMove(SpriteEvent*e)
@@ -2176,12 +2176,12 @@ static void mouseMove(SpriteEvent*e)
 int main(int argc, char *argv[])
 {
 	Stage_init(1);
-	Sprite_addEventListener(stage,SDL_MOUSEBUTTONDOWN,mouseDown);
+	Sprite_addEventListener(stage->sprite,SDL_MOUSEBUTTONDOWN,mouseDown);
 	if(stage->GLEScontext == NULL){
 		//return 0;
 	}else {
 		Sprite*sprite = Sprite_new();
-		sprite->is3D = 1;
+		stage->is3D = 1;
 #ifdef __ANDROID__
 		sprite->surface = SDL_LoadBMP("/sdcard/1.bmp");
 #else
@@ -2208,7 +2208,7 @@ int main(int argc, char *argv[])
 		}
 		sprite->alpha = 0.3;
 		Sprite*contener= Sprite_new();
-		Sprite_addChild(stage,contener);
+		Sprite_addChild(stage->sprite,contener);
 		Sprite_addChild(contener,sprite);
 		contener->x = stage->stage_w/2;
 		contener->y = stage->stage_h/2;
@@ -2239,7 +2239,7 @@ sprite2->surface = SDL_LoadBMP("1.bmp");
 		rect.w = 0;
 		rect.h = stage->stage_h-sprite2->h;
 		sprite2->dragRect = &rect;
-		Sprite_addChild(stage,sprite2);
+		Sprite_addChild(stage->sprite,sprite2);
 
 		Sprite_addEventListener(sprite2,SDL_MOUSEBUTTONDOWN,mouseDown);
 		//Sprite_removeEventListener(sprite2,SDL_MOUSEBUTTONDOWN,mouseDown);
@@ -2256,7 +2256,7 @@ sprite2->surface = SDL_LoadBMP("1.bmp");
 	sprite3->x = 0;
 	sprite3->w = 100;
 	sprite3->h = 100;
-	Sprite_addChild(stage,sprite3);
+	Sprite_addChild(stage->sprite,sprite3);
 	/***
 	  SDL_Log("stage ----------- size:%dx%d\n",stage->stage_w,stage->stage_h);
 	  Sprite *sprite4 = Sprite_new();

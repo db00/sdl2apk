@@ -224,7 +224,7 @@ int main( int argc, char**  argv )
 
 	Stage_init(1);
 	container = Sprite_new();
-	Sprite_addChild(stage,container);
+	Sprite_addChild(stage->sprite,container);
 	container->mouseChildren = 0;
 	container->x = stage->stage_w/2;
 	container->y = -stage->stage_h/2;

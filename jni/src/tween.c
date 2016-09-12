@@ -282,7 +282,7 @@ int main(int argc, char *argv[])
 	sprite->alpha =0.4;
 	Sprite_addChild(m1,sprite);
 
-	Sprite_addChild(stage,m1);
+	Sprite_addChild(stage->sprite,m1);
 
 	TweenObj * tweenObj = (TweenObj*)TweenObj_new(sprite);
 	//tweenObj->end->scaleX = 8.0;

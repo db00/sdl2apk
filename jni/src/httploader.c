@@ -1,6 +1,6 @@
 /**
  *
- gcc -Wall -I"../SDL2_image/" -I"../SDL2_ttf" mysurface.c urlcode.c textfield.c files.c array.c matrix.c tween.c ease.c base64.c ipstring.c sprite.c httploader.c mystring.c  -lssl -lcrypto  -lSDL2_image -lSDL2_ttf -lSDL2 -I"../SDL2/include/" -lm -D debug_httploader &&./a.out
+ gcc -Wall -I"../SDL2_image/" -I"../SDL2_ttf" utf8.c mysurface.c urlcode.c textfield.c files.c array.c matrix.c tween.c ease.c base64.c ipstring.c sprite.c httploader.c mystring.c  -lssl -lcrypto  -lSDL2_image -lSDL2_ttf -lSDL2 -I"../SDL2/include/" -lm -D debug_httploader &&./a.out
  gcc -Wall -I"../SDL2_image/" -I"../SDL2_ttf" -I"include" mysurface.c textfield.c files.c array.c matrix.c tween.c ease.c base64.c ipstring.c sprite.c httploader.c mystring.c -L"lib" -lssl -lcrypto -lwsock32 -lgdi32 -lSDL2_image -lSDL2_ttf -lmingw32 -lSDL2main -lSDL2 -I"../SDL2/include/" -lm -D debug_httploader && a
  > a.txt
  */
@@ -500,7 +500,7 @@ int main(int argc, char *argv[])
 #if 1
 	Sprite * sprite = Sprite_new();
 	sprite->surface = Httploader_loadimg("http://res1.huaien.com/images/tx.jpg");
-	Sprite_addChild(stage,sprite);
+	Sprite_addChild(stage->sprite,sprite);
 
 	//URLRequest * urlrequest = Httploader_load("http://zp.huaien.com/AjaxFlashTXY/GetTXYInfo.do?spaceId=100016");
 	// http://picture.youth.cn/qtdb/201508/W020150811198543071000.jpg

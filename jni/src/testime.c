@@ -479,7 +479,7 @@ static int TestThread(void *ptr)
         Sprite_center(bg,0,0,stage->stage_w,stage->stage_h);
         Sprite_addChildAt(stage->sprite,bg,0);
         UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//Stage_redraw
-        //Sprite_addChild(stage,bg);
+        //Sprite_addChild(stage->sprite,bg);
     }else{
         SDL_Log("load background png ERROR!");
         if(bg){

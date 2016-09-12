@@ -1,6 +1,6 @@
 /**
  * @file ttf2.c
- gcc -g -Wall -I"include" -I"../SDL2/include/" ttf2.c array.c tween.c ease.c base64.c ipstring.c sprite.c httploader.c mystring.c  files.c matrix.c -lssl -lcrypto  -LGLESv2 -lm -lSDL2  && ./a.out
+ gcc -g -Wall -I"include" -I"../SDL2/include/" ttf2.c array.c tween.c ease.c base64.c ipstring.c sprite.c  mystring.c  files.c matrix.c -lssl -lcrypto  -LGLESv2 -lm -lSDL2  && ./a.out
  gcc ttf2.c -lm && ./a.out  
  * @author db0@qq.com
  * @version 1.0.1
@@ -121,7 +121,7 @@ int main(void)
 
 
 	sprite->surface = surface;
-	Sprite_addChild(stage,sprite);
+	Sprite_addChild(stage->sprite,sprite);
 	Stage_loopEvents();
 	return 0;
 }

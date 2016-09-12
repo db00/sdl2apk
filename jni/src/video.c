@@ -1911,7 +1911,7 @@ int main(int argc, char **argv)
 	Video * video = Video_new(input_filename,NULL);
 	//Video * video = Video_new("/dev/video0","video4linux2");
 	//Video * video = Video_new(":0.0","x11grab");
-	Sprite_addChild(stage,video->sprite);
+	Sprite_addChild(stage->sprite,video->sprite);
 	Stage_loopEvents();
 	exit(0);
 }

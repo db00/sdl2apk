@@ -273,7 +273,7 @@ int draw_line(SDL_Renderer*renderer,TxtLine * txtline,TextField*txt)
 		sprite->surface = text;
 		sprite->x= rect.x;
 		sprite->y= rect.y;
-		Sprite_addChild(stage,sprite);
+		Sprite_addChild(stage->sprite,sprite);
 		//if(strlen(txtStr)>1)SDL_SaveBMP(texture2surface(texture),"rendered.bmp");
 		//if(strlen(txtStr)>1)SDL_SaveBMP(text,"rendered.bmp");
 		if(

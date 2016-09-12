@@ -886,7 +886,7 @@ int main(int argc, char *argv[])
 	txt = TextField_appendText(txt,"一二三四五六七八九十一二三四五六七八九十end\n");
 	//txt = TextField_setText(txt,"一二三四五六七八九十一二三四五六七八九十end\n");
 	txt = TextField_appendText(txt,"一二三四五六七八九十一二三四五六七八九十end\n");
-	Sprite_addChild(stage,txt->sprite); 
+	Sprite_addChild(stage->sprite,txt->sprite); 
 	Stage_loopEvents(); return 0;
 	//TextField_appendText(txt,"\npref path:\n" );
 	//TextField_appendText(txt,SDL_GetPrefPath("test", "subsystem2"));

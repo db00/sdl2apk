@@ -56,6 +56,7 @@ void quit(int rc)
 			stage->GLEScontext = NULL;
 		}
 		Sprite_destroy(stage->sprite);
+		stage->sprite = NULL;
 		stage=NULL;
 	}
 
@@ -172,7 +173,7 @@ int Sprite_getVisible(Sprite*sprite)
 		Sprite*cur = sprite;
 		while(cur)
 		{
-			i &= cur->visible;
+			i = cur->visible && i;
 			cur = cur->parent;
 		}
 		return i;
@@ -223,7 +224,7 @@ SDL_Rect* setSpriteBorder(Sprite*sprite,SDL_Rect*rect)
 		free(sprite->Bounds);
 		sprite->Bounds = NULL;
 	}
-	if(stage->is3D){
+	if(sprite->is3D){
 		SDL_Rect *r = (SDL_Rect*)malloc(sizeof(SDL_Rect));
 		r->w = rect->w;
 		r->h = rect->h;
@@ -366,7 +367,7 @@ Stage * Stage_init(int is3D)
 	{
 		stage = malloc(sizeof(Stage));
 		memset(stage,0,sizeof(Stage));
-		
+
 		stage->sprite = Sprite_new();
 		if(stage->renderer==NULL && stage->GLEScontext == NULL)
 		{
@@ -380,8 +381,6 @@ Stage * Stage_init(int is3D)
 			stage->stage_w = 240;
 			stage->stage_h = (int)((float)stage->stage_w*16.0/12.0);
 #endif
-			stage->sprite->w = stage->stage_w;
-			stage->sprite->h = stage->stage_h;
 
 			stage->window = SDL_CreateWindow("title",
 					SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
@@ -839,16 +838,18 @@ void UserEvent_clear(SDL_UserEvent * event)
 int Sprite_dispatchEvent(Sprite*sprite,const SDL_Event *event)
 {
 	if(sprite->events == NULL)
-		return 0;
+		return 1;
 	int i = 0;
-	while(i < sprite->events->length)
+	while(sprite->events && i < sprite->events->length)
 	{
 		SpriteEvent*e = Array_getByIndex(sprite->events,i);
 		if(event && e && sprite && sprite->events && sprite->name) 
 		{
 			if(event->type && event->type == e->type){
 				e->e = (SDL_Event*)event;
-				if(e->func!=NULL)e->func(e);
+				if(e->func!=NULL){
+					e->func(e);
+				}
 			}
 		}
 		++i;
@@ -897,8 +898,22 @@ int Sprite_addEventListener(Sprite*sprite,Uint32 type,EventFunc func)
 	if(sprite->events==NULL){
 		sprite->events = Array_new();
 		sprite->events = Array_setByIndex(sprite->events,0,e);
-	}else{//e 放到 e->events 的开头
-		sprite->events = Array_insert(sprite->events,0,e);
+	}else{//events 中的空的;e 放到 e->events 的开头
+		int i = 0;
+		int hasNull = 0;
+		while(i<sprite->events->length)
+		{
+			SpriteEvent * ev = Array_getByIndex(sprite->events,i);
+			if(ev==NULL)
+			{
+				hasNull = 1;
+				Array_setByIndex(sprite->events,i,e);
+				break;
+			}
+			++i;
+		}
+		if(hasNull==0)
+			sprite->events = Array_insert(sprite->events,0,e);
 	}
 	//SDL_Log("%s,sprite->events->length:%d,",sprite->name,sprite->events->length);
 	return 0;
@@ -909,7 +924,6 @@ int Sprite_eventDestroy(SpriteEvent*e)
 	if(e){
 		free(e);
 	}
-	e= NULL;
 	return 0;
 }
 
@@ -923,7 +937,7 @@ int Sprite_removeEventListener(Sprite*sprite,Uint32 type,EventFunc func)
 			SpriteEvent*_e = Array_getByIndex(sprite->events,i);
 			if(_e->target == sprite && type == _e->type && _e->func == func )
 			{
-				sprite->events = Array_removeByIndex(sprite->events,i);
+				Array_setByIndex(sprite->events,i,NULL);
 				Sprite_eventDestroy(_e);
 			}
 		}
@@ -972,8 +986,8 @@ Sprite*Sprite_addChild(Sprite*parent,Sprite*sprite)
 //从上到下找出,点(x,y)所在的sprite的最后一级,直至mouseChildren=false,或无子集.
 Sprite* getSpriteByStagePoint(int x,int y)
 {
-	stage->sprite->mouse->x = x;
-	stage->sprite->mouse->y = y;
+	stage->mouse->x = x;
+	stage->mouse->y = y;
 
 
 	Sprite*target = NULL;
@@ -993,7 +1007,7 @@ searchChildren:
 			p.x = x;
 			p.y = y;
 			SDL_Rect rect; 
-			if(curSprite->Bounds)
+			if(curSprite->Bounds && Sprite_getVisible(curSprite))
 			{
 				rect.x = curSprite->Bounds->x;
 				rect.y = curSprite->Bounds->y;
@@ -1116,6 +1130,7 @@ int Sprite_destroy(Sprite*sprite)
 			--i;
 			SpriteEvent* event = Array_getByIndex(sprite->events,i);
 			Sprite_eventDestroy(event);
+			Array_setByIndex(sprite->events,i,NULL);
 		}
 		Array_clear(sprite->events);
 	}
@@ -1129,9 +1144,6 @@ int Sprite_destroy(Sprite*sprite)
 
 	if(sprite->Bounds){
 		free(sprite->Bounds);
-	}
-	if(sprite->mouse){
-		free(sprite->mouse);
 	}
 	if(sprite->name){
 		free(sprite->name);
@@ -1292,12 +1304,17 @@ static int button_messagebox(void *eventNumber)
 	return button;
 }
 
+void setStageMouse(int x,int y){
+	if(stage->mouse == NULL){
+		stage->mouse = (SDL_Point*)malloc(sizeof(Point3d));
+	}
+	stage->mouse->x = x;
+	stage->mouse->y = y;
+}
 
 int PrintEvent(const SDL_Event * event)
 {
 	Sprite*target = NULL;
-	int mouseX = 0;
-	int mouseY = 0;
 	switch(event->type)
 	{
 		case SDL_QUIT:
@@ -1312,32 +1329,8 @@ int PrintEvent(const SDL_Event * event)
 			break;
 		case SDL_MOUSEBUTTONDOWN:
 		case SDL_MOUSEBUTTONUP:
-			//destroyQuitSprite();
-			mouseX = event->button.x;
-			mouseY = event->button.y;
-			/*
-			   SDL_Log("SDL_MOUSEBUTTONDOWN:timestamp:%d,windowID:%d,which:%d,button:%d,state:%d,clicks:%d,x:%d,y:%d\n"
-			   ,event->button.timestamp
-			   ,event->button.windowID
-			   ,event->button.which
-			   ,event->button.button
-			   ,event->button.state
-			   ,event->button.clicks
-			   ,mouseX
-			   ,mouseY
-			   );
-			   */
-			target = getSpriteByStagePoint(mouseX,mouseY);
-			//target = getSpriteByStagePoint(stage->mouse->x,stage->mouse->y);
-			if(target){
-				if(target->mouse==NULL){
-					target->mouse = (SDL_Point*)malloc(sizeof(SDL_Point));
-				}
-				target->mouse->x = mouseX;
-				target->mouse->y = mouseY;
-				//target->x += 1;
-				//Stage_redraw();
-			}
+			setStageMouse(event->button.x,event->button.y);
+			target = getSpriteByStagePoint(stage->mouse->x,stage->mouse->y);
 			stage->focus = target;
 			break;
 		case SDL_SYSWMEVENT:
@@ -1391,23 +1384,14 @@ int PrintEvent(const SDL_Event * event)
 			   SDL_GetKeyName(event->key.keysym.sym));
 			   */
 
-			//if(stage->mouse) target = getSpriteByStagePoint(stage->mouse->x,stage->mouse->y);
 			if(stage->focus)
 				Sprite_dispatchEvent(stage->focus,(SDL_Event*)event);//舞台事件
 			else
 				SDL_Log("SDL_KEYDOWN || SDL_KEYUP no focus\n");
 			break;
 		case SDL_MOUSEMOTION:
-			if(stage->sprite->mouse == NULL){
-				stage->sprite->mouse = (SDL_Point*)malloc(sizeof(Point3d));
-			}
-			stage->sprite->mouse->x = event->motion.x;
-			stage->sprite->mouse->y = event->motion.y;
-			mouseX = event->motion.x;
-			mouseY = event->motion.y;
-
-			if(stage->sprite->mouse)
-				target = getSpriteByStagePoint(stage->sprite->mouse->x,stage->sprite->mouse->y);
+			setStageMouse(event->motion.x,event->motion.y);
+			target = getSpriteByStagePoint(stage->mouse->x,stage->mouse->y);
 			if(target)
 			{
 				/*
@@ -1423,14 +1407,14 @@ int PrintEvent(const SDL_Event * event)
 				   );
 				   */
 				if(target->canDrag && event->motion.state){
-					if(abs(event->motion.xrel)<20 && abs(event->motion.xrel)<20)
+					if(abs(event->motion.xrel)<20 && abs(event->motion.yrel)<20)
 					{
 						target->x += event->motion.xrel;
 						target->y += event->motion.yrel;
 					}
 					Sprite_limitPosion(target,target->dragRect);
 					//if(target->mouse->x)
-					Stage_redraw();
+					//Stage_redraw();
 				}
 			}
 			//stage->focus = target;
@@ -1452,29 +1436,24 @@ int PrintEvent(const SDL_Event * event)
 			event->tfinger.pressure
 			);
 			*/
-
-			if(stage->sprite->mouse == NULL){
-				stage->sprite->mouse = (SDL_Point*)malloc(sizeof(SDL_Point));
-			}
-			stage->sprite->mouse->x = event->tfinger.x;
-			stage->sprite->mouse->y = event->tfinger.y;
+			setStageMouse(event->tfinger.x,event->tfinger.y);
 			target = getSpriteByStagePoint(event->tfinger.x,event->tfinger.y);
 			stage->focus = target;
 			break;
 		case SDL_MOUSEWHEEL:
-			if(stage->sprite->mouse){
-				/*
-				   SDL_Log("SDL_MOUSEWHEEL:timestamp:%d,windowID:%d,which:%d,x:%d,y:%d\n",//",direction:%d\n",
-				   event->wheel.timestamp,
-				   event->wheel.windowID,
-				   event->wheel.which,
-				   event->wheel.x,
-				   event->wheel.y
-				//,event->wheel.direction
-				);
-				*/
-				target = getSpriteByStagePoint(stage->sprite->mouse->x,stage->sprite->mouse->y);
-			}
+			/*
+			SDL_Log("SDL_MOUSEWHEEL:timestamp:%d,windowID:%d,which:%d,(x:%d,y:%d),deltaX:%d,deltaY:%d\n",//",direction:%d\n",
+					event->wheel.timestamp,
+					event->wheel.windowID,
+					event->wheel.which,
+					stage->mouse->x,
+					stage->mouse->y,
+					event->wheel.x,
+					event->wheel.y
+					//,event->wheel.direction
+				   );
+				   */
+			target = getSpriteByStagePoint(stage->mouse->x,stage->mouse->y);
 			//stage->focus = target;
 			break;
 		case SDL_WINDOWEVENT:
@@ -2137,15 +2116,15 @@ SDL_Surface * Stage_readpixel(Sprite *sprite,SDL_Rect* rect)
 extern Data3d * data2D;
 static void mouseDown(SpriteEvent*e)
 {
-	//Sprite * sprite1 = Sprite_getChildByName(stage,"sprite1");
+	if(e->target == stage->sprite)return;//e->target->y++;
+	//Sprite * sprite1 = Sprite_getChildByName(stage->sprite,"sprite1");
 	SDL_Log("mouseDown:-----------------------------%s,%d,%d,\n"
 			,e->target->name
-			,e->target->mouse->x
-			,e->target->mouse->y
+			,stage->mouse->x
+			,stage->mouse->y
 		   );
 	if(e->target->parent)
 		Sprite_addChild(e->target->parent,e->target);
-	if(e->target!= stage->sprite)e->target->y++;
 }
 
 static void mouseMove(SpriteEvent*e)
@@ -2181,7 +2160,7 @@ int main(int argc, char *argv[])
 		//return 0;
 	}else {
 		Sprite*sprite = Sprite_new();
-		stage->is3D = 1;
+		sprite->is3D = 1;
 #ifdef __ANDROID__
 		sprite->surface = SDL_LoadBMP("/sdcard/1.bmp");
 #else
@@ -2257,6 +2236,8 @@ sprite2->surface = SDL_LoadBMP("1.bmp");
 	sprite3->w = 100;
 	sprite3->h = 100;
 	Sprite_addChild(stage->sprite,sprite3);
+	//sprite3->visible = 0;
+	Sprite_addEventListener(sprite3,SDL_MOUSEBUTTONDOWN,mouseDown);
 	/***
 	  SDL_Log("stage ----------- size:%dx%d\n",stage->stage_w,stage->stage_h);
 	  Sprite *sprite4 = Sprite_new();

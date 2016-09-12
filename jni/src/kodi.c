@@ -170,8 +170,8 @@ void mouseDown(SpriteEvent * e)
 {
 	SDL_Log("mouseDown:-----------------------------%s,%d,%d,,\n"
 			,e->target->name
-			,e->target->mouse->x
-			,e->target->mouse->y
+			,stage->mouse->x
+			,stage->mouse->y
 		   );
 
 	pthread_t thread1;

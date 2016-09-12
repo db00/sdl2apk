@@ -14,7 +14,7 @@ int regex_error(regex_t * re,int err_no)
 	char errbuf [1024];
 	//int len = 
 	regerror(err_no, re, errbuf, sizeof(errbuf));
-	printf("error: %s\n", errbuf);
+	//printf("error: %s\n", errbuf);
 	regfree(re);
 	free(re);
 	return 0;

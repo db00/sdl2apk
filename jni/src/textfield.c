@@ -528,17 +528,20 @@ int drawLines(TextField*textfield)
 void mouseWheels(SpriteEvent*e)
 {
 	SDL_Event *event  = e->e;
-	if(event->type == SDL_MOUSEWHEEL)
-		SDL_Log("SDL_MOUSEWHEEL:timestamp:%d,windowID:%d,which:%d,x:%d,y:%d\n",//",direction:%d\n",
-				event->wheel.timestamp,
-				event->wheel.windowID,
-				event->wheel.which,
-				event->wheel.x,
-				event->wheel.y
-				//,event->wheel.direction
-			   );
-	TextField* textfield = (TextField*)e->target->obj;
-	Sprite *sprite = textfield->sprite;
+	/*
+	   if(event->type == SDL_MOUSEWHEEL)
+	   SDL_Log("SDL_MOUSEWHEEL:timestamp:%d,windowID:%d,which:%d,x:%d,y:%d,direction:%d\n",
+	   event->wheel.timestamp,
+	   event->wheel.windowID,
+	   event->wheel.which,
+	   event->wheel.x,
+	   event->wheel.y
+	   ,event->wheel.direction
+	   );
+
+*/
+	Sprite *sprite = e->target;
+	TextField * textfield = (TextField*)(sprite->obj);
 	if(textfield->textHeight<1)
 		return;
 
@@ -761,7 +764,7 @@ TextLine * TextLine_new()
 TextField * TextField_setText(TextField*textfield,char *s)
 {
 	if(textfield==NULL)
-		return textfield;
+		textfield = TextField_new();
 
 	if (SDL_LockMutex(textfield->mutex) < 0) {
 		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't lock mutex: %s", SDL_GetError());
@@ -774,6 +777,7 @@ TextField * TextField_setText(TextField*textfield,char *s)
 	textfield->textWidth = 0;
 	textfield->textHeight = 0;
 	textfield->length = 0;
+	textfield->scrollV= 0;
 	textfield->staticHeight = 0;
 
 	TextLine* line = textfield->lines;
@@ -807,8 +811,9 @@ TextField * TextField_setText(TextField*textfield,char *s)
 		textfield->mouseWheelEnabled = 1;
 
 		if(stage==NULL)
-			Stage_init(0);
+			Stage_init(1);
 	}
+	textfield->sprite->y = textfield->y;
 	if (SDL_UnlockMutex(textfield->mutex) < 0) {
 		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't unlock mutex: %s", SDL_GetError());
 		exit(1);
@@ -831,14 +836,12 @@ TextField * TextField_setText(TextField*textfield,char *s)
 int main(int argc, char *argv[])
 {
 	Stage_init(1);
-	TextField* txt = TextField_new();
-	txt->w = stage->stage_w;
-	txt->h = stage->stage_h;
+	TextField* txt = TextField_new();txt = TextField_setText(txt,getLinkedVersionString());
 	//txt->x = stage->stage_w/4;
 	//txt->y = stage->stage_h/4;
+	txt->w = stage->stage_w;
+	txt->h = stage->stage_h;
 	txt->sprite->canDrag = 1;
-	txt = TextField_setText(txt,getLinkedVersionString());
-	//txt = TextField_setText(txt,"ok");
 
 
 	//char *s =NULL;

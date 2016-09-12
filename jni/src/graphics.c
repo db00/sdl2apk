@@ -1,6 +1,6 @@
 /**
  * @file graphics.c
- gcc -g -Wall -I"include" -I"../SDL2/include/" -I"../SDL2_ttf/" -I"../SDL2_image/" graphics.c array.c tween.c ease.c base64.c ipstring.c sprite.c httploader.c mystring.c textfield.c files.c matrix.c -lSDL2_image -lssl -lcrypto -lSDL2_ttf -LGLESv2 -lm -lSDL2 -D debug_graphics && ./a.out
+ gcc -g -Wall -I"include" -I"../SDL2/include/" -I"../SDL2_ttf/" -I"../SDL2_image/" graphics.c utf8.c array.c tween.c ease.c sprite.c  mystring.c textfield.c files.c matrix.c -lSDL2_image -lssl -lcrypto -lSDL2_ttf -LGLESv2 -lm -lSDL2 -D debug_graphics && ./a.out
  * sprite 3d graphics using sampler
  * @author db0@qq.com
  * @version 1.0.1
@@ -194,7 +194,7 @@ static void mouseDown(SpriteEvent*e)
 		   );
 	if(e->target->parent)
 		Sprite_addChild(e->target->parent,e->target);
-	if(e->target!= stage)e->target->y++;
+	if(e->target!= stage->sprite)e->target->y++;
 }/*}}}*/
 
 static void mouseMove(SpriteEvent*e)
@@ -227,7 +227,7 @@ static void mouseMove(SpriteEvent*e)
 int main(int argc, char *argv[])
 {/*{{{*/
 	Stage_init(1);
-	Sprite_addEventListener(stage,SDL_MOUSEBUTTONDOWN,mouseDown);
+	Sprite_addEventListener(stage->sprite,SDL_MOUSEBUTTONDOWN,mouseDown);
 	if(stage->GLEScontext == NULL){
 		//return 0;
 	}else {
@@ -245,7 +245,7 @@ int main(int argc, char *argv[])
 		//Sprite_addChild(stage->sprite,sprite);
 
 		Sprite*container= Sprite_new();
-		Sprite_addChildAt(stage,container,0);
+		Sprite_addChildAt(stage->sprite,container,0);
 		Sprite_addChild(container,sprite);
 		//container->x = stage->stage_w/2;
 		//container->y = stage->stage_h/2;

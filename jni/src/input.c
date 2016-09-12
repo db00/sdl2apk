@@ -1,13 +1,12 @@
 /**
  *
- gcc -g -Wall -D test_ime -Wall utf8.c bytearray.c files.c array.c ease.c tween.c input.c mystring.c sprite.c matrix.c textfield.c -lm -I"../SDL2/include/"  -I"../SDL2_ttf/" -lSDL2 -lSDL2_ttf  && ./a.out
+ gcc -g -Wall -D debug_ime -Wall utf8.c bytearray.c files.c array.c ease.c tween.c input.c mystring.c sprite.c matrix.c textfield.c -lm -I"../SDL2/include/"  -I"../SDL2_ttf/" -lSDL2 -lSDL2_ttf  && ./a.out
  */
 
 #include "input.h"
 
 static void Input_redraw(Input *input) {
     input->textfield = TextField_setText(input->textfield,input->value);
-    Sprite_addChild(stage->sprite,input->sprite);
     TextField_setScrollV(input->textfield,TextField_getMaxScrollV(input->textfield));
     input->rect->x = input->sprite->x;
     input->rect->y = input->sprite->y;
@@ -169,7 +168,7 @@ void Input_clear(Input * input)
     }
 }
 
-#ifdef test_ime
+#ifdef debug_ime
 int main(int argc, char *argv[]) {
     Stage_init(1);
     if(stage==NULL)return 0;

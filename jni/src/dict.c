@@ -1,6 +1,7 @@
 /**
  *
- gcc -g -I"../SDL2/include/" files.c array.c mystring.c dict.c myregex.c regex.c -lm -Ddebug -DSTDC_HEADERS  -lmingw32 -lSDL2main -lSDL2 && a help
+ gcc -g -I"../SDL2/include/" files.c array.c mystring.c dict.c myregex.c -lm -D debug_dict  -lSDL2 && ./a.out help
+ gcc -g -I"../SDL2/include/" files.c array.c mystring.c dict.c myregex.c -lm -D debug_dict  -lmingw32 -lSDL2main -lSDL2 && a help
  gcc  -Wall files.c array.c mystring.c dict.c myregex.c -lm -Ddebug  && ./a.out help
  gcc  -Wall files.c mystring.c dict.c myregex.c regex.c -lm -Ddebug -DSTDC_HEADERS && a nude
  gcc -Wall mystrings.c dict.c myregex.c regex.c -lm -Ddebug -DSTDC_HEADERS -o ~/a && ~/a
@@ -339,7 +340,7 @@ char *Dict_explain(Dict* dict,char* target_word)
 	return Dict_getMean(dict,word);
 }
 
-Word**Dict_getWordList(Dict*dict,char*s,int * numWords)
+Array *Dict_getWordList(Dict*dict,char*s,int * numWords)
 {
 	int target_index = abs(Dict_getWordIndex(dict,s));
 	printf("%d,",target_index);
@@ -347,21 +348,23 @@ Word**Dict_getWordList(Dict*dict,char*s,int * numWords)
 	if(target_index >= dict->wordcount)
 		target_index = dict->wordcount-1;
 	int i = 0;
-	Word**ret = (Word**)malloc(sizeof(Word*)*(*numWords));
-	memset(ret,0,sizeof(Word*)*(*numWords));
+	Array *ret = NULL;
 	while(i<*numWords){
 		if(i+target_index >= dict->wordcount)
 			break;
-		ret[i] = dict->words + target_index + i;
-		if(ret[i]==NULL || ret[i]->word==NULL || strlen(ret[i]->word)==0)
+		Word * word = dict->words + target_index + i;
+
+		if(word==NULL || word->word==NULL || strlen(word->word)==0)
 			break;
+
+		ret = Array_setByIndex(ret,i,dict->words + target_index + i);
 		++i;
 	}
 	*numWords = i;
 	return ret;
 }
 
-#ifdef debug
+#ifdef debug_dict
 #ifdef WIN32
 #include "SDL.h"
 #endif
@@ -372,17 +375,19 @@ int main(int argc,char**argv)
 	dict->name = "oxford-gb";
 	int numWords = 10;
 	int _i=0;
-	Word**wordlist = Dict_getWordList(dict,"zz",&numWords);
+	Array *wordlist = Dict_getWordList(dict,"zz",&numWords);
+	printf("\n %d\n",numWords);
 	while(_i<numWords)
 	{
-		Word*word = wordlist[_i];
+		Word*word = Array_getByIndex(wordlist,_i);
 		if(word)
 			printf("%s\n",word->word);
 		++_i;
 	}
+	Array_clear(wordlist);
 
 
-	//return 0;
+	return 0;
 	char* explain;
 	explain = Dict_explain(dict,"go");
 	if(explain==NULL)return 0;

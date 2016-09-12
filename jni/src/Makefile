@@ -37,7 +37,7 @@ else
 	TARGET:= ./a.out
 	LIB:=-lSDL2_image -lSDL2_ttf -lSDL2_mixer -LGLESv2 -lm -lSDL2 -ldl -lssl -lcrypto -lpthread -lsqlite3 -D test_ime -D debug_pdf -D test_video -lavformat -lavcodec -lavutil -lswscale 
 	SRC:=\
-		sprite.c matrix.c myregex.c kodi.c utf8.c jsonrpc.c files.c httploader.c ipstring.c mystring.c cJSON.c \
+		sprite.c matrix.c input.c myregex.c kodi.c utf8.c jsonrpc.c files.c httploader.c ipstring.c mystring.c cJSON.c \
 		dict.c \
 		readbaidu.c update.c testime.c textfield.c \
 		tween.c ease.c \
@@ -49,8 +49,7 @@ OBJS:= $(patsubst %.c,%.o,$(SRC))
 CFLAGS =  -g $(INCLUDE) $(DEFINES) $(LIB)
 
 all:$(TARGET)
-	$(TARGET)
-#gdb $(TARGET)
+	gdb $(TARGET)
 	@echo "all ok"
 
 $(TARGET):$(OBJS)

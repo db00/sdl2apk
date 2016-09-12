@@ -1,6 +1,6 @@
 /**
  * @file dict.h
- gcc -Wall dict.c files.c myregex.c regex.c ic.c mystring.c -lSDL2 -lm -Ddebug -DSTDC_HEADERS   && ./a.out nude
+ gcc -Wall dict.c files.c myregex.c array.c mystring.c -lSDL2 -lm -D debug_dict  && ./a.out nude
  gcc -Wall dict.c files.c myregex.c regex.c ic.c -lm -Ddebug -DSTDC_HEADERS -liconv && a nude
  *  
  * @author db0@qq.com
@@ -13,10 +13,10 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include "dict.h"
 #include "mystring.h"
 #include "myregex.h"
 #include "files.h"
+#include "array.h"
 
 typedef struct
 {
@@ -50,6 +50,6 @@ Word*Dict_getWord(Dict *dict,char * target_word);
 char *Dict_getByIndex(Dict * dict,int id);
 char *Dict_explain(Dict* dict,char* target_word);
 char *Dict_getMean(Dict* dict,Word* word);
-Word**Dict_getWordList(Dict*dict,char*s,int* numWords);
+Array *Dict_getWordList(Dict*dict,char*s,int* numWords);
 
 #endif// dbs_h_libiao

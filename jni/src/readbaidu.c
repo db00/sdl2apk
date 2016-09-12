@@ -171,6 +171,12 @@ int Sound_play(void *url)
  */
 void READ_loadSound(char *word,int type)
 {
+	if(mutex==NULL){
+		if ((mutex = SDL_CreateMutex()) == NULL) {
+			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create mutex: %s\n", SDL_GetError());
+			return ;
+		}
+	}
 
 	SDL_Thread *thread;
 	static char url[1024];

@@ -98,6 +98,7 @@ typedef struct World3d{
 } World3d;
 
 typedef struct Sprite{
+	int is3D;
 	char* name;
 	int visible;
 	SDL_Rect* Bounds;//鼠标响应区
@@ -105,7 +106,6 @@ typedef struct Sprite{
 	SDL_Texture * texture;//显示信息
 	SDL_Rect*dragRect;//非null可拖拽
 	SDL_bool canDrag;//可拖拽
-	SDL_Point*mouse;//鼠标位置
 	struct Sprite*parent;//显示在舞台的父节点
 	Array *children;//Sprite Array 子节点数组;
 	SDL_bool mouseChildren;//鼠标可点击到子节点
@@ -153,6 +153,7 @@ typedef struct Stage{
 	SDL_Window* window;//
 	Sprite* focus;//舞台焦点
 	Sprite* sprite;//舞台焦点
+	SDL_Point*mouse;//鼠标位置
 	int stage_w;
 	int stage_h;
 }Stage;

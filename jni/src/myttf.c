@@ -1,6 +1,6 @@
 /**
  * @file myttf.c
- gcc -Wall -I"../SDL2/include/" -I"../SDL2_ttf/" -I"../SDL2_image" matrix.c -lm myttf.c sprite.c mystring.c -lSDL2_ttf -lSDL2 -Ddebug && ./a.out
+ gcc -Wall -I"../SDL2/include/" -I"../SDL2_ttf/" -I"../SDL2_image" matrix.c -lm myttf.c tween.c ease.c array.c sprite.c mystring.c -lSDL2_ttf -lSDL2 -Ddebug && ./a.out
  gcc -Wall -I"../SDL2/include/" -I"../SDL2_image/" -I"../SDL2_ttf/"  myttf.c sprite.c matrix.c -lSDL2_ttf -lmingw32 -lSDL2_test -lSDL2main -lSDL2 -Ddebug && a
  gcc -Wall -I"../SDL2/include/" -I"../SDL2_image/" -I"../SDL2_ttf/"  myttf.c sprite.c -lSDL2_ttf -lm -lSDL2 -Ddebug && ./a.out
  *  
@@ -46,7 +46,8 @@ int listDir2(const char *path,char **fileList,int * numFile,char**suffixs)
 
 		if(strcmp(ent->d_name,".")==0 || strcmp(ent->d_name,"..")==0) 
 		{
-			if(curFile)free(curFile); curFile = NULL;
+			if(curFile)free(curFile);
+			curFile = NULL;
 			continue; 
 		}
 

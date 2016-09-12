@@ -1442,17 +1442,17 @@ int PrintEvent(const SDL_Event * event)
 			break;
 		case SDL_MOUSEWHEEL:
 			/*
-			SDL_Log("SDL_MOUSEWHEEL:timestamp:%d,windowID:%d,which:%d,(x:%d,y:%d),deltaX:%d,deltaY:%d\n",//",direction:%d\n",
-					event->wheel.timestamp,
-					event->wheel.windowID,
-					event->wheel.which,
-					stage->mouse->x,
-					stage->mouse->y,
-					event->wheel.x,
-					event->wheel.y
-					//,event->wheel.direction
-				   );
-				   */
+			   SDL_Log("SDL_MOUSEWHEEL:timestamp:%d,windowID:%d,which:%d,(x:%d,y:%d),deltaX:%d,deltaY:%d\n",//",direction:%d\n",
+			   event->wheel.timestamp,
+			   event->wheel.windowID,
+			   event->wheel.which,
+			   stage->mouse->x,
+			   stage->mouse->y,
+			   event->wheel.x,
+			   event->wheel.y
+			//,event->wheel.direction
+			);
+			*/
 			target = getSpriteByStagePoint(stage->mouse->x,stage->mouse->y);
 			//stage->focus = target;
 			break;
@@ -1565,21 +1565,24 @@ void Stage_loopEvents()
 	while (!done) {
 		SDL_Event event;
 		//memset(&event,0,sizeof(event));
-#ifdef __ANDROID__
+#ifdef __ANDROID__  
 		if(SDL_WaitEvent(&event))
 #else
-			if(SDL_PollEvent(&event)) 
+#if SDL_VIDEO_DRIVER_RPI
+			if(SDL_WaitEvent(&event))
 #endif
-			{
-				if(SDL_QUIT == event.type) {
-					done = 1;
-					quit(0);
-					break;
+				if(SDL_PollEvent(&event)) 
+#endif
+				{
+					if(SDL_QUIT == event.type) {
+						done = 1;
+						quit(0);
+						break;
+					}
+					if(PrintEvent(&event)){
+						break;
+					}
 				}
-				if(PrintEvent(&event)){
-					break;
-				}
-			}
 	}
 }
 

@@ -53,6 +53,35 @@ void Sound_clear()
 	Mix_CloseAudio();
 }
 
+int Sound_playData(char * data,int data_length)
+{
+	Sound_init();
+	Mix_Music *music = NULL;
+	while(1)
+	{
+		/* Load the requested music file */
+		music = Mix_LoadMUS_RW(SDL_RWFromConstMem(data,data_length), SDL_TRUE);
+		if(music){
+			if(Mix_PlayMusic(music,0) == -1)
+			{
+				fprintf(stderr,"play failure ,%s\n",(char*)Mix_GetError());  
+				break;
+			}
+			while(Mix_PlayingMusic() ) {
+				SDL_Delay(100);
+			}
+			Mix_FreeMusic(music);
+			music = NULL;
+		}else{
+			Sound_clear();
+			return 1;
+		}
+		break;
+	}
+	Sound_clear();
+	return 0;
+}
+
 
 int Sound_playFile(char * fileName)
 {
@@ -126,11 +155,15 @@ int Sound_playUrl(void *url,char * _name)
 #endif
 		printf("\n%s\n",fileName);
 
-		if(writefile(fileName,data,data_length)==0) {
-			printf("writefile successfully!\n");
+		if(Sound_playData(data,data_length)==0)
+		{
+			printf("data play successfully!\n");
+		}else{
+			if(writefile(fileName,data,data_length)==0) {
+				printf("writefile successfully!\n");
+			}
+			Sound_playFile(fileName);
 		}
-
-		Sound_playFile(fileName);
 
 		free(fileName);
 		if (SDL_UnlockMutex(mutex) < 0) {

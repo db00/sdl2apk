@@ -134,7 +134,7 @@ TTF_Font * getFontByPath(char * path,int fontSize)
 
 TTF_Font * getDefaultFont(int fontSize)
 {
-	SDL_Log("%s DEFAULT",DEFAULT_TTF_FILE);
+	//SDL_Log("%s DEFAULT",DEFAULT_TTF_FILE);
 	return TTF_OpenFont(DEFAULT_TTF_FILE, fontSize);
 }
 
@@ -445,8 +445,7 @@ int drawLines(TextField*textfield)
 	}
 	if(sprite->canDrag){
 		Sprite_addEventListener(sprite,SDL_MOUSEMOTION,mouseWheels);
-		if(textfield->staticHeight)
-			Sprite_addEventListener(sprite,SDL_MOUSEBUTTONUP,mouseWheels);
+		if(textfield->staticHeight) Sprite_addEventListener(sprite,SDL_MOUSEBUTTONUP,mouseWheels);
 	}
 
 	//SDL_SpinLock lock = 0;
@@ -548,7 +547,7 @@ void mouseWheels(SpriteEvent*e)
 	int moreDrawHeight = TextField_getMoreDrawHeight(textfield);
 
 	if(event->type == SDL_MOUSEBUTTONUP && (sprite->y+moreDrawHeight!=textfield->y)){
-		printf("mouse---------------\n");fflush(stdout);
+		//SDL_Log("mouse---------------\n");fflush(stdout);
 		drawLines(textfield);
 		return;
 	}
@@ -557,6 +556,7 @@ void mouseWheels(SpriteEvent*e)
 	int fontheight = TTF_FontHeight(textfield->format->font);
 	if(textfield && textfield->lines){
 		if(textfield->staticHeight){
+			//SDL_Log("drag staticHeight---------------\n");fflush(stdout);
 			sprite->canDrag = 0;
 			int deltaY = 0;
 			if(event->type == SDL_MOUSEWHEEL){
@@ -580,14 +580,6 @@ void mouseWheels(SpriteEvent*e)
 						else if((sprite->y + textfield->scrollV) +(textfield->textHeight-TextField_getMoreDrawHeight(textfield)*2) < textfield->y)//bottom
 							sprite->y = textfield->y - (textfield->textHeight-TextField_getMoreDrawHeight(textfield)*2) - textfield->scrollV;
 
-						/*
-						   SDL_Rect dragRect;
-						   dragRect.x = sprite->x;
-						   dragRect.y = (sprite->y + textfield->scrollV);
-						   dragRect.w = 0;
-						   dragRect.h = textfield->textHeight - textfield->h + (sprite->y + textfield->scrollV);
-						//Sprite_limitPosion(sprite,&dragRect);
-						*/
 						TextField_drawPostionBar(textfield);
 					}
 				}
@@ -600,6 +592,17 @@ void mouseWheels(SpriteEvent*e)
 					sprite->y -= textfield->lines->rect.h;
 				}
 				drawLines(textfield);
+			}else if(event->motion.state){
+				if(abs(event->motion.xrel)<20 && abs(event->motion.xrel)<20)
+				{
+					sprite->y += event->motion.yrel;
+					if(sprite->y + textfield->scrollV > textfield->y)//top
+						sprite->y = textfield->y - textfield->scrollV;
+					else if((sprite->y + textfield->scrollV) +(textfield->textHeight-TextField_getMoreDrawHeight(textfield)*2) < textfield->y)//bottom
+						sprite->y = textfield->y - (textfield->textHeight-TextField_getMoreDrawHeight(textfield)*2) - textfield->scrollV;
+
+					TextField_drawPostionBar(textfield);
+				}
 			}
 		}
 	}
@@ -836,7 +839,7 @@ TextField * TextField_setText(TextField*textfield,char *s)
 int main(int argc, char *argv[])
 {
 	Stage_init(1);
-	TextField* txt = TextField_new();txt = TextField_setText(txt,getLinkedVersionString());
+	TextField* txt = TextField_new();//txt = TextField_setText(txt,getLinkedVersionString());
 	//txt->x = stage->stage_w/4;
 	//txt->y = stage->stage_h/4;
 	txt->w = stage->stage_w;
@@ -864,6 +867,7 @@ int main(int argc, char *argv[])
 	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
 	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
 	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+#if 0
 	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
 	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
 	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
@@ -887,6 +891,7 @@ int main(int argc, char *argv[])
 	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
 	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
 	txt = TextField_appendText(txt,"一二三四五六七八九十一二三四五六七八九十end\n");
+#endif
 	//txt = TextField_setText(txt,"一二三四五六七八九十一二三四五六七八九十end\n");
 	txt = TextField_appendText(txt,"一二三四五六七八九十一二三四五六七八九十end\n");
 	Sprite_addChild(stage->sprite,txt->sprite); 

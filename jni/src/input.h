@@ -8,6 +8,7 @@ typedef struct Input
     Sprite *sprite;
 	SDL_Rect *rect;
     char * value;
+	void (*textChangFunc)(struct Input*);
 }Input;
 Input * Input_new(int w,int h);
 void Input_clear(Input * input);

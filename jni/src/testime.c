@@ -56,9 +56,10 @@ char * showExplain(char *explain)
         TextField_setText(textfield,explain);
     }
     if(curlistSprite)
+    {
         curlistSprite->visible = SDL_FALSE;
-
-    UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//Stage_redraw
+        UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//Stage_redraw
+    }
 
     return explain;
 }
@@ -149,22 +150,20 @@ void mouseMoves(SpriteEvent*e)
             target->obj= e;
         }
         Sprite_limitPosion(target,target->dragRect);
-        //Stage_redraw();
-        UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//Stage_redraw
+        Redraw(NULL);
     }
 }
 
 Sprite * makeWordlist(char * curWord)
 {
-    if(curlistSprite){
-        Sprite_destroy(curlistSprite);
-        curlistSprite = NULL;
-    }
-
-    if(curWord && strlen(curWord))
+    if(curWord==NULL || strlen(curWord)==0)
     {
-    }else{
         return NULL;
+    }
+    if(curlistSprite){
+        Sprite_removeChildren(curlistSprite);
+        curlistSprite->x = 0;
+        curlistSprite->y = input->sprite->h;
     }
 
     int fontSize = 20*stage->stage_h/320;
@@ -176,14 +175,8 @@ Sprite * makeWordlist(char * curWord)
     {
         Word*word = Array_getByIndex(wordlist,_i);
         if(word){
-            if(curlistSprite==NULL){
-                curlistSprite = Sprite_new();
-                curlistSprite->x = 0;
-                curlistSprite->y = input->sprite->h;
-            }
             printf("%s\n",word->word);
             Sprite * sprite = Sprite_newText(word->word,fontSize,0x0,0xffffffff);
-            Sprite_addChild(curlistSprite,sprite);
             sprite->obj= word;
             //sprite->filter = 0;
             if(sprite->name)
@@ -192,20 +185,11 @@ Sprite * makeWordlist(char * curWord)
             Sprite_addEventListener(sprite,SDL_MOUSEBUTTONDOWN,selectedEvent);
             Sprite_addEventListener(sprite,SDL_MOUSEBUTTONUP,selectedEvent);
             sprite->y = _i* fontSize*1.5;
+            Sprite_addChild(curlistSprite,sprite);
         }
         ++_i;
     }
-    if(curlistSprite){
-        SDL_Rect * rect = malloc(sizeof(*rect));
-        rect->x = curlistSprite->x;
-        rect->y = curlistSprite->y-fontSize*1.5*(_i-1);
-        rect->w = 0;
-        rect->h = fontSize*1.5*(_i-1);
-        curlistSprite->dragRect = rect;
-        curlistSprite->surface = Surface_new(stage->stage_w,_i*fontSize*1.5);
-        Sprite_addEventListener(curlistSprite,SDL_MOUSEMOTION,mouseMoves);
-    }
-    Array_clear(wordlist);
+    //Array_clear(wordlist);
     return curlistSprite;
 }
 
@@ -215,45 +199,45 @@ void keyupEvent(SpriteEvent* e){
     const char * kname = SDL_GetKeyName(event->key.keysym.sym);
     if(!strcmp(kname,"Menu"))
     {
-        return;
+        dictContainer->visible = (0==Kodi_initBtns());
+    }else{
+        switch (event->key.keysym.sym)
+        {
+            case SDLK_MENU:
+                dictContainer->visible = (0==Kodi_initBtns());
+                break;
+            case SDLK_RETURN:
+                if(strlen(input->value)>0){
+                    searchWord(input->value);
+                    Input_setText(input,"");
+                }else{
+                    Input_setText(input,"输入单词，回车查询！");
+                }
+                break;
+            default:
+                break;
+        }
     }
+    if(dictContainer->visible)
+        Sprite_addChild(stage->sprite,dictContainer);
+    // stage->focus = input->sprite;
+    Redraw(NULL);
+}
+
+void textChangFunc(Input * input){
     if(dictContainer->visible && strlen(input->value)>0)
     {
-        curlistSprite = makeWordlist(input->value);
-        if(curlistSprite)
-            Sprite_addChild(dictContainer,curlistSprite);
+        SDL_Log("text input changed!");
+        makeWordlist(input->value);
+        curlistSprite->visible = 1;
         Redraw(NULL);
     }
 }
-
-void keydownEvent(SpriteEvent* e){
-    SDL_Event *event = e->e;
-    const char * kname = SDL_GetKeyName(event->key.keysym.sym);
-    if(!strcmp(kname,"Menu"))
-    {
-        dictContainer->visible = (0==Kodi_initBtns());
-        return;
-    }
-
-    SDL_Log("keydownEvent: %08X,%08X,%08X",event->key.keysym.sym,event->key.keysym.scancode,SDLK_MENU);
-    switch (event->key.keysym.sym)
-    {
-        case SDLK_MENU:
-            dictContainer->visible = (0==Kodi_initBtns());
-            return;
-            break;
-        case SDLK_RETURN:
-            if(strlen(input->value)>0){
-                searchWord(input->value);
-                Input_setText(input,"");
-            }else{
-                Input_setText(input,"输入单词，回车查询！");
-            }
-            break;
-        default:
-            break;
-    }
+void stopInput(SpriteEvent* e){
+    stage->focus = NULL;
+    SDL_StopTextInput();
 }
+
 
 void droppedFile(SpriteEvent*e){
     SDL_Event* event = (SDL_Event*)(e->e);
@@ -280,10 +264,12 @@ void *uiThread(void *ptr){
     textfield = TextField_new();
     textfield->sprite->canDrag = 1;
     Sprite_addChild(dictContainer,textfield->sprite);
+    Sprite_addEventListener(textfield->sprite,SDL_MOUSEBUTTONDOWN,stopInput); 
 
 
 
     input = Input_new(stage->stage_w,16);
+    input->textChangFunc = textChangFunc;
     Sprite_addChild(dictContainer,input->sprite);
     stage->focus = input->sprite;
 
@@ -292,6 +278,22 @@ void *uiThread(void *ptr){
     textfield->w = stage->stage_w;
     //textfield->h = stage->stage_h - input->sprite->h;
     textfield->y = input->sprite->h;
+
+
+    if(curlistSprite==NULL){
+        int numWords = 10;
+        int fontSize = 16;
+        curlistSprite = Sprite_new();
+        SDL_Rect * rect = malloc(sizeof(*rect));
+        rect->x = curlistSprite->x;
+        rect->y = input->sprite->y-fontSize*1.5*(numWords-1);
+        rect->w = 0;
+        rect->h = fontSize*1.5*numWords;
+        curlistSprite->dragRect = rect;
+        curlistSprite->surface = Surface_new(stage->stage_w,numWords*fontSize*1.5);
+        Sprite_addChild(dictContainer,curlistSprite);
+        Sprite_addEventListener(curlistSprite,SDL_MOUSEMOTION,mouseMoves);
+    }
 
     SDL_StartTextInput();
     //pthread_exit(NULL);  
@@ -328,7 +330,6 @@ int main(int argc, char *argv[]) {
 
     uiThread(NULL);
 
-    Sprite_addEventListener(stage->sprite,SDL_KEYDOWN,keydownEvent); 
     Sprite_addEventListener(stage->sprite,SDL_KEYUP,keyupEvent); 
     Sprite_addEventListener(stage->sprite,SDL_DROPFILE,droppedFile);
     Stage_loopEvents();

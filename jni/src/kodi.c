@@ -233,9 +233,9 @@ static void sendMove()
 	char * url = NULL;
 	pthread_t thread1;
 	if(deltaX >=0 && deltaY>=0)
-		url = append_str(NULL,"http://%s:8809/?f=system&p1=xdotool%smousemove_relative%s%d%s%d",host,"%%20","%%20", deltaX*2,"%%20", deltaY*2);
+		url = append_str(NULL,"http://%s:8809/?f=system&p1=xdotool%smousemove_relative%s%d%s%d",host,"%20","%20", deltaX*2,"%20", deltaY*2);
 	else
-		url = append_str(NULL,"http://%s:8809/?f=system&p1=xdotool%smousemove_relative%s--%s%d%s%d",host,"%%20","%%20", "%%20", deltaX*2,"%%20", deltaY*2);
+		url = append_str(NULL,"http://%s:8809/?f=system&p1=xdotool%smousemove_relative%s--%s%d%s%d",host,"%20","%20", "%20", deltaX*2,"%20", deltaY*2);
 	if(pthread_create(&thread1, NULL, sendUrl, url)!=0)//创建子线程  
 	{  
 		perror("pthread_create");  
@@ -270,9 +270,9 @@ static void mousehandl(SpriteEvent*e)
 			  )	
 			{
 				if(mouseDownX<stage->stage_w*2/3)
-					url = append_str(NULL,"http://%s:8809/?f=system&p1=xdotool%sclick%s1",host, "%%20","%%20");
+					url = append_str(NULL,"http://%s:8809/?f=system&p1=xdotool%sclick%s1",host, "%20","%20");
 				else
-					url = append_str(NULL,"http://%s:8809/?f=system&p1=xdotool%sclick%s3",host, "%%20","%%20");
+					url = append_str(NULL,"http://%s:8809/?f=system&p1=xdotool%sclick%s3",host, "%20","%20");
 				//char * url = append_str(NULL,"http://%s:8809/bin/xdotool?click&1",host);
 				//sendUrl(url); return;
 				if(pthread_create(&thread1, NULL, sendUrl, url)!=0)//创建子线程  
@@ -315,7 +315,7 @@ static void showEearth()
 	sprite->name = malloc(sizeof(sname)+1);
 	memset(sprite->name,0,sizeof(sname)+1);
 	strcpy(sprite->name,sname);
-	stage->is3D = 1;
+	sprite->is3D = 1;
 #ifdef __ANDROID__
 	sprite->surface = IMG_Load("/sdcard/1.bmp");
 #else

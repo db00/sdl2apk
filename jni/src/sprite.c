@@ -1341,6 +1341,7 @@ int PrintEvent(const SDL_Event * event)
 		case SDL_KEYDOWN:
 		case SDL_KEYUP:
 
+			/*
 			SDL_Log("KeyboardEvent# scancode:0x%08X=%s, keycode:0x%08X=%s, state:%d, repeat:%d, mod:%d\n",
 					event->key.keysym.scancode,
 					SDL_GetScancodeName(event->key.keysym.scancode),
@@ -1351,6 +1352,7 @@ int PrintEvent(const SDL_Event * event)
 					,event->key.keysym.mod
 				   );
 			fflush(stdout);
+			*/
 			if(event->type==SDL_KEYUP && event->key.repeat==0)
 			{
 				if(event->key.keysym.sym== SDLK_AC_BACK || event->key.keysym.sym == SDLK_ESCAPE){
@@ -1372,17 +1374,8 @@ int PrintEvent(const SDL_Event * event)
 				}else{
 					//destroyQuitSprite();
 				}
-				Stage_redraw();
+				//Stage_redraw();
 			}
-			if(event->key.keysym.sym!= SDLK_AC_BACK && event->key.keysym.sym!= SDLK_ESCAPE){
-				//destroyQuitSprite();
-			}
-			/*
-			   if(event->key.keysym.scancode != SDL_GetScancodeFromKey(event->key.keysym.sym))
-			   SDL_Log(" Physical %s key acting as %s key\n",
-			   SDL_GetScancodeName(event->key.keysym.scancode),
-			   SDL_GetKeyName(event->key.keysym.sym));
-			   */
 
 			if(stage->focus)
 				Sprite_dispatchEvent(stage->focus,(SDL_Event*)event);//舞台事件

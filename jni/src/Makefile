@@ -3,7 +3,7 @@ PROJ_PATH=../..
 NDK_HOME:= $(HOME)/android-ndk-r10
 SDK_HOME:= $(HOME)/android-sdk-linux/tools
 APK_DIR:= $(PROJ_PATH)/bin
-APP_NAME=SDLAndroidTest
+APP_NAME=test
 PACKAGE:=org.libsdl.app
 APK:= $(APK_DIR)/$(APP_NAME)-debug.apk
 CC:=gcc
@@ -70,6 +70,7 @@ upload: $(APK)
 install:
 	adb shell pm uninstall $(PACKAGE)
 	adb install -r $(APK) && adb shell am start -a android.intenon.MAIN -n $(PACKAGE)/.SDLActivity 
+#	adb shell logcat SDL:V *:I | grep sdl
 
 apk:
 #	$(SDK_HOME)/tools/android create project -n $(APP_NAME) -t 14 -p $(PROJ_PATH) -k $(PACKAGE) -a $(APP_NAME)
@@ -81,7 +82,7 @@ apk:
 #	adb install -r -s $(APK) && adb shell am start -a android.intenon.MAIN -n $(PACKAGE)/.SDLActivity
 	adb install -r $(APK) && adb shell am start -a android.intenon.MAIN -n $(PACKAGE)/.SDLActivity
 	adb push $(APK) /sdcard/
-	adb shell logcat SDL:V *:I
+#	adb shell logcat SDL:V *:I
 
 push:
 	adb push $(APK) /sdcard/

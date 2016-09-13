@@ -23,7 +23,7 @@ LOCAL_C_INCLUDES := \
 
 # Add your application source files here...
 LOCAL_SRC_FILES := $(SDL_PATH)/src/main/android/SDL_android_main.c \
-	sprite.c matrix.c myregex.c kodi.c jsonrpc.c files.c sdlfiles.c httploader.c ipstring.c mystring.c cJSON.c  \
+	input.c utf8.c sprite.c matrix.c myregex.c kodi.c jsonrpc.c files.c sdlfiles.c httploader.c ipstring.c mystring.c cJSON.c  \
 	urlcode.c filetypes.c httpserver.c array.c base64.c \
 	dict.c \
 	readbaidu.c update.c regex.c textfield.c \

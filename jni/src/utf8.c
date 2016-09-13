@@ -68,6 +68,7 @@ Array * UTF8_each(const char * utf8)
 	return array;
 }
 
+#ifndef __ANDROID__
 char * UTF8_encodeTo(char* inbuf,size_t * outlen,char * coding){
 	size_t inlen =strlen(inbuf);
 	iconv_t cd=iconv_open(coding,"UTF-8");
@@ -99,6 +100,7 @@ char * UTF8_readFrom(char* inbuf,size_t * outlen,char * coding){
 	iconv_close(cd);
 	return outbuf;
 }
+#endif
 
 #ifdef debug_utf8
 int main()

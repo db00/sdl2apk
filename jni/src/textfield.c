@@ -628,7 +628,7 @@ char * getTextLineText(TextField*textfield,TextLine*line)
 
 TextField *TextField_appendText(TextField*textfield,char*s)
 {
-	if(s == NULL)
+	if(s == NULL && strlen(s)==0)
 		return textfield;
 	if(textfield == NULL)
 		textfield = TextField_new();

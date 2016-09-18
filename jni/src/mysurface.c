@@ -161,10 +161,32 @@ Sprite * Sprite_newText(char *s,int fontSize,Uint32 fontColor,Uint32 bgColor)
 		}else{
 			sprite->surface = TTF_RenderUTF8_Solid(font,s,*color);
 		}
+		sprite->w = sprite->surface->w;
+		sprite->h = sprite->surface->h;
+		//SDL_Log("text size:%dx%d",sprite->surface->w,sprite->surface->h);
 		TTF_CloseFont(font);
+	}else{
+		SDL_Log("font ERROR!");
 	}
+	sprite->obj = contact_str("",s);
 	free(color);
 	free(color2);
+	return sprite;
+}
+Sprite * Sprite_newImg(char *url)
+{
+	Sprite * sprite = Sprite_new();
+	if(url){
+		if(strncmp(url,"http://",7)==0 || strncmp(url,"https://",8)==0 )
+		{
+			sprite->surface = Httploader_loadimg(url);
+		}else{
+			sprite->surface = IMG_Load(url);
+		}
+		sprite->w = sprite->surface->w;
+		sprite->h = sprite->surface->h;
+	}
+	sprite->obj = url;
 	return sprite;
 }
 

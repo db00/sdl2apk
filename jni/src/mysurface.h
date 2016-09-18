@@ -11,6 +11,7 @@
 #endif
 //SDL_Surface * render2surface(SDL_Renderer*renderer);
 
+Sprite * Sprite_newImg(char *url);
 Sprite * Sprite_newText(char *s,int fontSize,Uint32 fontColor,Uint32 bgColor);
 SDL_Surface * Httploader_loadimg(char * url);
 void Sprite_alertText(char * s);//显示弹窗

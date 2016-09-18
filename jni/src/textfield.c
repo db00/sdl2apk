@@ -135,6 +135,15 @@ TTF_Font * getFontByPath(char * path,int fontSize)
 
 TTF_Font * getDefaultFont(int fontSize)
 {
+	if(!TTF_WasInit())
+	{
+		if ( TTF_Init() < 0 ) {
+			fprintf(stderr, "Couldn't initialize TTF: %s\n",SDL_GetError());
+			SDL_Quit();
+			return NULL;
+		}
+	}
+
 	//SDL_Log("%s DEFAULT",DEFAULT_TTF_FILE);
 	return TTF_OpenFont(DEFAULT_TTF_FILE, fontSize);
 }

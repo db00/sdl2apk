@@ -135,6 +135,7 @@ Input * Input_new(int w,int h)
 #else
 	textfield->format->font = getFontByPath("DroidSansFallback.ttf",h);
 #endif
+	//textfield->textColor = uintColor(0x330000ff);
 	input->textfield = textfield;
 	textfield->w = w;
 	textfield->h = h;

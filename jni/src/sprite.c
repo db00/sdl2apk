@@ -2034,11 +2034,11 @@ void Sprite_center(Sprite*sprite,int x,int y,int w,int h)
 	if(sprite == NULL)return;
 	if(sprite->w * sprite->h > 0){
 	}else if(sprite->surface){
-		sprite->w = sprite->surface->h;
+		sprite->w = sprite->surface->w;
 		sprite->h = sprite->surface->h;
 	}
-	sprite->x = w/2 - sprite->w/2;
-	sprite->y = h/2 - sprite->h/2;
+	sprite->x = x + w/2 - sprite->w/2;
+	sprite->y = y + h/2 - sprite->h/2;
 }
 void Sprite_centerRect(Sprite*sprite,SDL_Rect*rect)
 {
@@ -2053,7 +2053,7 @@ void Sprite_fullcenter(Sprite*sprite,int x,int y,int w,int h)
 	if(sprite == NULL)return;
 	if(sprite->w * sprite->h == 0){
 		if(sprite->surface){
-			sprite->w = sprite->surface->h;
+			sprite->w = sprite->surface->w;
 			sprite->h = sprite->surface->h;
 		}else{
 			return;

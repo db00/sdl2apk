@@ -129,7 +129,8 @@ TTF_Font * getFontByPath(char * path,int fontSize)
 			return TTF_OpenFont(font->fontpath, fontSize);
 		}
 	}
-	return NULL;
+	//return NULL;
+	return getDefaultFont(fontSize);
 }
 
 TTF_Font * getDefaultFont(int fontSize)
@@ -628,7 +629,7 @@ char * getTextLineText(TextField*textfield,TextLine*line)
 
 TextField *TextField_appendText(TextField*textfield,char*s)
 {
-	if(s == NULL && strlen(s)==0)
+	if(s == NULL || strlen(s)==0)
 		return textfield;
 	if(textfield == NULL)
 		textfield = TextField_new();
@@ -842,6 +843,7 @@ int main(int argc, char *argv[])
 	TextField* txt = TextField_new();//txt = TextField_setText(txt,getLinkedVersionString());
 	//txt->x = stage->stage_w/4;
 	//txt->y = stage->stage_h/4;
+	txt->format->font = getFontByPath("DroidSansFallback.ttf",24);
 	txt->w = stage->stage_w;
 	txt->h = stage->stage_h;
 	txt->sprite->canDrag = 1;

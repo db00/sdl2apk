@@ -1,6 +1,6 @@
 /**
  *
- gcc -g -D debug_kodi -Wall -I"../SDL2/include/" -I"../SDL2_image" -I"../SDL2_ttf/" -lSDL2_ttf -lSDL2_image -lSDL2 textfield.c httpserver.c array.c filetypes.c urlcode.c dict.c sqlite.c tween.c ease.c sprite.c matrix.c myregex.c kodi.c jsonrpc.c files.c httploader.c ipstring.c mystring.c cJSON.c base64.c -lssl -lsqlite3 -lpthread -ldl -lcrypto -lm && ./a.out  
+ gcc -g -D debug_kodi -I"../SDL2/include/" -I"../SDL2_image" -I"../SDL2_ttf/" -lSDL2_ttf -lSDL2_image -lSDL2 utf8.c textfield.c httpserver.c array.c filetypes.c urlcode.c dict.c sqlite.c tween.c ease.c sprite.c matrix.c myregex.c kodi.c jsonrpc.c files.c httploader.c ipstring.c mystring.c cJSON.c base64.c -lssl -lsqlite3 -lpthread -ldl -lcrypto -lm && ./a.out  
  gcc -g -D debug_kodi -Wall -I"../SDL2/include/" -I"../SDL2_image" -I"../SDL2_ttf/" -I"include" -L"lib" textfield.c httpserver.c array.c filetypes.c urlcode.c dict.c tween.c ease.c sprite.c matrix.c myregex.c regex.c -D STDC_HEADERS kodi.c jsonrpc.c files.c httploader.c ipstring.c mystring.c cJSON.c base64.c lib/libssl32.dll.a lib/libeay32.dll.a -lgdi32 -lwsock32 -lssl -lpthread -lopengl32 -lcrypto -lm  -lSDL2_ttf -lSDL2_image -lmingw32 -lSDL2main -lSDL2 && a  
 http://kodi.wiki/view/JSON-RPC_API/v6
 */
@@ -200,8 +200,8 @@ Sprite * makeBtn(char* _url)
 	{
 		sprite->w = sprite->surface->w;
 		//sprite->h = sprite->surface->h;
-		if(sprite->w<= stage->sprite->w/8.0)
-			sprite->w = stage->sprite->w/7.0;
+		if(sprite->w<= stage->stage_w/8.0)
+			sprite->w = stage->stage_w/7.0;
 		sprite->h = sprite->w;
 		if(curX + sprite->w > stage->stage_w)
 		{

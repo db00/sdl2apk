@@ -4,7 +4,8 @@ NDK_HOME:= $(HOME)/android-ndk-r10
 SDK_HOME:= $(HOME)/android-sdk-linux/tools
 APK_DIR:= $(PROJ_PATH)/bin
 APP_NAME=test
-PACKAGE:=org.libsdl.app
+PACKAGE:=my.test
+CLASS_NAME:=Test
 APK:= $(APK_DIR)/$(APP_NAME)-debug.apk
 CC:=gcc
 SRC_DIR:=.
@@ -69,7 +70,7 @@ upload: $(APK)
 
 install:
 	adb shell pm uninstall $(PACKAGE)
-	adb install -r $(APK) && adb shell am start -a android.intenon.MAIN -n $(PACKAGE)/.SDLActivity 
+	adb install -r $(APK) && adb shell am start -a android.intenon.MAIN -n $(PACKAGE)/.$(CLASS_NAME)
 #	adb shell logcat SDL:V *:I | grep sdl
 
 apk:
@@ -79,8 +80,8 @@ apk:
 #	export JAVA_HOME=$(JAVA_HOME)
 	$(NDK_HOME)/ndk-build NDK_DEBUG=1 -C $(PROJ_PATH) && ant debug -f $(PROJ_PATH)/build.xml
 #	scp $(APK) p@p:/sdcard/
-#	adb install -r -s $(APK) && adb shell am start -a android.intenon.MAIN -n $(PACKAGE)/.SDLActivity
-	adb install -r $(APK) && adb shell am start -a android.intenon.MAIN -n $(PACKAGE)/.SDLActivity
+#	adb install -r -s $(APK) && adb shell am start -a android.intenon.MAIN -n $(PACKAGE)/.$(CLASS_NAME)
+	adb install -r $(APK) && adb shell am start -a android.intenon.MAIN -n $(PACKAGE)/.$(CLASS_NAME)
 	adb push $(APK) /sdcard/
 #	adb shell logcat SDL:V *:I
 
@@ -89,7 +90,7 @@ push:
 #scp $(APK) p@p:/sdcard/test.apk
 
 debug:
-	adb shell am start -a android.intenon.MAIN -n $(PACKAGE)/.SDLActivity && \
+	adb shell am start -a android.intenon.MAIN -n $(PACKAGE)/.$(CLASS_NAME) && \
 		adb shell logcat SDL:V *:I
 
 

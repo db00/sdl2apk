@@ -130,6 +130,11 @@ Input * Input_new(int w,int h)
 	Input * input = malloc(sizeof(Input));
 	memset(input,0,sizeof(Input));
 	TextField * textfield = TextField_new();
+#ifdef __ANDROID__
+	textfield->format->font = getFontByPath("/sdcard/DroidSansFallback.ttf",h);
+#else
+	textfield->format->font = getFontByPath("DroidSansFallback.ttf",h);
+#endif
 	input->textfield = textfield;
 	textfield->w = w;
 	textfield->h = h;

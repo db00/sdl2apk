@@ -268,7 +268,7 @@ void *uiThread(void *ptr){
 
 
 
-    input = Input_new(stage->stage_w,16);
+    input = Input_new(stage->stage_w,stage->stage_h/10);
     input->textChangFunc = textChangFunc;
     Sprite_addChild(dictContainer,input->sprite);
     stage->focus = input->sprite;
@@ -286,7 +286,7 @@ void *uiThread(void *ptr){
         curlistSprite = Sprite_new();
         SDL_Rect * rect = malloc(sizeof(*rect));
         rect->x = curlistSprite->x;
-        rect->y = input->sprite->y-fontSize*1.5*(numWords-1);
+        rect->y = input->sprite->y+input->textfield->h;
         rect->w = 0;
         rect->h = fontSize*1.5*numWords;
         curlistSprite->dragRect = rect;

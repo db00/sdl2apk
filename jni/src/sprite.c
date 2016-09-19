@@ -1161,7 +1161,6 @@ int Sprite_removeChildren(Sprite*sprite)
 		}
 		Sprite_destroy(child);
 	}
-	Array_clear(sprite->children);
 	sprite->children = NULL;
 	return 0;
 }

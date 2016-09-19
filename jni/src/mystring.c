@@ -36,19 +36,38 @@ char * getSubStr(char * s,int start,int len)
  *  need free
  *
  * @param s
- * @param s0
+ * @param s0	NULL from the beginning
+ * @param s1	NULL to the ending
  * @param include : 0=00b(not include);1=01b(include end);2=10b(include s0);3=11b(include s0 and s0)
  *
  * @return  
  */
 char * getStrBtw(char*s,char*s0,char*s1,int include)
 {
+	if(s0==NULL){
+		s0="";//from the beginning
+	}
 	char * p0 = strstr(s,s0);
 	if(p0==NULL)
 		return NULL;
-	char * p1 = strstr(p0+strlen(s0),s1);
+	//printf("%d\n",p1-p0+strlen(s1));
+
+	char * p1 = NULL;
+	if(s1==NULL || strlen(s1)==0)
+	{
+		s1 = NULL;
+	}
+
+	if(s1){
+		p1=strstr(p0+strlen(s0),s1);
+	}else{//to the end
+		p1 = s+strlen(s);
+		s1 = "";
+	}
+
 	if(p1==NULL)
 		return NULL;
+
 	switch(include)
 	{
 		case 0:
@@ -431,6 +450,7 @@ int main(int argc, char *argv[])
 	printf("%s\n",getStrBtw("01234567890","2","4",1));
 	printf("%s\n",getStrBtw("01234567890","2","4",2));
 	printf("%s\n",getStrBtw("01234567890","2","4",3));
+	printf("%s\n",getStrBtw("01234567890","","",3));
 	return 0;
 	printf("%s\n",(char*)getSubStr("01234567890",2,1));
 	printf("%s\n",getSubString("01234567890",2,4));

@@ -1,6 +1,6 @@
 /**
  *
- gcc files.c array.c -lm  -D debug_files -lSDL2_image && ./a.out
+ gcc files.c myregex.c mystring.c array.c -lm  -D debug_files -lSDL2_image && ./a.out
  gcc files.c  -D debug_files && a
  */
 #include "files.h"
@@ -17,6 +17,42 @@ const char * App_storageDir()
 	//SDL_ANDROID_EXTERNAL_STORAGE_READ, SDL_ANDROID_EXTERNAL_STORAGE_WRITE. 
 #endif
 	return "./";
+}
+
+char * decodePath(char * path)
+{
+	char * p = regex_replace_all(path,"/[\\\\/]+/","/");
+	if(*p=='~'){
+		char * home = NULL;
+#ifndef __ANDROID__
+		char * _home = mysystem("echo $HOME",NULL);
+		home = regex_replace_all(_home,"/[\r\n]/g","");
+		free(_home);
+#else
+		home = contact_str("","/sdcard");
+#endif
+		p = contact_str(home,path+1);
+		free(home);
+	}
+	return p;
+}
+
+int fileExists(char * path)
+{
+	/**
+	  06     检查读写权限
+	  04     检查读权限
+	  02     检查写权限
+	  01     检查执行权限
+	  00     检查文件的存在性
+	  */
+	if(path==NULL || strlen(path)==0)
+		return 0;
+	char * p = decodePath(path);
+	int i = access(p,0);
+	free(p);
+	//return i;
+	return (i!=-1);
 }
 
 Array * listDir2(const char *path,Array*suffixs) 
@@ -92,16 +128,18 @@ int creatdir(char*pDir){
 	if(NULL == pDir) {
 		return 0;
 	}
-	pszDir = strdup(pDir);
+	char * path = decodePath(pDir);
+	pszDir = strdup(path);
 	iLen = strlen(pszDir);
 	// 创建中间目录
-	for (i = 0;i < iLen;i ++) {
-		if (pszDir[i] == '\\' || pszDir[i] == '/') { 
+	for (i = 1;i < iLen;i ++) {
+		if (pszDir[i] == '/') { 
 			pszDir[i] = '\0';
 
 			//如果不存在,创建
 			iRet = ACCESS(pszDir,0);
 			if (iRet != 0) {
+				printf("creatdir:%s\n",pszDir);
 				iRet = MKDIR(pszDir);
 				if (iRet != 0) {
 					return -1;
@@ -114,6 +152,7 @@ int creatdir(char*pDir){
 
 	iRet = MKDIR(pszDir);
 	free(pszDir);
+	free(path);
 	return iRet;
 }
 
@@ -121,15 +160,19 @@ int rmDir(char *p)
 {
 	if(p==NULL)
 		return 1;
-	int cmdlen = strlen(p)+16;
-	char*cmd= malloc(strlen(p)+16);
+	char * path = decodePath(p);
+	int cmdlen = strlen(path)+16;
+	char*cmd= malloc(strlen(path)+16);
 	memset(cmd,0,cmdlen);
 #ifdef linux
-	sprintf(cmd,"rm -rf \"%s\"",p);
+	sprintf(cmd,"rm -rf \"%s\"",path);
 #else
-	sprintf(cmd,"rm -rf \"%s\"",p);
+	sprintf(cmd,"rm -rf \"%s\"",path);
 #endif
-	return system(cmd);
+	int r = system(cmd);
+	free(cmd);
+	free(path);
+	return r;
 }
 
 size_t fileSize(FILE*stream)
@@ -140,14 +183,16 @@ size_t fileSize(FILE*stream)
 	length=ftell(stream);
 	fseek(stream,curpos,SEEK_SET);
 	return length;
-
-
 }
 
 char* readfile(char * path,size_t * _filesize)
 {
+	if(path==NULL)
+		return NULL;
 	if(_filesize)*_filesize = 0;
-	FILE * file = fopen(path,"rb");	
+	char * _path = decodePath(path);
+	FILE * file = fopen(_path,"rb");	
+	free(_path);
 	if(file==NULL)
 		return NULL;
 	size_t filesize = fileSize(file);
@@ -163,39 +208,74 @@ char* readfile(char * path,size_t * _filesize)
 	if(_filesize)*_filesize = filesize;
 	return buffer;
 }
+char * getParentDir(char * path)
+{
+	char * dir= NULL;
+	char * end = strrchr(path,'/');
+	if(end)
+		dir = getSubStr(path,0,end-path);
+	return dir;
+}
+
 int writefile(char * path,char *data,size_t data_length)
 {
-	int ret = 0;
-	FILE * file = fopen(path,"wb");	
-	if(file==NULL)
+	if(path==NULL)
 		return -1;
+
+	char * _path = decodePath(path);
+
+	char * parent = getParentDir(_path);
+	if(parent)
+	{
+		creatdir(parent);
+		free(parent);
+	}
+
+
+	int ret = 0;
+	FILE * file = fopen(_path,"wb+");	
+	if(file==NULL)
+		return -2;
 	rewind(file);
 	ret=fwrite(data,1,data_length,file);
 	if(ret!=data_length){
-		printf("write %s ERROR\n",path);
-		ret = -2;
+		printf("write %s ERROR\n",_path);
+		ret = -3;
 	}else{
 		ret = 0;
 	}
 	fclose(file);
+	free(_path);
+	//printf("write success\n");
 	return ret;
 }
 
 #ifdef debug_files
 int main(int argc, char *argv[])
 {
-	char* filename="hello/hi/";
+	char* filename="~/hello/hi/test";
+	/*
 	//if( remove(filename) == 0 )
 	if( unlink(filename) == 0 )
-		printf("Removed %s.", filename);
+	printf("Removed %s.", filename);
 	else{
-		perror("remove");
+	perror("remove");
 	}
 	printf("Removed %d\n", rmDir(filename));
 
 	printf(readfile("files.h",NULL));
-	writefile("test","tet",strlen("tet"));
+	*/
+	char * data = filename;
+	printf("1exist:%d\n",fileExists(filename));
+	writefile(filename,data,strlen(data));
+	printf("2exist:%d\n",fileExists(filename));
+	printf("data:%s\n",readfile(filename,NULL));
+	rmDir("~/hello");
+	printf("3exist:%d\n",fileExists(filename));
+	printf("%s,exist:%d\n","~/sound/uk/earth.mp3",fileExists("~/sound/uk/earth.mp3"));
 	//printf("creatdir:%d\n",creatdir("hello/hi"));
+
+	printf("strstr:%s\n",strstr("~/sound/uk/earth.mp3",""));
 	return 0;
 }
 #endif

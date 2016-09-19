@@ -180,6 +180,10 @@ Sprite * Sprite_newImg(char *url)
 		if(strncmp(url,"http://",7)==0 || strncmp(url,"https://",8)==0 )
 		{
 			sprite->surface = Httploader_loadimg(url);
+		}else if(url[0]=='~'){
+			char * _url = decodePath(url);
+			sprite->surface = IMG_Load(_url);
+			free(_url);
 		}else{
 			sprite->surface = IMG_Load(url);
 		}

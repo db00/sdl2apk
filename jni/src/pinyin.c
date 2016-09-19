@@ -9,24 +9,14 @@
  * @date 2016-09-06
  */
 //http://hanyu.baidu.com/zici/s?wd=%E7%A9%B4&tupu=01
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "SDL.h"
-#include "SDL_mixer.h"
-#include "utf8.h"
-#include "iconv.h"
-#include "files.h"
-#include "myregex.h"
-#include "httploader.h"
-#include "readbaidu.h"
 
-char * loadUrl(char * url);
+#include "pinyin.h"
 
-#ifdef debug_pinyin
-char * domain = "http://xh.5156edu.com/";
-char * shengdiao = "āáǎàōóǒòēéěèīíǐìūúǔùǖǘǚǜ";
-char * shengArr = "aoeiuü";
+static char * loadUrl(char * url);
+
+static char * domain = "http://xh.5156edu.com/";
+static char * shengdiao = "āáǎàōóǒòēéěèīíǐìūúǔùǖǘǚǜ";
+static char * shengArr = "aoeiuü";
 //āáǎàōóǒòēéěèīíǐìūúǔùǖǘǚǜü
 
 //a1 => ā
@@ -153,7 +143,7 @@ char * pinyinFormat(char * s)
 
 char * getHZpinyin(char *s)
 {
-	char * txt = readfile("pinyi.txt",NULL);
+	char * txt = readfile("pinyin.txt",NULL);
 	char * p = strstr(txt,s);
 	if(p==NULL)
 		return NULL;
@@ -359,13 +349,13 @@ int playHzPinyin(char * s)
 		{
 			char * pinyin = Array_getByIndex(pinyinArr,i);
 			if(pinyin){
-				char * pinyinFile0 = contact_str("/home/db0/sound/pinyin/",pinyin);
+				char * pinyinFile0 = contact_str("~/sound/pinyin/",pinyin);
 				char * pinyinFile = pinyinFile = contact_str(pinyinFile0,".mp3");
 				free(pinyinFile0);
 				Sound_playFile(pinyinFile);
 				free(pinyinFile);
 			}else{
-				SDL_Delay(400);
+				//SDL_Delay(400);
 			}
 			++i;
 		}
@@ -419,7 +409,7 @@ void loadDouyinzi()
 
 void getDuoyinzi()
 {
-	char * data = readfile("pinyi.txt",NULL);
+	char * data = readfile("pinyin.txt",NULL);
 	Array * arr = string_split(data,"\n");
 	Array * pinyinArr = NULL;
 	Array * hanziArr = NULL;
@@ -586,18 +576,20 @@ char * readNum(int num)
 	}
 	Array_freeEach(hzstr);
 	Array_freeEach(wei);
-	char *ret = regex_replace_all(retstr,"/[零]+$/","");
+	char *ret = regex_replace_all(retstr,"/(零)+$/g","");
+	//printf(retstr);
 	free(retstr);
 	retstr = ret;
-	ret = regex_replace_all(retstr,"/[零]{2,}/","零");
+	ret = regex_replace_all(retstr,"/(零){2,}/","零");
 	free(retstr);
 	retstr = ret;
 	return retstr;
 }
 
+#ifdef debug_pinyin
 int main()
 {
-	printf("%s\n",readNum(20160909));
+	printf("%s\n",readNum(44));
 	printf("%s\n",readNum(1000));
 	printf("%s\n",Array_joins(UTF8_each("hello苦短"),"-"));
 	//getDuoyinzi();
@@ -607,10 +599,11 @@ int main()
 		fprintf(stderr, "Couldn't initialize SDL: %s\n",SDL_GetError());
 		return(255);
 	}
+	printf("%s\n",getHZpinyin("丕"));
+	return 0;
 	Array_prints(toPinyin("民国"));
 	Array_prints(toFormatPinyin("民国"));
 	//playHzPinyin("球");
-	printf("%s\n",getHZpinyin("丕"));
 	printf("%s\n",getHZpinyin("合"));
 	printf("%s\n",getHZpinyin("貌"));
 	playHzPinyin("对。错");
@@ -619,15 +612,15 @@ int main()
 	//pinyinFormat("nüè");
 
 #if 0
-	file = fopen("pinyi.txt","w");
-	char * data = loadUrl("http://xh.5156edu.com/pinyi.html");
+	file = fopen("pinyin.txt","w");
+	char * data = loadUrl("http://xh.5156edu.com/pinyin.html");
 	getlines(data);
 	fclose(file);
 
 	int statusCode;
 	URLRequest * urlrequest = NULL;
 
-	urlrequest = URLRequest_new("http://xh.5156edu.com/pinyi.html");
+	urlrequest = URLRequest_new("http://xh.5156edu.com/pinyin.html");
 	urlrequest = Httploader_request(urlrequest);
 	statusCode = urlrequest->statusCode;
 	if((statusCode >= 200 && statusCode<300) || statusCode==304){

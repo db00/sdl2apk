@@ -6,6 +6,9 @@
 #include "httploader.h"
 #include "sprite.h"
 #include "textfield.h"
+#include "pinyin.h"
+#include "pthread.h"
+//#include "files.h"
 #ifdef __ANDROID__
 #include <jni.h>
 #endif

@@ -14,7 +14,8 @@
 #include <stdarg.h>
 #include <sys/stat.h>
 #endif
-#include "array.h"
+#include "mystring.h"
+#include "myregex.h"
 
 #ifdef _WIN32
 #define ACCESS _access
@@ -33,4 +34,6 @@ size_t fileSize(FILE*stream);
 char* readfile(char * path,size_t * fileSize);
 int writefile(char * path,char *data,size_t data_length);
 const char * App_storageDir();
+int fileExists(char * path);
+char * decodePath(char * path);
 #endif

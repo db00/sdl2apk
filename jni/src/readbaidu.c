@@ -1,6 +1,6 @@
 /**
  * @file readbaidu.c
- gcc -I"../SDL2_image/" -I"../SDL2_ttf" -I"../SDL2_mixer/" readbaidu.c urlcode.c ipstring.c files.c matrix.c array.c tween.c ease.c base64.c sprite.c httploader.c mystring.c -lssl -lcrypto  -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lSDL2 -I"../SDL2/include/" -lm -D debug_readloader && ./a.out
+ gcc -I"../SDL2_image/" -I"../SDL2_ttf" -I"../SDL2_mixer/" myregex.c readbaidu.c urlcode.c ipstring.c files.c matrix.c array.c tween.c ease.c base64.c sprite.c httploader.c mystring.c -lssl -lcrypto  -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lSDL2 -I"../SDL2/include/" -lm -D debug_readloader && ./a.out
  diagram 英式与美式发音
 http://fanyi.baidu.com/gettts?lan=uk&text=diagram&spd=2&source=alading
 http://fanyi.baidu.com/gettts?lan=en&text=diagram&spd=2&source=alading
@@ -82,6 +82,41 @@ int Sound_playData(char * data,int data_length)
 	return 0;
 }
 
+char * getEngUrl(char * s,int type)
+{
+	char * url = NULL;
+	if(type==1)
+	{
+		url = "http://fanyi.baidu.com/gettts?lan=en&spd=2&source=alading&text=";
+	}else if(type==2){
+		url = "http://fanyi.baidu.com/gettts?lan=uk&spd=2&source=alading&text=";
+	}else{//chinese
+		url= "http://tts.baidu.com/text2audio?lan=zh&pid=101&ie=UTF-8&text=";
+	}
+	return contact_str(url,s);
+}
+
+char * getEngPath(char * s,int type)
+{
+	char * path = NULL;
+#ifdef __ANDROID__
+	char * _path = "/sdcard/sound/";
+#else
+	char * _path = "~/sound/";
+#endif
+	if(type==1){
+		path = contact_str(_path,"uk/");
+	}else if(type==1){
+		path = contact_str(_path,"us/");
+	}else{
+		path = contact_str(_path,"pinyin/");
+	}
+	_path = contact_str(path,s);
+	free(path);
+	path = contact_str(_path,".mp3");
+	free(_path);
+	return path;
+}
 
 int Sound_playFile(char * fileName)
 {
@@ -128,9 +163,9 @@ int Sound_playFile(char * fileName)
 
 static SDL_mutex *mutex = NULL;
 
-int Sound_playUrl(void *url,char * _name)
+int Sound_playUrl(void *url,char * fileName)
 {
-	printf("Sound_playUrl:%s,%s\n",(char*)url,_name);
+	SDL_Log("Sound_playUrl:%s,%s\n",(char*)url,fileName);
 	URLRequest * urlrequest = Httploader_load((char*)url);
 	if(urlrequest
 			&& urlrequest->statusCode == 200 
@@ -139,60 +174,35 @@ int Sound_playUrl(void *url,char * _name)
 		char *data = urlrequest->data;
 		size_t data_length = urlrequest->respond->contentLength;
 
-
+/*
 		if (SDL_LockMutex(mutex) < 0) {
 			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't lock mutex: %s", SDL_GetError());
 			URLRequest_clear(urlrequest);
 			return 1;
 		}
+		*/
 
-		char * fileName = malloc(strlen(url));
-		memset(fileName,0,strlen(url));
-#ifdef __ANDROID__
-		sprintf(fileName,"/sdcard/%s.mp3",_name);
-#else
-		sprintf(fileName,"sound/%s.mp3",_name);
-#endif
-		printf("\n%s\n",fileName);
-
-		if(Sound_playData(data,data_length)==0)
-		{
-			printf("data play successfully!\n");
-		}else{
+		if(fileName){
 			if(writefile(fileName,data,data_length)==0) {
-				printf("writefile successfully!\n");
+				SDL_Log("writefile successfully!\n");
 			}
 			Sound_playFile(fileName);
+		}else{
+			if(Sound_playData(data,data_length)==0)
+			{
+				SDL_Log("data play successfully!\n");
+			}
 		}
 
-		free(fileName);
+		/*
 		if (SDL_UnlockMutex(mutex) < 0) {
 			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't unlock mutex: %s", SDL_GetError());
 			URLRequest_clear(urlrequest);
 			return 1;
 		}
+		*/
 	}
 	URLRequest_clear(urlrequest);
-	return 0;
-}
-
-int Sound_play(void *url)
-{
-	char * fileName = malloc(strlen(url));
-	memset(fileName,0,strlen(url));
-	char * p1 = strstr(url,"&text=");
-	char * p2 = url+strlen(url);
-	char _name[64];
-	if(p1!=NULL)
-	{
-		p1 += strlen("&text=");
-		memset(_name,0,64);
-		snprintf(_name,p2-p1+1,"%s",p1);
-	}else{
-		return 2;
-	}
-
-	Sound_playUrl(url,_name);
 	return 0;
 }
 
@@ -210,36 +220,25 @@ void READ_loadSound(char *word,int type)
 			return ;
 		}
 	}
-
-	SDL_Thread *thread;
-	static char url[1024];
-	memset(url,0,1024);
-	char *_type;
-	if(type==1){
-		_type="uk";
-	}else if(type==2){
-		_type="en";
-	}else{
-		sprintf(url,"http://tts.baidu.com/text2audio?lan=zh&pid=101&ie=UTF-8&text=%s",word);
-		thread = SDL_CreateThread(Sound_play, "Sound_play", (void *)url);
-		if(thread)
-			SDL_DetachThread(thread);
-		return;
-	}
-	sprintf(url,"http://fanyi.baidu.com/gettts?lan=%s&spd=2&source=alading&text=%s",_type,word);
-	thread = SDL_CreateThread(Sound_play, "Sound_play", (void *)url);
-	if(thread)
-		SDL_DetachThread(thread);
+	char * url = getEngUrl(word,type);
+	char * fileName = getEngPath(word,type);
+	Sound_playUrl(url,fileName);
+	free(url);
+	free(fileName);
 	return;
-	/*
-	   if (NULL == thread) {
-	   printf("\nSDL_CreateThread failed: %s\n", SDL_GetError());
-	   } else {
-	   int threadReturnValue;
-	   SDL_WaitThread(thread, &threadReturnValue);
-	   printf("\nThread returned value: %d", threadReturnValue);
-	   }
-	   */
+}
+
+void Sound_playEng(char * s,int type)
+{
+	char * engPath = getEngPath(s,type);
+	if(!!fileExists(engPath))
+	{
+		printf("file %s exists!\n",engPath);
+		Sound_playFile(engPath);
+	}else{
+		READ_loadSound(s,type);
+	}
+	free(engPath);
 }
 
 
@@ -257,6 +256,8 @@ int main(int argc, char *argv[])
 			return 0;
 		}
 	}
+	Sound_playEng("earth",1);
+	return 0;
 #if 0
 	//阿
 	Sound_playFile("sound/pinyin/ni3.mp3");
@@ -290,19 +291,20 @@ int main(int argc, char *argv[])
 		if(w==NULL)
 			break;
 		char _url[128];
-		char name2[16];
 		int j=0;
 		while(j<4)
 		{
+			char * name2 = getEngPath(w,0);
 			memset(_url,0,128);
-			memset(name2,0,16);
 			sprintf(_url,format,w,++j);
-			sprintf(name2,"%s%d",w,j);
 			Sound_playUrl(_url,name2);
+			free(name2);
 		}
 		memset(_url,0,128);
 		sprintf(_url,format2,w);
-		Sound_playUrl(_url,w);
+		char * _name2 = getEngPath(w,0);
+		Sound_playUrl(_url,_name2);
+		free(_name2);
 		++i;
 	}
 	SDL_Delay(1000);

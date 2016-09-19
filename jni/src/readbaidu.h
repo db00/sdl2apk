@@ -21,4 +21,7 @@
 int Sound_init();
 void READ_loadSound(char *word,int type);
 int Sound_playFile(char * fileName);
+int Sound_playData(char * data,int data_length);
+void Sound_playEng(char * s,int type);
+int Sound_playUrl(void *url,char * saveFileName);
 #endif

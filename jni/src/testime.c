@@ -1,6 +1,6 @@
 /**
  *
- gcc -g -Wall -D test_ime -Wall -lpthread utf8.c mysurface.c input.c array.c ease.c tween.c kodi.c sqlite.c base64.c urlcode.c filetypes.c httpserver.c httploader.c readbaidu.c ipstring.c testime.c dict.c myregex.c files.c mystring.c sprite.c matrix.c textfield.c -lcrypto -lssl -ldl -lm -I"../SDL2_mixer/" -I"../SDL2_image/" -I"../SDL2/include/" -I"../libxml/include/" -I"../SDL2_ttf/" -lsqlite3 -lSDL2 -lSDL2_ttf -lSDL2_mixer -lSDL2_image && ./a.out
+ gcc -g -Wall -D test_ime -Wall -lpthread utf8.c mysurface.c pinyin.c input.c array.c ease.c tween.c kodi.c sqlite.c base64.c urlcode.c filetypes.c httpserver.c httploader.c readbaidu.c ipstring.c testime.c dict.c myregex.c files.c mystring.c sprite.c read_card.c matrix.c textfield.c -lcrypto -lssl -ldl -lm -I"../SDL2_mixer/" -I"../SDL2_image/" -I"../SDL2/include/" -I"../libxml/include/" -I"../SDL2_ttf/" -lsqlite3 -lSDL2 -lSDL2_ttf -lSDL2_mixer -lSDL2_image && ./a.out
  gcc -Wall -D test_ime -Wall -lpthread mysurface.c array.c ease.c tween.c kodi.c base64.c urlcode.c filetypes.c httpserver.c httploader.c readbaidu.c ipstring.c testime.c dict.c update.c myregex.c files.c mystring.c sprite.c matrix.c textfield.c regex.c -DSTDC_HEADERS -lpthread -lwsock32 lib/libeay32.dll.a lib/libssl32.dll.a -L"lib" -lcrypto -lssl -lgdi32 -lm -I"../SDL2_mixer/" -I"../SDL2_image/" -I"../SDL2/include/" -I"include/" -I"../SDL2_ttf/" -lSDL2_ttf -lSDL2_mixer -lSDL2_image -lmingw32 -lSDL2_test -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_image && a
  gcc -Wall -D test_ime -Wall -lpthread ease.c tween.c kodi.c sqlite.c base64.c urlcode.c filetypes.c httpserver.c httploader.c readbaidu.c ipstring.c testime.c regex.c dict.c update.c myregex.c files.c mystring.c sprite.c matrix.c textfield.c -lcrypto -lssl -ldl -lm -I"../SDL2_mixer/" -I"../SDL2_image/" -I"../SDL2/include/" -I"../libxml/include/" -I"../SDL2_ttf/" -lsqlite3 -lSDL2 -lSDL2_ttf -lSDL2_mixer -lSDL2_image && ./a.out
  gcc testime.c -I"../SDL2/include/" -I"../SDL2_ttf/"  -lmingw32 -lSDL2_test -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_image && a
@@ -21,8 +21,14 @@ http://ozzmaker.com/2014/06/30/virtual-keyboard-for-the-raspberry-pi/
 #include "httpserver.h"
 #include "kodi.h"
 #include "input.h"
+#include "read_card.h"
 
-
+static enum STATS {
+    DICT,
+    KODI,
+    CARD,
+    END
+} stats;
 
 Input * input = NULL;
 TextField * textfield = NULL;
@@ -64,6 +70,18 @@ char * showExplain(char *explain)
     return explain;
 }
 
+static void * readWordUs(void * _key)
+{
+    Word * word = _key;
+    READ_loadSound(word->word,2);
+    return NULL;
+}
+static void * readWordEn(void * _key)
+{
+    Word * word = _key;
+    READ_loadSound(word->word,1);
+    return NULL;
+}
 
 int getMean(Word*word)
 {
@@ -76,7 +94,15 @@ int getMean(Word*word)
     explain = Dict_getMean(dict,word);
     showExplain(explain);
     if(word->word)
-        READ_loadSound(word->word,2);
+    {
+        pthread_t thread;//创建不同的子线程以区别不同的客户端  
+        if(pthread_create(&thread, NULL, readWordUs, word)!=0)//创建子线程  
+        {  
+            perror("pthread_create");  
+        }
+        pthread_detach(thread);
+        //READ_loadSound(word->word,2);
+    }
     return 0;
 }
 
@@ -87,7 +113,15 @@ int searchWord(char* _word)
         char * explain = NULL;
         Word *word = Dict_getWord(dict,_word);
         if(word)
-            READ_loadSound(word->word,1);
+        {
+            pthread_t thread;//创建不同的子线程以区别不同的客户端  
+            if(pthread_create(&thread, NULL, readWordEn, word)!=0)//创建子线程  
+            {  
+                perror("pthread_create");  
+            }
+            pthread_detach(thread);
+            //READ_loadSound(word->word,1);
+        }
         explain = Dict_getMean(dict,word);
         showExplain(explain);
     }
@@ -193,18 +227,57 @@ Sprite * makeWordlist(char * curWord)
     return curlistSprite;
 }
 
+void changeStats()
+{
+    stats++;
+    if(stats==END)
+        stats=0;
+    if(dictContainer)
+        dictContainer->visible = 0;
+    if(cardContainer)
+    {
+        cardContainer->visible = 0;
+        //Sprite_removeChild(stage->sprite,cardContainer);
+    }
+    Kodi_initBtns(0);
+    switch(stats)
+    {
+        case KODI:
+            Kodi_initBtns(1);
+            break;
+        case DICT:
+            dictContainer->visible = 1;
+            Sprite_addChild(stage->sprite,dictContainer);
+            stage->focus = input->sprite;
+            break;
+        case CARD:
+            srand((unsigned)time(NULL));  
+            int i=(int)(rand()%9);
+            if(cardskey==i)
+                cardskey = (i+1)%9;
+            else
+                cardskey = i;
+            makeList(&cardskey);
+            break;
+        default:
+            break;
+    }
+}
+
 
 void keyupEvent(SpriteEvent* e){
     SDL_Event *event = e->e;
     const char * kname = SDL_GetKeyName(event->key.keysym.sym);
     if(!strcmp(kname,"Menu"))
     {
-        dictContainer->visible = (0==Kodi_initBtns());
+        changeStats();
+        //dictContainer->visible = (0==Kodi_initBtns());
     }else{
         switch (event->key.keysym.sym)
         {
             case SDLK_MENU:
-                dictContainer->visible = (0==Kodi_initBtns());
+                changeStats();
+                //dictContainer->visible = (0==Kodi_initBtns());
                 break;
             case SDLK_RETURN:
                 if(strlen(input->value)>0){
@@ -218,9 +291,6 @@ void keyupEvent(SpriteEvent* e){
                 break;
         }
     }
-    if(dictContainer->visible)
-        Sprite_addChild(stage->sprite,dictContainer);
-    // stage->focus = input->sprite;
     Redraw(NULL);
 }
 
@@ -259,7 +329,12 @@ void droppedFile(SpriteEvent*e){
 }
 void *uiThread(void *ptr){
     dictContainer = Sprite_new();
+    dictContainer->surface = Surface_new(1,1);
+    char pixels[4] ={'\0','\0','\0','\xff'};
+    memcpy(dictContainer->surface->pixels,(char*)pixels,sizeof(pixels));
     Sprite_addChild(stage->sprite,dictContainer);
+    dictContainer->w = stage->stage_w;
+    dictContainer->h = stage->stage_h;
 
     textfield = TextField_new();
     textfield->sprite->canDrag = 1;

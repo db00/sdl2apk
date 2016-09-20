@@ -12,9 +12,10 @@
 
 #include "pinyin.h"
 
+#if 0
 static char * loadUrl(char * url);
-
 static char * domain = "http://xh.5156edu.com/";
+#endif
 static char * shengdiao = "āáǎàōóǒòēéěèīíǐìūúǔùǖǘǚǜ";
 static char * shengArr = "aoeiuü";
 //āáǎàōóǒòēéěèīíǐìūúǔùǖǘǚǜü
@@ -143,7 +144,7 @@ char * pinyinFormat(char * s)
 
 char * getHZpinyin(char *s)
 {
-	char * txt = readfile("pinyin.txt",NULL);
+	char * txt = readfile("~/sound/pinyin.txt",NULL);
 	char * p = strstr(txt,s);
 	if(p==NULL)
 		return NULL;
@@ -210,9 +211,11 @@ Array * toPinyin(char*s)
 }
 
 
+
+
+#if 0
 FILE * file;
-
-
+#include "iconv.h"
 char * gbk2utf(char* inbuf,size_t * outlen){
 	size_t inlen =strlen(inbuf);
 	iconv_t cd=iconv_open("UTF-8","GBK");
@@ -339,6 +342,7 @@ char * loadUrl(char * url)
 	URLRequest_clear(urlrequest);
 	return data;
 }
+#endif
 int playHzPinyin(char * s)
 {
 	Array * pinyinArr = toFormatPinyin(s);
@@ -365,6 +369,7 @@ int playHzPinyin(char * s)
 }
 //http://zidian.911cha.com/duoyinzi_%d.html
 
+#if 0
 void loadDouyinzi()
 {
 	FILE * file2 = fopen("duoyinzi.txt","w");
@@ -409,7 +414,7 @@ void loadDouyinzi()
 
 void getDuoyinzi()
 {
-	char * data = readfile("pinyin.txt",NULL);
+	char * data = readfile("~/sound/pinyin.txt",NULL);
 	Array * arr = string_split(data,"\n");
 	Array * pinyinArr = NULL;
 	Array * hanziArr = NULL;
@@ -505,6 +510,7 @@ void getDuoyinzi()
 	Array_clear(hanziArr);
 	free(data);
 }
+#endif
 
 // 10 -> 一十
 char * readNum(int num)
@@ -612,7 +618,7 @@ int main()
 	//pinyinFormat("nüè");
 
 #if 0
-	file = fopen("pinyin.txt","w");
+	file = fopen("~/sound/pinyin.txt","w");
 	char * data = loadUrl("http://xh.5156edu.com/pinyin.html");
 	getlines(data);
 	fclose(file);
@@ -629,7 +635,7 @@ int main()
 			/*
 			   printf("repond data:\n%s\n",urlrequest->data);
 			   printf("repond datalength:\n%d\n",urlrequest->respond->contentLength);
-			   if(writefile("pinyin.txt",urlrequest->data,urlrequest->respond->contentLength)==0) {
+			   if(writefile("~/sound/pinyin.txt",urlrequest->data,urlrequest->respond->contentLength)==0) {
 			   printf("writefile successfully!\n");
 			   fflush(stdout);
 			   }

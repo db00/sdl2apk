@@ -8,5 +8,5 @@
 #include "tween.h"
 #include "mysurface.h"
 
-int Kodi_initBtns();
+int Kodi_initBtns(int visible);
 #endif

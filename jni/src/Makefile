@@ -40,7 +40,7 @@ else
 	SRC:=\
 		sprite.c matrix.c input.c myregex.c kodi.c utf8.c jsonrpc.c files.c httploader.c ipstring.c mystring.c cJSON.c \
 		dict.c \
-		readbaidu.c update.c testime.c textfield.c \
+		readbaidu.c update.c testime.c textfield.c read_card.c pinyin.c\
 		tween.c ease.c \
 		urlcode.c filetypes.c httpserver.c array.c base64.c mysurface.c
 endif

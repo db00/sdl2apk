@@ -5,8 +5,7 @@
  * @version 1.0.1
  * @date 2016-09-18
  */
-#include "mysurface.h"
-
+#include "read_card.h"
 
 static const char * numArr[][3] = {
 	{"1","one","~/sound/img/1.jpg"},
@@ -21,10 +20,6 @@ static const char * numArr[][3] = {
 	{NULL,NULL,NULL}
 };
 
-void *makeList(void * k);
-int key;
-Sprite * container = NULL;
-
 typedef struct Card
 {
 	Sprite * sprite;
@@ -37,7 +32,7 @@ typedef struct Card
 
 void *readAsk(void*k)
 {
-	playHzPinyin(readNum(atoi(numArr[key][0])));
+	playHzPinyin(readNum(atoi(numArr[cardskey][0])));
 	playHzPinyin("在哪？");
 	return NULL;
 }
@@ -71,12 +66,16 @@ void clicked(SpriteEvent* e)
 	{
 		playHzPinyin("对");
 		//Sprite_removeChildren(stage->sprite);
-		srand((unsigned)time(NULL));  
-		key=(int)(rand()%9);
-		//makeList(&key);
+		srand(time(NULL));  
+		int i= ((rand())%9);
+		if(cardskey-i==0)
+			cardskey = (i+1)%9;
+		else
+			cardskey = (i%9);
+		SDL_Log("cardskey =  %d,%d",cardskey,i);
 
 		pthread_t thread;//创建不同的子线程以区别不同的客户端  
-		if(pthread_create(&thread, NULL, makeList, &key)!=0)//创建子线程  
+		if(pthread_create(&thread, NULL, makeList, &cardskey)!=0)//创建子线程  
 		{  
 			perror("pthread_create");  
 		}
@@ -86,8 +85,7 @@ void clicked(SpriteEvent* e)
 		playHzPinyin("错");
 		readAsk(NULL);
 	}
-	if(card->complete)
-		card->complete(card);
+	//if(card->complete) card->complete(card);
 }
 
 
@@ -101,7 +99,9 @@ Card * Card_new(char * ch,char*en,char * url)
 	card->ch = Sprite_newText(ch,20,0xff0000ff,0xffff00ff);
 	card->en = Sprite_newText(en,20,0xff0000ff,0xffff00ff);
 	card->img = Sprite_newImg(url);
-	card->img->obj = ch;
+	if(card->img->obj)
+		free(card->img->obj);
+	card->img->obj = contact_str(ch,"");
 
 
 	int w = stage->stage_w/3-1;
@@ -138,7 +138,10 @@ void Card_free(Card*card)
 		if(card->img)
 			free(card->img->obj);
 		if(card->sprite)
+		{
+			Sprite_removeChildren(card->sprite);
 			Sprite_destroy(card->sprite);
+		}
 		free(card);
 	}
 }
@@ -146,19 +149,32 @@ void Card_free(Card*card)
 void * makeList(void *_k)
 {
 	int k = *(int*)_k;
-	if(container){
-		Sprite_removeChildren(container);
-		Sprite_removeChild(stage->sprite,container);
+	cardskey = k;
+	if(cardContainer){
+		int i = cardContainer->children->length;
+		while(i>0)
+		{
+			--i;
+			Sprite * card = Sprite_getChildByIndex(cardContainer,i);
+			if(strcmp(card->name,"card")==0)
+				Card_free(card->obj);
+		}
+		Sprite_removeChildren(cardContainer);
+		Sprite_removeChild(stage->sprite,cardContainer);
 	}
-	container = Sprite_new();
-	Sprite_addChild(stage->sprite,container);
+	cardContainer = Sprite_new();
+	cardContainer->surface = Surface_new(1,1);
+	char pixels[4] ={'\0','\0','\0','\xff'};
+	memcpy(cardContainer->surface->pixels,(char*)pixels,sizeof(pixels));
+	cardContainer->w = stage->stage_w;
+	cardContainer->h = stage->stage_h;
+	Sprite_addChild(stage->sprite,cardContainer);
 
 
 	char * ask = contact_str((char*)numArr[k][0],"在哪？");
 	Sprite * sprite = Sprite_newText(ask,18,0xff0000ff,0xffff00ff);
 	free(ask);
-	Sprite_addChild(container,sprite);
-	key = k;
+	Sprite_addChild(cardContainer,sprite);
 	int i = 0;
 	int w = stage->stage_w/3;
 	int h = stage->stage_h/3;
@@ -171,9 +187,12 @@ void * makeList(void *_k)
 			card->isRight = 1;
 		else
 			card->isRight = 2;
-		Sprite_addChild(container,card->sprite);
+		if(card->sprite->name)
+			free(card->sprite->name);
+		card->sprite->name = contact_str("","card");
+		Sprite_addChild(cardContainer,card->sprite);
 		Sprite_center(card->sprite,(i%3)*w,(i/3)*h,w,h);
-		//SDL_Log("key:%d,%d",k,i);
+		//SDL_Log("cardskey:%d,%d",k,i);
 		++i;
 	}
 	UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//Stage_redraw
@@ -201,8 +220,8 @@ int main()
 	*/
 
 	srand((unsigned)time(NULL));  
-	key=(int)(rand()%9);
-	makeList(&key);
+	cardskey=(int)(rand()%9);
+	makeList(&cardskey);
 
 	Stage_loopEvents();
 	return 0;

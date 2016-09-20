@@ -56,6 +56,7 @@ typedef struct SpriteEvent{
 	SDL_Event *e;//对应SDL_Event
 	void(*func)(struct SpriteEvent*);//
 	struct Sprite*target;
+	unsigned int lastEventTime;//ensure not dispatch only once
 }SpriteEvent;
 
 typedef struct Point3d{
@@ -109,6 +110,7 @@ typedef struct Sprite{
 	struct Sprite*parent;//显示在舞台的父节点
 	Array *children;//Sprite Array 子节点数组;
 	SDL_bool mouseChildren;//鼠标可点击到子节点
+
 	Array *events;//SpriteEvent Array;添加的事件
 
 
@@ -156,6 +158,9 @@ typedef struct Stage{
 	SDL_Point*mouse;//鼠标位置
 	int stage_w;
 	int stage_h;
+	unsigned int lastEventTime;
+	unsigned int numsprite;//
+	World3d *world;
 }Stage;
 
 typedef void (*EventFunc)(SpriteEvent*); 
@@ -168,7 +173,6 @@ extern Stage *stage;
 Stage * Stage_init(int is3D);
 void Stage_loopEvents();
 
-extern int NumSprite;
 extern GLES2_Context gles2;
 
 Sprite * Sprite_new();
@@ -221,9 +225,7 @@ int zfrom3d(float z);
 SDL_UserEvent*UserEvent_new(Uint32 type,Sint32 code,void*data1,void*data2);
 void UserEvent_clear(SDL_UserEvent * event);
 
-World3d * getworld();
 GLuint LoadShader(GLenum type, GLbyte *shaderSrc);
-GLuint esLoadProgram ( GLbyte *vertShaderSrc, GLbyte *fragShaderSrc );
 
 void Sprite_translate(Sprite*sprite,int _x,int _y,int _z);
 void Sprite_rotate(Sprite*sprite,int _rotationX,int _rotationY,int _rotationZ);

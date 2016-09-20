@@ -32,7 +32,7 @@ int Sound_init()
 	if (Mix_OpenAudio(16000,MIX_DEFAULT_FORMAT, 2, 4096) < 0)
 		//if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY,AUDIO_U16, 2, 512) < 0)
 	{
-		fprintf(stderr, "Couldn't open audio: %s\n", SDL_GetError());
+		SDL_Log( "Couldn't open audio: %s\n", SDL_GetError());
 		return 2;
 	}
 	/* Set the music volume */
@@ -47,15 +47,15 @@ int Sound_init()
 void Sound_clear()
 {
 	if( Mix_PlayingMusic() ) {
-		Mix_FadeOutMusic(1500);
-		SDL_Delay(1500);
+		Mix_FadeOutMusic(100);
+		SDL_Delay(100);
 	}
 	Mix_CloseAudio();
 }
 
 int Sound_playData(char * data,int data_length)
 {
-	Sound_init();
+	if(Sound_init())return 1;
 	Mix_Music *music = NULL;
 	while(1)
 	{
@@ -64,7 +64,7 @@ int Sound_playData(char * data,int data_length)
 		if(music){
 			if(Mix_PlayMusic(music,0) == -1)
 			{
-				fprintf(stderr,"play failure ,%s\n",(char*)Mix_GetError());  
+				SDL_Log("play failure ,%s\n",(char*)Mix_GetError());  
 				break;
 			}
 			while(Mix_PlayingMusic() ) {
@@ -120,33 +120,40 @@ char * getEngPath(char * s,int type)
 
 int Sound_playFile(char * fileName)
 {
-	Sound_init();
+	if(Sound_init())return 1;
 	Mix_Music *music = NULL;
 	while(1)
 	{
 		/* Load the requested music file */
 		//music = Mix_LoadMUS_RW(SDL_RWFromConstMem(data,data_length), SDL_TRUE);
 		if ( music == NULL ) {
-			music = Mix_LoadMUS(fileName);
+			char * f = decodePath(fileName);
+			music = Mix_LoadMUS(f);
 			if(music==NULL){
-				fprintf(stderr,"Load %s failure ,%s\n",fileName,(char*)Mix_GetError());
+				SDL_Log("Load %s failure ,%s\n",f,(char*)Mix_GetError());
+				/*
+				//#ifdef linux
 				char * cmd = malloc(1024);
 				memset(cmd,0,1024);
 #ifdef __ANDROID__
-				sprintf(cmd,"am start -n com.android.music/.MediaPlaybackActivity -d %s &",fileName);
+				sprintf(cmd,"am start -n com.android.music/.MediaPlaybackActivity -d %s &",f);
 #else
-				sprintf(cmd,"mplayer %s ",fileName);
+				sprintf(cmd,"mplayer %s ",f);
 #endif
 				system(cmd);
 				free(cmd);
+				//#endif
+				*/
+				if(f)free(f);f=NULL;
 				break;
 			}
+			if(f)free(f);f=NULL;
 		}
 
 		if(music){
 			if(Mix_PlayMusic(music,0) == -1)
 			{
-				fprintf(stderr,"play %s failure ,%s\n",fileName,(char*)Mix_GetError());  
+				SDL_Log("play %s failure ,%s\n",fileName,(char*)Mix_GetError());  
 				break;
 			}
 			while(Mix_PlayingMusic() ) {
@@ -174,13 +181,13 @@ int Sound_playUrl(void *url,char * fileName)
 		char *data = urlrequest->data;
 		size_t data_length = urlrequest->respond->contentLength;
 
-/*
-		if (SDL_LockMutex(mutex) < 0) {
-			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't lock mutex: %s", SDL_GetError());
-			URLRequest_clear(urlrequest);
-			return 1;
-		}
-		*/
+		/*
+		   if (SDL_LockMutex(mutex) < 0) {
+		   SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't lock mutex: %s", SDL_GetError());
+		   URLRequest_clear(urlrequest);
+		   return 1;
+		   }
+		   */
 
 		if(fileName){
 			if(writefile(fileName,data,data_length)==0) {
@@ -195,12 +202,12 @@ int Sound_playUrl(void *url,char * fileName)
 		}
 
 		/*
-		if (SDL_UnlockMutex(mutex) < 0) {
-			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't unlock mutex: %s", SDL_GetError());
-			URLRequest_clear(urlrequest);
-			return 1;
-		}
-		*/
+		   if (SDL_UnlockMutex(mutex) < 0) {
+		   SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't unlock mutex: %s", SDL_GetError());
+		   URLRequest_clear(urlrequest);
+		   return 1;
+		   }
+		   */
 	}
 	URLRequest_clear(urlrequest);
 	return 0;
@@ -257,7 +264,7 @@ int main(int argc, char *argv[])
 		}
 	}
 	Sound_playEng("earth",1);
-	return 0;
+	//return 0;
 #if 0
 	//阿
 	Sound_playFile("sound/pinyin/ni3.mp3");
@@ -279,7 +286,7 @@ int main(int argc, char *argv[])
 
 #endif
 	//char * arr[] = {"a","ai","an","ang","ao","ba","bai","ban","bang","bao","bei","ben","beng","bi","bian","biao","bie","bin","bing","bo","bu","ca","cai","can","cang","cao","ce","cen","ceng","cha","chai","chan","chang","chao","che","chen","cheng","chi","chong","chou","chu","chua","chuai","chuan","chuang","chui","chun","chuo","ci","cong","cou","cu","cuan","cui","cun","cuo","da","dai","dan","dang","dao","de","den","dei","deng","di","dia","dian","diao","die","ding","diu","dong","dou","du","duan","dui","dun","duo","e","ei","en","eng","er","fa","fan","fang","fei","fen","feng","fo","fou","fu","ga","gai","gan","gang","gao","ge","gei","gen","geng","gong","gou","gu","gua","guai","guan","guang","gui","gun","guo","ha","hai","han","hang","hao","he","hei","hen","heng","hong","hou","hu","hua","huai","huan","huang","hui","hun","huo","ji","jia","jian","jiang","jiao","jie","jin","jing","jiong","jiu","ju","juan","jue","jun","ka","kai","kan","kang","kao","ke","ken","keng","kong","kou","ku","kua","kuai","kuan","kuang","kui","kun","kuo","la","lai","lan","lang","lao","le","lei","leng","li","lia","lian","liang","liao","lie","lin","ling","liu","long","lou","lu","lü","luan","lue","lüe","lun","luo","m","ma","mai","man","mang","mao","me","mei","men","meng","mi","mian","miao","mie","min","ming","miu","mo","mou","mu","na","nai","nan","nang","nao","ne","nei","nen","neng","ng","ni","nian","niang","niao","nie","nin","ning","niu","nong","nou","nu","nü","nuan","nüe","nuo","nun","o","ou","pa","pai","pan","pang","pao","pei","pen","peng","pi","pian","piao","pie","pin","ping","po","pou","pu","qi","qia","qian","qiang","qiao","qie","qin","qing","qiong","qiu","qu","quan","que","qun","ran","rang","rao","re","ren","reng","ri","rong","rou","ru","ruan","rui","run","ruo","sa","sai","san","sang","sao","se","sen","seng","sha","shai","shan","shang","shao","she","shei","shen","sheng","shi","shou","shu","shua","shuai","shuan","shuang","shui","shun","shuo","si","song","sou","su","suan","sui","sun","suo","ta","tai","tan","tang","tao","te","teng","ti","tian","tiao","tie","ting","tong","tou","tu","tuan","tui","tun","tuo","wa","wai","wan","wang","wei","wen","weng","wo","wu","xi","xia","xian","xiang","xiao","xie","xin","xing","xiong","xiu","xu","xuan","xue","xun","ya","yan","yang","yao","ye","yi","yin","ying","yo","yong","you","yu","yuan","yue","yun","za","zai","zan","zang","zao","ze","zei","zen","zeng","zha","zhai","zhan","zhang","zhao","zhe","zhei","zhen","zheng","zhi","zhong","zhou","zhu","zhua","zhuai","zhuan","zhuang","zhui","zhun","zhuo","zi","zong","zou","zu","zuan","zui","zun","zuo",NULL};
-	char * arr[] = {"ge",NULL};
+	char * arr[] = {"zai","na",NULL};
 	//char * format = "http://xh.5156edu.com/xhzdmp3abc/%s%d.mp3";
 	//char * format2 = "http://xh.5156edu.com/xhzdmp3abc/%s.mp3";
 	char * format = "http://appcdn.fanyi.baidu.com/zhdict/mp3/%s%d.mp3";
@@ -294,9 +301,14 @@ int main(int argc, char *argv[])
 		int j=0;
 		while(j<4)
 		{
-			char * name2 = getEngPath(w,0);
+			char * _w = malloc(32);
+			memset(_w,0,32);
+			sprintf(_w,"%s",w);
+			sprintf(_w+strlen(_w),"%d",++j);
+			char * name2 = getEngPath(_w,0);
+			free(_w);
 			memset(_url,0,128);
-			sprintf(_url,format,w,++j);
+			sprintf(_url,format,w,j);
 			Sound_playUrl(_url,name2);
 			free(name2);
 		}

@@ -364,7 +364,7 @@ void setTweenToNull(void *p){
 	tween = NULL;
 }
 
-int Kodi_initBtns()
+int Kodi_initBtns(int v)
 {
 	if(host==NULL){
 		host = getHost();
@@ -400,7 +400,7 @@ int Kodi_initBtns()
 
 		showEearth();
 	}
-	if(Sprite_contains(stage->sprite,container)){
+	if(!v && Sprite_contains(stage->sprite,container)){
 		/*
 		   if(tween)
 		   Tween_kill(tween,1);

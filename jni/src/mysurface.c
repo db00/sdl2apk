@@ -190,7 +190,7 @@ Sprite * Sprite_newImg(char *url)
 		sprite->w = sprite->surface->w;
 		sprite->h = sprite->surface->h;
 	}
-	sprite->obj = url;
+	sprite->obj = contact_str("",url);
 	return sprite;
 }
 

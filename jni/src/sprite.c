@@ -13,7 +13,6 @@
 
 GLES2_Context gles2;
 Stage * stage = NULL;
-int NumSprite = 0;
 static SDL_mutex *mutex = NULL;
 Data3d * data2D;
 
@@ -63,13 +62,7 @@ void quit(int rc)
 	//TTF_Quit();
 	SDL_VideoQuit();
 	SDL_Quit();
-	exit(0);
-}
-
-World3d*world = NULL;
-World3d * getworld()
-{
-	return world;
+	exit(rc);
 }
 
 int power_of_two(int input)
@@ -199,7 +192,7 @@ void Sprite_matrix(Sprite *sprite)
 
 	// Compute the final MVP by multiplying the 
 	// modevleiw and perspective matrices together
-	esMatrixMultiply( &sprite->mvpMatrix, &modelview, &world->perspective);
+	esMatrixMultiply( &sprite->mvpMatrix, &modelview, &stage->world->perspective);
 
 	esRotate( &sprite->mvpMatrix, -sprite->rotationX, 1.0, 0.0, 0.0 );
 	esRotate( &sprite->mvpMatrix, -sprite->rotationY, 0.0, 1.0, 0.0 );
@@ -283,7 +276,7 @@ Sprite * Sprite_new()
 	{
 		sprite->name = (char*)malloc(16);
 		memset(sprite->name,0,16);
-		sprintf(sprite->name,"sprite%d",NumSprite++);
+		sprintf(sprite->name,"sprite%d",stage->numsprite++);
 		//SDL_Log("%s\n",sprite->name);
 	}
 
@@ -331,16 +324,16 @@ int Window_resize(int w,int h)
 	stage->stage_w = w;
 	stage->stage_h = h;
 	SDL_SetWindowSize(stage->window,w,h);
-	if(world){
-		world->aspect = (GLfloat)stage->stage_w/stage->stage_h; // Compute the window aspect ratio
-		//world->fovy = 53.13010235415598; //atan(1/world->aspect)*180/M_PI; // Generate a perspective matrix with a 53.13010235415598 degree FOV
-		world->fovy = atan(4.0/3)*180/M_PI; // Generate a perspective matrix with a 53.13010235415598 degree FOV
-		world->nearZ = 1.0f;
-		world->farZ = 20.0f;
-		Matrix_identity(&world->perspective);
-		esPerspective( &world->perspective, world->fovy, world->aspect, world->nearZ, world->farZ);
+	if(stage->world){
+		stage->world->aspect = (GLfloat)stage->stage_w/stage->stage_h; // Compute the window aspect ratio
+		//stage->world->fovy = 53.13010235415598; //atan(1/stage->world->aspect)*180/M_PI; // Generate a perspective matrix with a 53.13010235415598 degree FOV
+		stage->world->fovy = atan(4.0/3)*180/M_PI; // Generate a perspective matrix with a 53.13010235415598 degree FOV
+		stage->world->nearZ = 1.0f;
+		stage->world->farZ = 20.0f;
+		Matrix_identity(&stage->world->perspective);
+		esPerspective( &stage->world->perspective, stage->world->fovy, stage->world->aspect, stage->world->nearZ, stage->world->farZ);
 		// Translate away from the viewer
-		esTranslate(&world->perspective,0,0,-2.0);
+		esTranslate(&stage->world->perspective,0,0,-2.0);
 	}
 #endif
 	return 0;
@@ -373,7 +366,7 @@ Stage * Stage_init(int is3D)
 		{
 			SDL_DisplayMode mode;
 			SDL_GetCurrentDisplayMode(0, &mode);
-			SDL_Log("屏幕分辨率:%dx%d\n",mode.w,mode.h);
+			SDL_Log("screen size:%dx%d\n",mode.w,mode.h);
 #ifdef __ANDROID__
 			stage->stage_w = mode.w;
 			stage->stage_h = mode.h;
@@ -404,22 +397,22 @@ Stage * Stage_init(int is3D)
 				}
 				SDL_GL_SetSwapInterval(1);
 
-				if(world == NULL)
+				if(stage->world == NULL)
 				{
-					SDL_Log("init 3d world");
-					world = (World3d*)malloc(sizeof(World3d));
-					world->aspect = (GLfloat)stage->stage_w/stage->stage_h; // Compute the window aspect ratio
-					//world->fovy = 53.13010235415598; //atan(1/world->aspect)*180/M_PI; // Generate a perspective matrix with a 53.13010235415598 degree FOV
-					world->fovy = atan(4.0/3)*180/M_PI; // Generate a perspective matrix with a 53.13010235415598 degree FOV
-					world->nearZ = 1.0f;
-					world->farZ = 20.0f;
-					Matrix_identity(&world->perspective);
-					esPerspective( &world->perspective, world->fovy, world->aspect, world->nearZ, world->farZ);
+					//SDL_Log("init 3d world");
+					stage->world = (World3d *)malloc(sizeof(World3d));
+					stage->world->aspect = (GLfloat)stage->stage_w/stage->stage_h; // Compute the window aspect ratio
+					//stage->world->fovy = 53.13010235415598; //atan(1/stage->world->aspect)*180/M_PI; // Generate a perspective matrix with a 53.13010235415598 degree FOV
+					stage->world->fovy = atan(4.0/3)*180/M_PI; // Generate a perspective matrix with a 53.13010235415598 degree FOV
+					stage->world->nearZ = 1.0f;
+					stage->world->farZ = 20.0f;
+					Matrix_identity(&stage->world->perspective);
+					esPerspective( &stage->world->perspective, stage->world->fovy, stage->world->aspect, stage->world->nearZ, stage->world->farZ);
 					// Translate away from the viewer
-					esTranslate(&world->perspective,0,0,-2.0);
+					esTranslate(&stage->world->perspective,0,0,-2.0);
 
-					//esRotate( &world->perspective, 10, .0, 0.0, 1.0);
-					//esMatrixMultiply(&world->perspective,&world->perspective,);
+					//esRotate( &stage->world->perspective, 10, .0, 0.0, 1.0);
+					//esMatrixMultiply(&stage->world->perspective,&stage->world->perspective,);
 
 				}
 				//int w,h; SDL_GetWindowSize(stage->window, &w, &h);
@@ -834,6 +827,14 @@ void UserEvent_clear(SDL_UserEvent * event)
 		free(event);
 }
 
+void Sprite_removeEvents(Sprite * sprite)
+{
+	if(sprite && sprite->events)
+	{
+		Array_freeEach(sprite->events);
+		sprite->events=NULL;
+	}
+}
 
 int Sprite_dispatchEvent(Sprite*sprite,const SDL_Event *event)
 {
@@ -848,7 +849,11 @@ int Sprite_dispatchEvent(Sprite*sprite,const SDL_Event *event)
 			if(event->type && event->type == e->type){
 				e->e = (SDL_Event*)event;
 				if(e->func!=NULL){
-					e->func(e);
+					if(e->lastEventTime != event->motion.timestamp){
+						//SDL_Log("lastEventTime :%d",e->lastEventTime);
+						e->func(e);
+					}
+					e->lastEventTime = event->motion.timestamp;
 				}
 			}
 		}
@@ -857,7 +862,7 @@ int Sprite_dispatchEvent(Sprite*sprite,const SDL_Event *event)
 	return 0;
 }
 
-static int Sprite_hasEvent(Sprite*sprite,Uint32 type,EventFunc func)
+static SpriteEvent * Sprite_hasEvent(Sprite*sprite,Uint32 type,EventFunc func)
 {
 	if(sprite==NULL)
 		return 0;
@@ -868,12 +873,12 @@ static int Sprite_hasEvent(Sprite*sprite,Uint32 type,EventFunc func)
 			SpriteEvent*e = (SpriteEvent*)Array_getByIndex(sprite->events,i);
 			if(e->type==type && e->func==func)
 			{
-				return 1;
+				return e;
 			}
 			++i;
 		}
 	}
-	return 0;
+	return NULL;
 }
 
 int Sprite_addEventListener(Sprite*sprite,Uint32 type,EventFunc func)
@@ -894,26 +899,13 @@ int Sprite_addEventListener(Sprite*sprite,Uint32 type,EventFunc func)
 	e->type = type;
 	e->func = func;
 	e->target = sprite;
+	e->lastEventTime = stage->lastEventTime;
 
 	if(sprite->events==NULL){
 		sprite->events = Array_new();
 		sprite->events = Array_setByIndex(sprite->events,0,e);
 	}else{//events 中的空的;e 放到 e->events 的开头
-		int i = 0;
-		int hasNull = 0;
-		while(i<sprite->events->length)
-		{
-			SpriteEvent * ev = Array_getByIndex(sprite->events,i);
-			if(ev==NULL)
-			{
-				hasNull = 1;
-				Array_setByIndex(sprite->events,i,e);
-				break;
-			}
-			++i;
-		}
-		if(hasNull==0)
-			sprite->events = Array_insert(sprite->events,0,e);
+		sprite->events = Array_insert(sprite->events,0,e);
 	}
 	//SDL_Log("%s,sprite->events->length:%d,",sprite->name,sprite->events->length);
 	return 0;
@@ -937,13 +929,12 @@ int Sprite_removeEventListener(Sprite*sprite,Uint32 type,EventFunc func)
 			SpriteEvent*_e = Array_getByIndex(sprite->events,i);
 			if(_e->target == sprite && type == _e->type && _e->func == func )
 			{
-				Array_setByIndex(sprite->events,i,NULL);
-				Sprite_eventDestroy(_e);
+				if(sprite->events->length==1)
+					Sprite_removeEvents(sprite);
+				else
+					sprite->events = Array_removeByIndex(sprite->events,i);
+				break;
 			}
-		}
-		if(sprite->events->length==0){
-			Array_clear(sprite->events);
-			sprite->events = NULL;
 		}
 	}
 	return 0;
@@ -983,58 +974,48 @@ Sprite*Sprite_addChild(Sprite*parent,Sprite*sprite)
 	return Sprite_addChildAt(parent,sprite,parent->children->length);
 }
 
+//is the point in the sprite
+int isPointInSprite(Sprite * sprite,SDL_Point * p)
+{
+	if(sprite->Bounds && Sprite_getVisible(sprite))
+	{
+		if(SDL_PointInRect(p,sprite->Bounds))
+			return 1;
+	}
+	return 0;
+}
+
+//find which child the point is in
+Sprite * getPointChild(Sprite * sprite,SDL_Point* p)
+{
+	if(sprite->mouseChildren == SDL_FALSE)
+		return sprite;
+	if(sprite->children)
+	{
+		int i = sprite->children->length;
+		while(i>0)
+		{
+			--i;
+			Sprite*child= Sprite_getChildByIndex(sprite,i);
+			if(child && isPointInSprite(child,p))
+				return child;
+		}
+	}
+	return sprite;
+}
+
 //从上到下找出,点(x,y)所在的sprite的最后一级,直至mouseChildren=false,或无子集.
 Sprite* getSpriteByStagePoint(int x,int y)
 {
 	stage->mouse->x = x;
 	stage->mouse->y = y;
 
-
-	Sprite*target = NULL;
-	int hasTarget =0;
-	if(stage && stage->sprite->children){
-		Sprite*curSprite = Sprite_getChildByIndex(stage->sprite,stage->sprite->children->length-1);
-		if(curSprite==NULL)
-			return stage->sprite;
-		Sprite * parent;
-		int curIndex;
-searchChildren:
-		parent = curSprite->parent;
-		curIndex = parent->children->length-1;
-		hasTarget = 0;
-		while(curIndex>=0){
-			SDL_Point p;
-			p.x = x;
-			p.y = y;
-			SDL_Rect rect; 
-			if(curSprite->Bounds && Sprite_getVisible(curSprite))
-			{
-				rect.x = curSprite->Bounds->x;
-				rect.y = curSprite->Bounds->y;
-				rect.w = curSprite->Bounds->w;
-				rect.h = curSprite->Bounds->h;
-				//SDL_Log("Bounds:%d,%d,%d,%d\n",rect.x,rect.y,rect.w,rect.h);
-				if(SDL_PointInRect(&p,&rect)){
-					target = curSprite;	//get it
-					//SDL_Log("get target:%s\n",target->name);
-					hasTarget = 1;
-					break;
-				}
-			}
-			--curIndex;
-			curSprite = Sprite_getChildByIndex(parent,curIndex);
-		}
-		if(hasTarget){
-			if(target->children == NULL || target->mouseChildren == SDL_FALSE)
-			{
-				//SDL_Log("get target:%s\n",target->name);
-				return target;
-			}else{
-				curSprite = Sprite_getChildByIndex(target,target->children->length-1);
-				if(curSprite)
-					goto searchChildren;
-			}
-		}
+	Sprite * target = stage->sprite;
+	Sprite * child = getPointChild(stage->sprite,stage->mouse);
+	while(child!=target)//
+	{
+		target = child;
+		child = getPointChild(target,stage->mouse);
 	}
 	return target;
 }
@@ -1124,15 +1105,7 @@ int Sprite_destroy(Sprite*sprite)
 	}
 
 	if(sprite->events){
-		int i = sprite->events->length;
-		while(i>0)
-		{
-			--i;
-			SpriteEvent* event = Array_getByIndex(sprite->events,i);
-			Sprite_eventDestroy(event);
-			Array_setByIndex(sprite->events,i,NULL);
-		}
-		Array_clear(sprite->events);
+		Sprite_removeEvents(sprite);
 	}
 	if(sprite->tween)
 	{
@@ -1235,8 +1208,9 @@ int Sprite_limitPosion(Sprite*target,SDL_Rect*rect)
 	return 0;
 }
 
-void bubbleEvent(Sprite*target,SDL_Event*event)
+static void bubbleEvent(Sprite*target,SDL_Event*event)
 {
+	stage->lastEventTime = event->motion.timestamp;
 	while(target && target!= stage->sprite){
 		if(target->events && Sprite_getVisible(target) && target->name)
 		{
@@ -1246,6 +1220,8 @@ void bubbleEvent(Sprite*target,SDL_Event*event)
 		if(target)
 			target = target->parent;
 	}
+	if(stage->sprite->events)
+		Sprite_dispatchEvent(stage->sprite,event);
 }
 
 
@@ -1316,42 +1292,53 @@ int PrintEvent(const SDL_Event * event)
 	Sprite*target = NULL;
 	switch(event->type)
 	{
-		case SDL_QUIT:
-			SDL_Log("Program quit after %i ticks", event->quit.timestamp);
-			quit(0);
-			return 1;
-			break;
-
-		case SDL_USEREVENT:
-			//SDL_Log("SDL_UserEvent Stage_redraw,%d",event->user.timestamp);
-			((void (*)(void*))(event->user.data1))(event->user.data2);
-			break;
 		case SDL_MOUSEBUTTONDOWN:
 		case SDL_MOUSEBUTTONUP:
 			setStageMouse(event->button.x,event->button.y);
 			target = getSpriteByStagePoint(stage->mouse->x,stage->mouse->y);
 			stage->focus = target;
 			break;
-		case SDL_SYSWMEVENT:
-			//SDL_Log("SDL_SYSWMEVENT:timestamp:%d,event->syswm.msg->version:%s\n",
-			//event->syswm.timestamp,
-			//event->syswm.msg->version);
+		case SDL_MOUSEMOTION:
+			setStageMouse(event->motion.x,event->motion.y);
+			target = getSpriteByStagePoint(stage->mouse->x,stage->mouse->y);
+			if(target)
+			{
+				if(target->canDrag && event->motion.state){
+					if(abs(event->motion.xrel)<20 && abs(event->motion.yrel)<20)
+					{
+						target->x += event->motion.xrel;
+						target->y += event->motion.yrel;
+					}
+					Sprite_limitPosion(target,target->dragRect);
+					//if(target->mouse->x)
+					//Stage_redraw();
+				}
+			}
+			//stage->focus = target;
+			break;
+		case SDL_FINGERMOTION :
+		case SDL_FINGERDOWN:
+		case SDL_FINGERUP:
+			setStageMouse(event->tfinger.x,event->tfinger.y);
+			target = getSpriteByStagePoint(event->tfinger.x,event->tfinger.y);
+			stage->focus = target;
+			break;
+		case SDL_MOUSEWHEEL:
+			/*
+			   SDL_Log("SDL_MOUSEWHEEL:timestamp:%d,windowID:%d,which:%d,deltaX:%d,deltaY:%d\n",//",direction:%d\n",
+			   event->wheel.timestamp,
+			   event->wheel.windowID,
+			   event->wheel.which,
+			   event->wheel.x,
+			   event->wheel.y
+			//,event->wheel.direction
+			);
+			*/
+			target = getSpriteByStagePoint(stage->mouse->x,stage->mouse->y);
+			//stage->focus = target;
 			break;
 		case SDL_KEYDOWN:
 		case SDL_KEYUP:
-
-			/*
-			SDL_Log("KeyboardEvent# scancode:0x%08X=%s, keycode:0x%08X=%s, state:%d, repeat:%d, mod:%d\n",
-					event->key.keysym.scancode,
-					SDL_GetScancodeName(event->key.keysym.scancode),
-					event->key.keysym.sym,
-					SDL_GetKeyName(event->key.keysym.sym)
-					,event->key.state
-					,event->key.repeat
-					,event->key.keysym.mod
-				   );
-			fflush(stdout);
-			*/
 			if(event->type==SDL_KEYUP && event->key.repeat==0)
 			{
 				if(event->key.keysym.sym== SDLK_AC_BACK || event->key.keysym.sym == SDLK_ESCAPE){
@@ -1375,78 +1362,33 @@ int PrintEvent(const SDL_Event * event)
 				}
 				//Stage_redraw();
 			}
-
+		case SDL_TEXTINPUT:
+		case SDL_TEXTEDITING:
 			if(stage->focus)
 				Sprite_dispatchEvent(stage->focus,(SDL_Event*)event);//舞台事件
-			else
-				SDL_Log("SDL_KEYDOWN || SDL_KEYUP no focus\n");
-			break;
-		case SDL_MOUSEMOTION:
-			setStageMouse(event->motion.x,event->motion.y);
-			target = getSpriteByStagePoint(stage->mouse->x,stage->mouse->y);
-			if(target)
-			{
-				/*
-				   SDL_Log("SDL_MOUSEMOTION:timestamp:%d,windowID:%d,which:%d,state:%d,x:%d,y:%d,xrel:%d,yrel:%d\n",
-				   event->motion.timestamp,
-				   event->motion.windowID,
-				   event->motion.which,
-				   event->motion.state,
-				   mouseX,
-				   mouseY,
-				   event->motion.xrel,
-				   event->motion.yrel
-				   );
-				   */
-				if(target->canDrag && event->motion.state){
-					if(abs(event->motion.xrel)<20 && abs(event->motion.yrel)<20)
-					{
-						target->x += event->motion.xrel;
-						target->y += event->motion.yrel;
-					}
-					Sprite_limitPosion(target,target->dragRect);
-					//if(target->mouse->x)
-					//Stage_redraw();
-				}
+			else{
+				SDL_Log("no focus\n");
 			}
-			//stage->focus = target;
+			if(stage->focus!=stage->sprite)
+				Sprite_dispatchEvent(stage->sprite,(SDL_Event*)event);//舞台事件
+			return 0;
 			break;
-		case SDL_FINGERMOTION :
-		case SDL_FINGERDOWN:
-		case SDL_FINGERUP:
-			/*
-			   SDL_Log("SDL_FINGEREVENT:timestamp:%d,"
-			   "x:%f,y:%f,dx:%f,dy:%f,pressure:%f\n",
-			//touchId:%d,fingerId:%d,
-			event->tfinger.timestamp,
-			//event->tfinger.touchId,
-			//event->tfinger.fingerId,
-			event->tfinger.x,
-			event->tfinger.y,
-			event->tfinger.dx,
-			event->tfinger.dy,
-			event->tfinger.pressure
-			);
-			*/
-			setStageMouse(event->tfinger.x,event->tfinger.y);
-			target = getSpriteByStagePoint(event->tfinger.x,event->tfinger.y);
-			stage->focus = target;
+		case SDL_QUIT:
+			SDL_Log("Program quit after %i ticks", event->quit.timestamp);
+			quit(0);
+			return 1;
 			break;
-		case SDL_MOUSEWHEEL:
-			/*
-			   SDL_Log("SDL_MOUSEWHEEL:timestamp:%d,windowID:%d,which:%d,(x:%d,y:%d),deltaX:%d,deltaY:%d\n",//",direction:%d\n",
-			   event->wheel.timestamp,
-			   event->wheel.windowID,
-			   event->wheel.which,
-			   stage->mouse->x,
-			   stage->mouse->y,
-			   event->wheel.x,
-			   event->wheel.y
-			//,event->wheel.direction
-			);
-			*/
-			target = getSpriteByStagePoint(stage->mouse->x,stage->mouse->y);
-			//stage->focus = target;
+
+		case SDL_USEREVENT:
+			//SDL_Log("SDL_UserEvent Stage_redraw,%d",event->user.timestamp);
+			((void (*)(void*))(event->user.data1))(event->user.data2);
+			return 0;
+			break;
+		case SDL_SYSWMEVENT:
+			//SDL_Log("SDL_SYSWMEVENT:timestamp:%d,event->syswm.msg->version:%s\n",
+			//event->syswm.timestamp,
+			//event->syswm.msg->version);
+			return 0;
 			break;
 		case SDL_WINDOWEVENT:
 			switch (event->window.event) {
@@ -1508,21 +1450,11 @@ int PrintEvent(const SDL_Event * event)
 							event->window.windowID, event->window.event);
 					break;
 			}
-			break;
-		case SDL_TEXTINPUT:
-			if(stage->focus)
-				Sprite_dispatchEvent(stage->focus,(SDL_Event*)event);//舞台事件
-			else
-				SDL_Log("SDL_TEXTINPUT no focus\n");
-			break;
-		case SDL_TEXTEDITING:
-			if(stage->focus)
-				Sprite_dispatchEvent(stage->focus,(SDL_Event*)event);//舞台事件
-			else
-				SDL_Log("SDL_TEXTEDITING no focus\n");
+			return 0;
 			break;
 		default:
 			SDL_Log("unknown event XXXXXXXXXX \n");
+			return 0;
 	}
 	//SDL_SpinLock lock = 0;
 	//SDL_AtomicLock(&lock);
@@ -1530,11 +1462,9 @@ int PrintEvent(const SDL_Event * event)
 		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't lock mutex: %s", SDL_GetError());
 		quit(1);
 	}
+	//mouse event:
 	if(target) {
 		bubbleEvent(target,(SDL_Event*)event);//事件冒泡
-	}
-	if(stage){
-		Sprite_dispatchEvent(stage->sprite,(SDL_Event*)event);//舞台事件
 	}
 	if (SDL_UnlockMutex(mutex) < 0) {
 		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't unlock mutex: %s", SDL_GetError());
@@ -1862,23 +1792,23 @@ Data3d* Data3D_init()
 #undef __test_glsl__
 #endif
 		data2D->programObject = esLoadProgram ( vShaderStr, fShaderStr );
-		SDL_Log("programObject:%d\n",data2D->programObject);
+		//SDL_Log("programObject:%d\n",data2D->programObject);
 
 		if(data2D->programObject){
 			data2D->normalLoc= GL_CHECK(gles2.glGetAttribLocation( data2D->programObject, "anormal"));
-			SDL_Log("normalLoc:%d\n",data2D->normalLoc);
+			//SDL_Log("normalLoc:%d\n",data2D->normalLoc);
 			data2D->texCoordLoc = GL_CHECK(gles2.glGetAttribLocation ( data2D->programObject, "a_texCoord" ));
-			SDL_Log("texCoordLoc:%d\n",data2D->texCoordLoc);
+			//SDL_Log("texCoordLoc:%d\n",data2D->texCoordLoc);
 			data2D->samplerLoc = GL_CHECK(gles2.glGetUniformLocation ( data2D->programObject, "s_texture" ));
-			SDL_Log("samplerLoc:%d\n",data2D->samplerLoc);
+			//SDL_Log("samplerLoc:%d\n",data2D->samplerLoc);
 			data2D->filterLoc= GL_CHECK(gles2.glGetUniformLocation ( data2D->programObject, "u_filter" ));
-			SDL_Log("filterLoc:%d\n",data2D->filterLoc);
+			//SDL_Log("filterLoc:%d\n",data2D->filterLoc);
 			data2D->alphaLoc = GL_CHECK(gles2.glGetUniformLocation (data2D->programObject, "u_alpha"));
-			SDL_Log("alphaLoc:%d\n",data2D->alphaLoc);
+			//SDL_Log("alphaLoc:%d\n",data2D->alphaLoc);
 			data2D->mvpLoc = GL_CHECK(gles2.glGetUniformLocation( data2D->programObject, "u_mvpMatrix" ));
-			SDL_Log("mvpLoc:%d\n",data2D->mvpLoc);
+			//SDL_Log("mvpLoc:%d\n",data2D->mvpLoc);
 			data2D->positionLoc = GL_CHECK(gles2.glGetAttribLocation ( data2D->programObject, "a_position" ));
-			SDL_Log("positionLoc:%d\n",data2D->positionLoc);
+			//SDL_Log("positionLoc:%d\n",data2D->positionLoc);
 		}
 	}
 	return data2D;
@@ -1907,14 +1837,14 @@ void Sprite_rotate(Sprite*sprite,int _rotationX,int _rotationY,int _rotationZ)
 }
 
 float wto3d(int x){
-	return x*2.0/stage->stage_w*world->aspect;
+	return x*2.0/stage->stage_w*stage->world->aspect;
 }
 float hto3d(int y){
 	return y*2.0/stage->stage_h;
 }
 
 float xto3d(int x){
-	return (x*2.0/stage->stage_w -1.0)*world->aspect;
+	return (x*2.0/stage->stage_w -1.0)*stage->world->aspect;
 }
 float yto3d(int y){
 	return 1.0 - y*2.0/stage->stage_h;
@@ -1926,13 +1856,13 @@ int zfrom3d(float z){
 	return (int)((z)*stage->stage_w);
 }
 int xfrom3d(float x){
-	return (int)((x/world->aspect + 1.0)*stage->stage_w/2.0);
+	return (int)((x/stage->world->aspect + 1.0)*stage->stage_w/2.0);
 }
 int yfrom3d(float y){
 	return (int)((1.0 - y)*stage->stage_h/2.0);
 }
 int wfrom3d(float w){
-	return (int)((w/world->aspect)*stage->stage_w/2.0);
+	return (int)((w/stage->world->aspect)*stage->stage_w/2.0);
 }
 int hfrom3d(float h){
 	return (int)((h)*stage->stage_h/2.0);
@@ -1959,74 +1889,6 @@ void Sprite_setSurface(Sprite*sprite,SDL_Surface * surface)
 
 }
 
-char* esLoadTGA ( char *fileName, int *width, int *height )
-{
-	char *buffer = NULL;
-	FILE *f;
-	unsigned char tgaheader[12];
-	unsigned char attributes[6];
-	unsigned int imagesize;
-
-	f = fopen(fileName, "rb");
-	if(f == NULL) return NULL;
-
-	if(fread(&tgaheader, sizeof(tgaheader), 1, f) == 0)
-	{
-		fclose(f);
-		return NULL;
-	}
-
-	if(fread(attributes, sizeof(attributes), 1, f) == 0)
-	{
-		fclose(f);
-		return 0;
-	}
-
-	*width = attributes[1] * 256 + attributes[0];
-	*height = attributes[3] * 256 + attributes[2];
-	imagesize = attributes[4] / 8 * *width * *height;
-	buffer = malloc(imagesize);
-	if (buffer == NULL)
-	{
-		fclose(f);
-		return 0;
-	}
-
-	if(fread(buffer, 1, imagesize, f) != imagesize)
-	{
-		free(buffer);
-		return NULL;
-	}
-	fclose(f);
-	return buffer;
-}
-GLuint LoadTexture ( char *fileName )
-{
-	int width,
-		height;
-	char *buffer = esLoadTGA ( fileName, &width, &height );
-	GLuint texId;
-
-	if ( buffer == NULL )
-	{
-		SDL_Log( "Error loading (%s) image.\n", fileName );
-		return 0;
-	}
-
-	GL_CHECK(gles2.glGenTextures ( 1, &texId ));
-	GL_CHECK(gles2.glBindTexture ( GL_TEXTURE_2D, texId ));
-
-	// GL_TEXTURE_2D, GL_PROXY_TEXTURE_2D, GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL_TEXTURE_CUBE_MAP_NEGATIVE_X, GL_TEXTURE_CUBE_MAP_POSITIVE_Y, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, GL_TEXTURE_CUBE_MAP_POSITIVE_Z, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, or GL_PROXY_TEXTURE_CUBE_MAP. 
-	GL_CHECK(gles2.glTexImage2D ( GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, buffer ));
-	GL_CHECK(gles2.glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ));
-	GL_CHECK(gles2.glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR ));
-	GL_CHECK(gles2.glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE ));
-	GL_CHECK(gles2.glTexParameteri ( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE ));
-
-	free ( buffer );
-
-	return texId;
-}
 
 void Sprite_center(Sprite*sprite,int x,int y,int w,int h)
 {

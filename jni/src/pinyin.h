@@ -7,7 +7,6 @@
 #include "SDL.h"
 #include "SDL_mixer.h"
 #include "utf8.h"
-#include "iconv.h"
 #include "files.h"
 #include "myregex.h"
 #include "httploader.h"

@@ -487,6 +487,31 @@ URLRequest*URLRequest_setAuthorization(URLRequest*urlrequest,char*userName,char*
 	return urlrequest;
 }
 
+char * loadUrl(char * url,size_t* len)
+{
+	int statusCode;
+	URLRequest * urlrequest = NULL;
+	char * data = NULL;
+
+	urlrequest = URLRequest_new(url);
+	urlrequest = Httploader_request(urlrequest);
+	statusCode = urlrequest->statusCode;
+	printf("statusCode:%d\n",statusCode);
+	if((statusCode >= 200 && statusCode<300) || statusCode==304){
+		//if(urlrequest->respond->contentLength == strlen(urlrequest->data))
+		{
+			data = malloc(urlrequest->respond->contentLength+1);
+			if(len)
+				*len=urlrequest->respond->contentLength;
+			memset(data,0,urlrequest->respond->contentLength+1);
+			memcpy(data,urlrequest->data,urlrequest->respond->contentLength+1);
+		}
+	}
+	URLRequest_clear(urlrequest);
+	return data;
+}
+
+
 
 #ifdef debug_httploader
 #include "mysurface.h"

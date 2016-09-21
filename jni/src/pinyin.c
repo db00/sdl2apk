@@ -1,6 +1,6 @@
 /**
  * @file pinyin.c
- gcc -g -Wall -I"../SDL2_mixer/" -I"../SDL2/include/" -lSDL2 -lSDL2_mixer pinyin.c readbaidu.c utf8.c urlcode.c files.c array.c base64.c myregex.c ipstring.c httploader.c mystring.c  -lssl -lcrypto  -lm -D debug_pinyin &&./a.out
+ gcc -g -Wall -I"../SDL2_mixer/" -I"../SDL2/include/" -lSDL2 -lSDL2_mixer music.c pinyin.c utf8.c urlcode.c files.c array.c base64.c myregex.c ipstring.c httploader.c mystring.c  -lssl -lcrypto  -lm -D debug_pinyin &&./a.out
  gcc -I"../SDL2_image/" -I"../SDL2_ttf" -I"../SDL2_mixer/" readbaidu.c urlcode.c ipstring.c files.c matrix.c array.c tween.c ease.c base64.c sprite.c httploader.c mystring.c -lssl -lcrypto  -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lSDL2 -I"../SDL2/include/" -lm -D debug_readloader && ./a.out
  *  
  *
@@ -322,26 +322,6 @@ int getlines(char * data)
 	return 0;
 }
 
-char * loadUrl(char * url)
-{
-	int statusCode;
-	URLRequest * urlrequest = NULL;
-	char * data = NULL;
-
-	urlrequest = URLRequest_new(url);
-	urlrequest = Httploader_request(urlrequest);
-	statusCode = urlrequest->statusCode;
-	if((statusCode >= 200 && statusCode<300) || statusCode==304){
-		if(urlrequest->respond->contentLength == strlen(urlrequest->data))
-		{
-			data = malloc(urlrequest->respond->contentLength+1);
-			memset(data,0,urlrequest->respond->contentLength+1);
-			memcpy(data,urlrequest->data,urlrequest->respond->contentLength+1);
-		}
-	}
-	URLRequest_clear(urlrequest);
-	return data;
-}
 #endif
 int playHzPinyin(char * s)
 {
@@ -354,9 +334,9 @@ int playHzPinyin(char * s)
 			char * pinyin = Array_getByIndex(pinyinArr,i);
 			if(pinyin){
 				char * pinyinFile0 = contact_str("~/sound/pinyin/",pinyin);
-				char * pinyinFile = pinyinFile = contact_str(pinyinFile0,".mp3");
+				char * pinyinFile = pinyinFile = contact_str(pinyinFile0,".ogg");
 				free(pinyinFile0);
-				Sound_playFile(pinyinFile);
+				Sound_playFile(NULL,pinyinFile);
 				free(pinyinFile);
 			}else{
 				//SDL_Delay(400);

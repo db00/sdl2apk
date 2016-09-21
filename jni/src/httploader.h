@@ -71,6 +71,6 @@ URLRequest * URLRequest_new(char *_url);
 URLRequest * Httploader_request(URLRequest *urlrequest);
 URLRequest * Httploader_load(char *url);
 URLRequest * URLRequest_setAuthorization(URLRequest*urlrequest,char*userName,char*pswd);
-
+char * loadUrl(char * url,size_t* len);
 
 #endif

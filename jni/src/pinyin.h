@@ -11,6 +11,7 @@
 #include "myregex.h"
 #include "httploader.h"
 #include "readbaidu.h"
+#include "music.h"
 
 int playHzPinyin(char * s);
 char * readNum(int num);

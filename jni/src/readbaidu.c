@@ -1,6 +1,6 @@
 /**
  * @file readbaidu.c
- gcc -I"../SDL2_image/" -I"../SDL2_ttf" -I"../SDL2_mixer/" myregex.c readbaidu.c urlcode.c ipstring.c files.c matrix.c array.c tween.c ease.c base64.c sprite.c httploader.c mystring.c -lssl -lcrypto  -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lSDL2 -I"../SDL2/include/" -lm -D debug_readloader && ./a.out
+ gcc -I"../SDL2_image/" -I"../SDL2_ttf" -I"../SDL2_mixer/" myregex.c readbaidu.c music.c urlcode.c ipstring.c files.c matrix.c array.c tween.c ease.c base64.c sprite.c httploader.c mystring.c -lssl -lcrypto  -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lSDL2 -I"../SDL2/include/" -lm -D debug_readloader && ./a.out
  diagram 英式与美式发音
 http://fanyi.baidu.com/gettts?lan=uk&text=diagram&spd=2&source=alading
 http://fanyi.baidu.com/gettts?lan=en&text=diagram&spd=2&source=alading
@@ -14,73 +14,6 @@ http://tts.baidu.com/text2audio?lan=zh&pid=101&ie=UTF-8&text=%E7%99%BE
 #include "readbaidu.h"
 
 
-
-int Sound_init()
-{
-	/* Open the audio device */
-	//if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY, MIX_DEFAULT_FORMAT, 2, 512) < 0)
-	//if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY,AUDIO_U16LSB, 2, 512) < 0)
-	//if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY,AUDIO_S16LSB, 2, 512) < 0)
-	//if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY,AUDIO_U16MSB, 2, 512) < 0)
-	//if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY,AUDIO_S16MSB, 2, 512) < 0)
-	//if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY,AUDIO_S16, 2, 512) < 0)
-	//if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY,AUDIO_S32LSB, 2, 512) < 0)
-	//if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY,AUDIO_U16SYS, 2, 512) < 0)
-	//if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY,AUDIO_S16SYS, 2, 512) < 0)
-	//if (Mix_OpenAudio(11025,AUDIO_S16SYS, 2, 512) < 0)
-	//if (Mix_OpenAudio(11025,MIX_DEFAULT_FORMAT, 2, 4096) < 0)
-	if (Mix_OpenAudio(16000,MIX_DEFAULT_FORMAT, 2, 4096) < 0)
-		//if (Mix_OpenAudio(MIX_DEFAULT_FREQUENCY,AUDIO_U16, 2, 512) < 0)
-	{
-		SDL_Log( "Couldn't open audio: %s\n", SDL_GetError());
-		return 2;
-	}
-	/* Set the music volume */
-	Mix_VolumeMusic(MIX_MAX_VOLUME);
-	/* Set the external music player, if any */
-	Mix_SetMusicCMD(SDL_getenv("MUSIC_CMD"));
-	return 0;
-}
-
-
-
-void Sound_clear()
-{
-	if( Mix_PlayingMusic() ) {
-		Mix_FadeOutMusic(100);
-		SDL_Delay(100);
-	}
-	Mix_CloseAudio();
-}
-
-int Sound_playData(char * data,int data_length)
-{
-	if(Sound_init())return 1;
-	Mix_Music *music = NULL;
-	while(1)
-	{
-		/* Load the requested music file */
-		music = Mix_LoadMUS_RW(SDL_RWFromConstMem(data,data_length), SDL_TRUE);
-		if(music){
-			if(Mix_PlayMusic(music,0) == -1)
-			{
-				SDL_Log("play failure ,%s\n",(char*)Mix_GetError());  
-				break;
-			}
-			while(Mix_PlayingMusic() ) {
-				SDL_Delay(100);
-			}
-			Mix_FreeMusic(music);
-			music = NULL;
-		}else{
-			Sound_clear();
-			return 1;
-		}
-		break;
-	}
-	Sound_clear();
-	return 0;
-}
 
 char * getEngUrl(char * s,int type)
 {
@@ -106,7 +39,7 @@ char * getEngPath(char * s,int type)
 #endif
 	if(type==1){
 		path = contact_str(_path,"uk/");
-	}else if(type==1){
+	}else if(type==2){
 		path = contact_str(_path,"us/");
 	}else{
 		path = contact_str(_path,"pinyin/");
@@ -118,98 +51,31 @@ char * getEngPath(char * s,int type)
 	return path;
 }
 
-int Sound_playFile(char * fileName)
+static int plays(char *url,char * fileName)
 {
-	if(Sound_init())return 1;
-	Mix_Music *music = NULL;
-	while(1)
-	{
-		/* Load the requested music file */
-		//music = Mix_LoadMUS_RW(SDL_RWFromConstMem(data,data_length), SDL_TRUE);
-		if ( music == NULL ) {
-			char * f = decodePath(fileName);
-			music = Mix_LoadMUS(f);
-			if(music==NULL){
-				SDL_Log("Load %s failure ,%s\n",f,(char*)Mix_GetError());
-				/*
-				//#ifdef linux
-				char * cmd = malloc(1024);
-				memset(cmd,0,1024);
-#ifdef __ANDROID__
-				sprintf(cmd,"am start -n com.android.music/.MediaPlaybackActivity -d %s &",f);
-#else
-				sprintf(cmd,"mplayer %s ",f);
-#endif
-				system(cmd);
-				free(cmd);
-				//#endif
-				*/
-				if(f)free(f);f=NULL;
-				break;
-			}
-			if(f)free(f);f=NULL;
-		}
-
-		if(music){
-			if(Mix_PlayMusic(music,0) == -1)
-			{
-				SDL_Log("play %s failure ,%s\n",fileName,(char*)Mix_GetError());  
-				break;
-			}
-			while(Mix_PlayingMusic() ) {
-				SDL_Delay(100);
-			}
-			Mix_FreeMusic(music);
-			music = NULL;
-		}
-		break;
-	}
-	Sound_clear();
-	return 0;
-}
-
-static SDL_mutex *mutex = NULL;
-
-int Sound_playUrl(void *url,char * fileName)
-{
-	SDL_Log("Sound_playUrl:%s,%s\n",(char*)url,fileName);
-	URLRequest * urlrequest = Httploader_load((char*)url);
-	if(urlrequest
-			&& urlrequest->statusCode == 200 
-			&& urlrequest->data)
-	{
-		char *data = urlrequest->data;
-		size_t data_length = urlrequest->respond->contentLength;
-
-		/*
-		   if (SDL_LockMutex(mutex) < 0) {
-		   SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't lock mutex: %s", SDL_GetError());
-		   URLRequest_clear(urlrequest);
-		   return 1;
-		   }
-		   */
-
-		if(fileName){
+	SDL_Log("plays:%s,%s",url,fileName);
+	size_t data_length = 0;
+	char * data = loadUrl(url,&data_length);
+	if(fileName){
+		if(data && data_length>0)
 			if(writefile(fileName,data,data_length)==0) {
+				if(strcmp(fileName+strlen(fileName)-4,".mp3")==0)
+				{
+					playMp3(fileName);
+					free(data);
+					return 0;
+				}
 				SDL_Log("writefile successfully!\n");
 			}
-			Sound_playFile(fileName);
-		}else{
-			if(Sound_playData(data,data_length)==0)
-			{
-				SDL_Log("data play successfully!\n");
-			}
-		}
-
-		/*
-		   if (SDL_UnlockMutex(mutex) < 0) {
-		   SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't unlock mutex: %s", SDL_GetError());
-		   URLRequest_clear(urlrequest);
-		   return 1;
-		   }
-		   */
 	}
-	URLRequest_clear(urlrequest);
+	if(data)
+	{
+		if(Sound_playData(NULL,data,data_length)==0)
+		{
+			SDL_Log("data play successfully!\n");
+		}
+		free(data);
+	}
 	return 0;
 }
 
@@ -221,15 +87,9 @@ int Sound_playUrl(void *url,char * fileName)
  */
 void READ_loadSound(char *word,int type)
 {
-	if(mutex==NULL){
-		if ((mutex = SDL_CreateMutex()) == NULL) {
-			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create mutex: %s\n", SDL_GetError());
-			return ;
-		}
-	}
 	char * url = getEngUrl(word,type);
 	char * fileName = getEngPath(word,type);
-	Sound_playUrl(url,fileName);
+	plays(url,fileName);
 	free(url);
 	free(fileName);
 	return;
@@ -241,7 +101,7 @@ void Sound_playEng(char * s,int type)
 	if(!!fileExists(engPath))
 	{
 		printf("file %s exists!\n",engPath);
-		Sound_playFile(engPath);
+		Sound_playFile(NULL,engPath);
 	}else{
 		READ_loadSound(s,type);
 	}
@@ -257,19 +117,15 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "Couldn't initialize SDL: %s\n",SDL_GetError());
 		return(255);
 	}
-	if(mutex==NULL){
-		if ((mutex = SDL_CreateMutex()) == NULL) {
-			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create mutex: %s\n", SDL_GetError());
-			return 0;
-		}
-	}
-	Sound_playEng("earth",1);
-	//return 0;
+	//SDL_Log("%s",loadUrl("http://www.baidu.com/",NULL));
+	//fflush(stdout);
+	Sound_playEng("black",1);
+	return 0;
 #if 0
 	//阿
-	Sound_playFile("sound/pinyin/ni3.mp3");
-	Sound_playFile("sound/pinyin/hao3.mp3");
-	Sound_playFile("sound/pinyin/a1.mp3");
+	Sound_playFile(NULL,"sound/pinyin/ni3.mp3");
+	Sound_playFile(NULL,"sound/pinyin/hao3.mp3");
+	Sound_playFile(NULL,"sound/pinyin/a1.mp3");
 	//SDL_Delay(100); return 0;
 
 	char c = 'a';
@@ -309,13 +165,13 @@ int main(int argc, char *argv[])
 			free(_w);
 			memset(_url,0,128);
 			sprintf(_url,format,w,j);
-			Sound_playUrl(_url,name2);
+			plays(_url,name2);
 			free(name2);
 		}
 		memset(_url,0,128);
 		sprintf(_url,format2,w);
 		char * _name2 = getEngPath(w,0);
-		Sound_playUrl(_url,_name2);
+		plays(_url,_name2);
 		free(_name2);
 		++i;
 	}

@@ -61,7 +61,7 @@ static int plays(char *url,char * fileName)
 			if(writefile(fileName,data,data_length)==0) {
 				if(strcmp(fileName+strlen(fileName)-4,".mp3")==0)
 				{
-					playMp3(fileName);
+					Sound_playFile(NULL,fileName);
 					free(data);
 					return 0;
 				}

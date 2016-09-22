@@ -132,15 +132,7 @@ int Dict_readIndexFile(Dict *dict)
 
 FILE * Dict_open(Dict *dict)
 {
-#ifdef __ANDROID__
-	char rootpath[]="/sdcard/";
-#else
-#ifdef linux
-	char rootpath[]="./";
-#else
-	char rootpath[]="";
-#endif
-#endif
+	char * rootpath = decodePath("~/sound/");
 	char *_file = dict->name;
 	dict->index_file = fopen(append_str(NULL,"%s%s/%s%s",rootpath,_file,_file,".idx"),"rb");
 	char *dict_file= append_str(NULL,"%s%s/%s%s",rootpath,_file,_file,".dict");
@@ -176,6 +168,7 @@ FILE * Dict_open(Dict *dict)
 	{
 		printf("open dict index_file error!\n");
 	}
+	free(rootpath);
 	return dict->file;
 }
 

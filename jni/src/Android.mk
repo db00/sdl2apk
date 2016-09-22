@@ -26,7 +26,7 @@ LOCAL_SRC_FILES := $(SDL_PATH)/src/main/android/SDL_android_main.c \
 	input.c utf8.c sprite.c matrix.c myregex.c kodi.c jsonrpc.c files.c sdlfiles.c httploader.c ipstring.c mystring.c cJSON.c  \
 	urlcode.c filetypes.c httpserver.c array.c base64.c \
 	dict.c \
-	readbaidu.c update.c regex.c textfield.c pinyin.c read_card.c music.c \
+	readbaidu.c update.c regex.c textfield.c pinyin.c read_card.c music.c searhdict.c\
 	tween.c ease.c mysurface.c androidcam.c map.c\
 	testime.c
 #	video.c array.c tween.c ease.c base64.c ipstring.c sprite.c httploader.c mystring.c textfield.c files.c matrix.c 

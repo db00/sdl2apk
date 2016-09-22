@@ -21,8 +21,7 @@ static char * host = NULL;
 static char *getHost()
 {
 	if(host)return host;
-	char *url = append_str(NULL,"%s",App_storageDir());
-	url = append_str(url,"%s","icons/host");
+	char *url = decodePath("~/sound/icons/host");
 	SDL_Log("%s\n",url);
 	if(url){
 		size_t len;
@@ -192,8 +191,9 @@ Sprite * makeBtn(char* _url)
 {
 	Sprite * sprite = Sprite_new();
 	//sprite->surface = Httploader_loadimg("http://res1.huaien.com/images/tx.jpg");
-	char *url = append_str(NULL,"%s",App_storageDir());
-	url = append_str(url,"%s",_url);
+	char *url1 = decodePath("~/sound/");
+	char * url = contact_str(url1,_url);
+	free(url1);
 	printf("%s\n",url);
 	sprite->surface = IMG_Load(url);
 	if(sprite->surface)
@@ -316,11 +316,10 @@ static void showEearth()
 	memset(sprite->name,0,sizeof(sname)+1);
 	strcpy(sprite->name,sname);
 	sprite->is3D = 1;
-#ifdef __ANDROID__
-	sprite->surface = IMG_Load("/sdcard/1.bmp");
-#else
-	sprite->surface = IMG_Load("1.bmp");
-#endif
+
+	char * earthPath = decodePath("~/sound/1.bmp");
+	sprite->surface = IMG_Load(earthPath);
+	free(earthPath);
 	Data3d*_data3D = sprite->data3d;
 	if(_data3D==NULL){
 		_data3D = (Data3d*)malloc(sizeof(Data3d));
@@ -359,7 +358,7 @@ static void showEearth()
 	Sprite_addEventListener(sprite,SDL_MOUSEBUTTONUP,mousehandl);
 }
 
-Tween * tween = NULL;
+static Tween * tween = NULL;
 void setTweenToNull(void *p){
 	tween = NULL;
 }
@@ -400,7 +399,7 @@ int Kodi_initBtns(int v)
 
 		showEearth();
 	}
-	if(!v && Sprite_contains(stage->sprite,container)){
+	if(!v && stage->sprite == container->parent){
 		/*
 		   if(tween)
 		   Tween_kill(tween,1);
@@ -479,7 +478,7 @@ int main(int argc, char *argv[])
 	   URLRequest_clear(urlrequest);
 	   urlrequest = NULL;
 	   */
-	Kodi_initBtns();
+	Kodi_initBtns(1);
 
 	Stage_loopEvents();
 	exit(0);

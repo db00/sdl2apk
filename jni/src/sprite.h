@@ -150,6 +150,7 @@ typedef struct Sprite{
 
 typedef struct Stage{
 	int is3D;
+	Sprite * currentTarget;
 	SDL_GLContext GLEScontext;
 	SDL_Renderer * renderer;//renderer
 	SDL_Window* window;//

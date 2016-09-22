@@ -4,6 +4,7 @@
  */
 #include "music.h"
 
+#if 0
 static void print_init_flags(int flags)
 {
 #define PFLAG(a) if(flags&MIX_INIT_##a) printf(#a " ")
@@ -15,27 +16,40 @@ static void print_init_flags(int flags)
 		SDL_Log("None");
 	SDL_Log("\n");
 }
+#endif
 
-Sound * Sound_new()
+Sound * Sound_new(int audio_rate)
 {
 	Sound * sound = malloc(sizeof(Sound));
 	memset(sound,0,sizeof(Sound));
 	sound->volume = SDL_MIX_MAXVOLUME;
-	int initted=Mix_Init(0);
-	//SDL_Log("Before Mix_Init SDL_mixer supported: ");
-	//print_init_flags(initted);
-	initted=Mix_Init(~0);
-	SDL_Log("After  Mix_Init SDL_mixer supported: ");
-	print_init_flags(initted);
-	Mix_Quit();
+	sound->audio_rate = audio_rate;
 
-	if(Mix_OpenAudio(44100,MIX_DEFAULT_FORMAT,2,1024)<0)
+	//sound->initted=Mix_Init(0);
+	//SDL_Log("Before Mix_Init SDL_mixer supported: ");
+	//print_init_flags(sound->initted);
+	sound->initted=Mix_Init(~0);
+	//SDL_Log("After  Mix_Init SDL_mixer supported: ");
+	//print_init_flags(sound->initted);
+	while(Mix_Init(0))
+		Mix_Quit();
+
+	/*
+	while(Mix_PlayingMusic())
+		SDL_Delay(1500);
+	Mix_CloseAudio();
+	SDL_Delay(100);
+	*/
+	//if(Mix_OpenAudio(44100,MIX_DEFAULT_FORMAT,2,1024)<0)
+	if(Mix_OpenAudio(sound->audio_rate,MIX_DEFAULT_FORMAT,2,4096)<0)
 	{
+		SDL_Log("Error initializing SDL_mixer: %s\n", Mix_GetError());
 		Sound_free(sound);
 		return NULL;
 	}
 	/* we play no samples, so deallocate the default 8 channels... */
-	Mix_AllocateChannels(0);
+	SDL_Log("number of channels :%d",Mix_AllocateChannels(0));
+#if 0
 	/* print out some info on the formats this run of SDL_mixer supports */
 	{
 		int i,n=Mix_GetNumChunkDecoders();
@@ -49,13 +63,17 @@ Sound * Sound_new()
 			printf("	%s", Mix_GetMusicDecoder(i));
 		SDL_Log("\n");
 	}
+#endif
 
 	/* print out some info on the audio device and stream */
-	Mix_QuerySpec(&sound->audio_rate, &sound->audio_format, &sound->audio_channels);
+	int numtimesopened = Mix_QuerySpec(&sound->audio_rate, &sound->audio_format, &sound->audio_channels);
 	//sample_size=bits/8+audio_channels;
-	//rate=sound->audio_rate;
-	SDL_Log("Opened audio at %d Hz %d bit %s, %d bytes audio buffer\n", sound->audio_rate,
-			sound->audio_format&0xff, sound->audio_channels>1?"stereo":"mono", 1024);
+	if(numtimesopened) {
+		SDL_Log("Opened audio %d times at %d Hz %d bit %s, %d bytes audio buffer\n",numtimesopened, sound->audio_rate,
+				sound->audio_format&0xff, sound->audio_channels>1?"stereo":"mono", 1024);
+	}else{
+		SDL_Log("Mix_QuerySpec: %s\n",Mix_GetError());
+	}
 
 	return sound;
 }
@@ -71,14 +89,67 @@ int Sound_playUrl(Sound*sound,char * url)
 	}
 	return 1;
 }
+
+int playSound(Sound * sound)
+{
+	if(sound==NULL)
+		return 1;
+	if(sound->music)
+	{
+		Mix_MusicType type=Mix_GetMusicType(sound->music);
+		SDL_Log("Music type: %s\n",
+				type==MUS_NONE?"MUS_NONE":
+				type==MUS_CMD?"MUS_CMD":
+				type==MUS_WAV?"MUS_WAV":
+				//type==MUS_MOD_MODPLUG?"MUS_MOD_MODPLUG":
+				type==MUS_MOD?"MUS_MOD":
+				type==MUS_MID?"MUS_MID":
+				type==MUS_OGG?"MUS_OGG":
+				type==MUS_MP3?"MUS_MP3":
+				type==MUS_MP3_MAD?"MUS_MP3_MAD":
+				type==MUS_FLAC?"MUS_FLAC":
+				"Unknown");
+	}
+	/* wait for escape key of the quit event to finish */
+	if(Mix_PlayMusic(sound->music, 1)==-1)
+	{
+		SDL_Log("Mix_PlayMusic: %s\n",Mix_GetError());
+		Sound_free(sound);
+		return 2;
+	}
+	if(Mix_VolumeMusic(sound->volume)<0)
+	{
+		SDL_Log("Mix_VolumeMusic: %s\n",Mix_GetError());
+		Sound_free(sound);
+		return 2;
+	}
+	while((Mix_PlayingMusic() || Mix_PausedMusic()))
+	{
+		SDL_Delay(100);
+		//SDL_Log("--------------------");
+	}
+	Sound_free(sound);
+	return 0;
+}
+
+
+
 int Sound_playFile(Sound*sound,char * file)
 {
 	SDL_Log("Sound_playFile :%s",file);
 
-	if(strcmp(file+strlen(file)-4,".mp3")==0)
-	{
-		playMp3(file);
-		return 0;
+	if(sound==NULL && strcasecmp(file+strlen(file)-4,".mp3")==0){
+		sound = Sound_new(16000);
+		char * f= decodePath(file);
+#ifdef __ANDROID__
+		Mix_SetMusicCMD("am start -n com.android.music/.MediaPlaybackActivity -d");
+#else
+		Mix_SetMusicCMD("mplayer");
+#endif
+		SDL_Log("playMp3 : %s",f);
+
+		sound->music = Mix_LoadMUS(f);
+		return playSound(sound);
 	}
 
 
@@ -98,47 +169,22 @@ int Sound_playData(Sound*sound,char * data,size_t data_length)
 	if(data==NULL || data_length==0)
 		return 1;
 	if(sound==NULL)
-		sound = Sound_new();
+		sound = Sound_new(44100);
 	if(sound==NULL)
 		return 2;
 
 	/* load the song */
 	sound->music = Mix_LoadMUS_RW(SDL_RWFromConstMem(data,data_length), SDL_TRUE);
 	//sound->music=Mix_LoadMUS(file);
-	if(!(sound->music))
+	if(sound->music)
 	{
+		playSound(sound);
+	}else{
+		SDL_Log("Mix_LoadMUS_RW : %s\n",Mix_GetError());
 		Sound_free(sound);
 		return 1;
 	}
 
-	{
-		Mix_MusicType type=Mix_GetMusicType(sound->music);
-		SDL_Log("Music type: %s\n",
-				type==MUS_NONE?"MUS_NONE":
-				type==MUS_CMD?"MUS_CMD":
-				type==MUS_WAV?"MUS_WAV":
-				//type==MUS_MOD_MODPLUG?"MUS_MOD_MODPLUG":
-				type==MUS_MOD?"MUS_MOD":
-				type==MUS_MID?"MUS_MID":
-				type==MUS_OGG?"MUS_OGG":
-				type==MUS_MP3?"MUS_MP3":
-				type==MUS_MP3_MAD?"MUS_MP3_MAD":
-				type==MUS_FLAC?"MUS_FLAC":
-				"Unknown");
-	}
-	/* wait for escape key of the quit event to finish */
-	if(Mix_PlayMusic(sound->music, 1)==-1)
-	{
-		Sound_free(sound);
-		return 2;
-	}
-	Mix_VolumeMusic(sound->volume);
-	while((Mix_PlayingMusic() || Mix_PausedMusic()))
-	{
-		SDL_Delay(100);
-		//SDL_Log("--------------------");
-	}
-	Sound_free(sound);
 	return 0;
 }
 
@@ -203,66 +249,19 @@ void volumeUp(Sound*sound)
 
 void Sound_free(Sound *sound)
 {
+	//SDL_Log("Sound_free: ");
+	if( Mix_PlayingMusic() ) {
+		if(!Mix_FadeOutMusic(1500))
+			SDL_Log("Mix_FadeOutMusic: %s\n",Mix_GetError());
+		SDL_Delay(1500);
+	}
 	if(sound){
-		Mix_FreeMusic(sound->music);
+		if(sound->music)
+			Mix_FreeMusic(sound->music);
 		free(sound);
 	}
 	Mix_CloseAudio();
-}
-
-int playMp3(char * fileName)
-{
-	if (Mix_OpenAudio(16000,MIX_DEFAULT_FORMAT, 2, 4096) < 0)
-	{
-		fprintf(stderr, "Couldn't open audio: %s\n", SDL_GetError());
-		return 2;
-	}
-	Mix_VolumeMusic(MIX_MAX_VOLUME);
-	char * file = decodePath(fileName);
-	while(1)
-	{
-		char cmd[100];
-		memset(cmd,0,100);
-
-#ifdef __ANDROID__
-		strcat(cmd,"am start -n com.android.music/.MediaPlaybackActivity -d ");
-		//strcat(cmd,file);
-		//strcat(cmd," &");
-#else
-		strcat(cmd,"mplayer");
-		//strcat(cmd,file);
-#endif
-		//Mix_SetMusicCMD(SDL_getenv("MUSIC_CMD"));
-		Mix_SetMusicCMD(cmd);
-
-		SDL_Log("playMp3 : %s",file);
-
-		Mix_Music*music = Mix_LoadMUS(file);
-		//Mix_Music *music = Mix_LoadMUS_RW(SDL_RWFromConstMem(data,data_length), SDL_TRUE);
-		if(music){
-			if(Mix_PlayMusic(music,0) == -1)
-			{
-				SDL_Log("play mp3 %s failure ,%s\n",fileName,(char*)Mix_GetError());  
-				Mix_FreeMusic(music);
-				music = NULL;
-				break;
-			}else{
-				while(Mix_PlayingMusic() ) {
-					SDL_Delay(100);
-				}
-			}
-			Mix_FreeMusic(music);
-			music = NULL;
-		}
-		break;
-	}
-	free(file);
-	if( Mix_PlayingMusic() ) {
-		Mix_FadeOutMusic(100);
-		SDL_Delay(100);
-	}
-	Mix_CloseAudio();
-	return 0;
+	//SDL_Log("successfully!");
 }
 
 #ifdef debug_music
@@ -272,6 +271,7 @@ int main(int argc,char**argv)
 	   ffmpeg -i /home/db0/sound/pinyin/bei4.mp3 /home/db0/sound/pinyin/bei4.ogg
 	   */
 	//if(argc>1) Sound_playFile(NULL,argv[1]); else
+	Sound_playFile(NULL,"/home/db0/sound/pinyin/cao4.ogg");
 	Sound_playFile(NULL,"/home/db0/sound/uk/black.mp3");
 	return 0;
 }

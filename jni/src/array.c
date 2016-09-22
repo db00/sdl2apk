@@ -1,6 +1,6 @@
 /**
  * @file array.c
- gcc -Wall array.c -D test_array -o array && ./array 0
+ gcc -Wall array.c -D test_array && ./a.out 0
  gcc -Wall array.c -D test_array  && a 0
  * @author db0@qq.com
  * @version 1.0.1

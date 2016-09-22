@@ -17,11 +17,10 @@ typedef struct Sound
 	Mix_Music * music;
 	int position;
 }Sound;
-Sound * Sound_new();
+Sound * Sound_new(int audio_rate);
 void Sound_free(Sound *sound);
 int Sound_playFile(Sound*sound,char * file);
 int Sound_playUrl(Sound*sound,char * url);
 int Sound_playData(Sound*sound,char * data,size_t data_length);
-int playMp3(char *file);
 #endif
 

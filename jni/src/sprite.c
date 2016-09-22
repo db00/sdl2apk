@@ -755,6 +755,8 @@ Sprite*Sprite_removeChild(Sprite*parent,Sprite*sprite)
 {
 	if(parent==NULL || sprite ==NULL)
 		return sprite;
+	if(stage->currentTarget==sprite || Sprite_contains(stage->currentTarget,sprite))
+		stage->currentTarget = NULL;
 
 	if(parent!= sprite->parent || sprite->parent == NULL) {
 		return sprite;
@@ -773,8 +775,14 @@ Sprite * Sprite_getChildByIndex(Sprite * sprite,int index)
 
 SDL_bool Sprite_contains(Sprite*parent,Sprite*sprite)
 {
-	int i= Sprite_getChildIndex(parent,sprite);
-	if(i>=0)
+	if(parent==NULL || sprite==NULL)
+		return SDL_FALSE;
+	Sprite * curParent = sprite->parent;
+	while(curParent && curParent!=parent)
+	{
+		curParent = curParent->parent;
+	}
+	if(curParent==parent)
 		return SDL_TRUE;
 	return SDL_FALSE;
 }
@@ -829,6 +837,8 @@ void UserEvent_clear(SDL_UserEvent * event)
 
 void Sprite_removeEvents(Sprite * sprite)
 {
+	if(stage->currentTarget==sprite)
+		stage->currentTarget = NULL;
 	if(sprite && sprite->events)
 	{
 		Array_freeEach(sprite->events);
@@ -838,8 +848,9 @@ void Sprite_removeEvents(Sprite * sprite)
 
 int Sprite_dispatchEvent(Sprite*sprite,const SDL_Event *event)
 {
-	if(sprite->events == NULL)
+	if(sprite==NULL || sprite->events == NULL)
 		return 1;
+	stage->currentTarget = sprite;
 	int i = 0;
 	while(sprite->events && i < sprite->events->length)
 	{
@@ -851,7 +862,8 @@ int Sprite_dispatchEvent(Sprite*sprite,const SDL_Event *event)
 				if(e->func!=NULL){
 					if(e->lastEventTime != event->motion.timestamp){
 						//SDL_Log("lastEventTime :%d",e->lastEventTime);
-						e->func(e);
+						if(stage->currentTarget==sprite)
+							e->func(e);
 					}
 					e->lastEventTime = event->motion.timestamp;
 				}
@@ -921,6 +933,8 @@ int Sprite_eventDestroy(SpriteEvent*e)
 
 int Sprite_removeEventListener(Sprite*sprite,Uint32 type,EventFunc func)
 {
+	if(stage->currentTarget==sprite)
+		stage->currentTarget = NULL;
 	if(sprite && type && func && sprite->events)
 	{
 		int i = sprite->events->length;
@@ -937,6 +951,8 @@ int Sprite_removeEventListener(Sprite*sprite,Uint32 type,EventFunc func)
 			}
 		}
 	}
+	if(stage->currentTarget==sprite)
+		stage->currentTarget = NULL;
 	return 0;
 }
 
@@ -1126,6 +1142,8 @@ int Sprite_destroy(Sprite*sprite)
 }
 int Sprite_removeChildren(Sprite*sprite)
 {
+	if(Sprite_contains(sprite,stage->currentTarget))
+		stage->currentTarget = NULL;
 	while(sprite->children)
 	{
 		Sprite*child = Sprite_removeChildAt(sprite,0);
@@ -1210,18 +1228,24 @@ int Sprite_limitPosion(Sprite*target,SDL_Rect*rect)
 
 static void bubbleEvent(Sprite*target,SDL_Event*event)
 {
+	stage->currentTarget = target;
 	stage->lastEventTime = event->motion.timestamp;
-	while(target && target!= stage->sprite){
+	while(target && target!= stage->sprite && target == stage->currentTarget){
 		if(target->events && Sprite_getVisible(target) && target->name)
 		{
 			//SDL_Log("bubbleEvent:%s",target->name);
-			Sprite_dispatchEvent(target,event);
+			if(target==stage->currentTarget)
+				Sprite_dispatchEvent(target,event);
 		}
-		if(target)
+		if(target && stage->currentTarget==target)
+		{
 			target = target->parent;
+			stage->currentTarget = target;
+		}
 	}
 	if(stage->sprite->events)
 		Sprite_dispatchEvent(stage->sprite,event);
+	stage->currentTarget = NULL;
 }
 
 

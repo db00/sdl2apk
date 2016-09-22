@@ -234,8 +234,9 @@ TTF_Font * getFontByName(const char * fontName,int fontSize)
 		}
 		++i;
 	}
-	char*ttf_file = DEFAULT_TTF_FILE;
+	char*ttf_file = decodePath(DEFAULT_TTF_FILE);
 	font = TTF_OpenFont(ttf_file, fontSize);
+	free(ttf_file);
 	if(!font) {
 		printf("TTF_OpenFont:Error: %s\n", TTF_GetError());
 		// handle error

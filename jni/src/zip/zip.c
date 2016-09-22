@@ -446,7 +446,7 @@ int main(int argc,char ** argv)
 		//filename = "/home/libiao/unzip-5.52/testmake.zip";
 		//filename = "/home/libiao/test/as3_filemanager/bin/docx.docx";
 		//filename = "/run/media/libiao/back/os/璀璨华星人.air";
-		filename = "/run/media/libiao/back/os/_璀璨华星人.zip";
+		filename = "/home/db0/ios.zip";
 	}
 
 	FILE * _file = fopen(filename,"rb");

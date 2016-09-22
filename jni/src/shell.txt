@@ -1,3 +1,24 @@
 notify-send 显示气泡
 
 zip assets.zip -r 1.bmp oxford-gb/ icons/
+
+
+
+http://www.libsdl.org/projects/SDL_ttf/
+http://www.libsdl.org/projects/SDL_mixer/
+http://www.libsdl.org/projects/SDL_image/
+http://www.libsdl.org/projects/SDL_net/
+http://cms.ferzkopp.net/index.php/software/13-sdl-gfx
+http://cms.ferzkopp.net/index.php/software/12-sdl-bgrab
+http://cms.ferzkopp.net/index.php/software/11-sdl-vnc
+
+hg clone http://hg.libsdl.org/SDL
+
+doc:
+http://www.libsdl.org/projects/SDL_mixer/docs/SDL_mixer.html
+http://www.libsdl.org/projects/SDL_ttf/docs/SDL_ttf.html
+http://www.libsdl.org/projects/SDL_image/docs/SDL_image.html
+http://www.libsdl.org/projects/SDL_net/docs/SDL_net.html
+
+
+

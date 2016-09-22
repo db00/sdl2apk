@@ -144,8 +144,10 @@ TTF_Font * getDefaultFont(int fontSize)
 		}
 	}
 
-	//SDL_Log("%s DEFAULT",DEFAULT_TTF_FILE);
-	return TTF_OpenFont(DEFAULT_TTF_FILE, fontSize);
+	char * file = decodePath(DEFAULT_TTF_FILE);
+	TTF_Font * font = TTF_OpenFont(file, fontSize);
+	free(file);
+	return font;
 }
 
 

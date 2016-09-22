@@ -51,6 +51,7 @@ static const char *alphaArr[] = {
 char ** getCurArr()
 {
 	return (char**)numArr;
+	//return (char**)alphaArr;
 }
 
 int getArrLen(char ** arr)
@@ -88,13 +89,20 @@ typedef struct Card
 void *readAsk(void*k)
 {
 	char ** curArray = getCurArr();
-	if(atoi(curArray[cardskey*3]))
-		playHzPinyin(readNum(atoi(curArray[cardskey*3])));
-	else if(
+	int num = atoi(curArray[cardskey*3]);
+	if(num){
+		SDL_Log("read %d",num);
+		char * hzNum = readNum(num);
+		SDL_Log("read %d -> %s",num,hzNum);
+		if(hzNum){
+			playHzPinyin(hzNum);
+			free(hzNum);
+		}
+	}else if(
 			*((unsigned char*)curArray[cardskey*3]) >= 'A'
 			&&
 			*((unsigned char*)curArray[cardskey*3]) <= 'Z'
-		   )
+			)
 		Sound_playEng(curArray[cardskey*3],1);
 	else
 		playHzPinyin(curArray[cardskey*3]);
@@ -151,7 +159,7 @@ void clicked(SpriteEvent* e)
 
 	}else if(card->isRight==2){
 		playHzPinyin("错");
-		readAsk(NULL);
+		//readAsk(NULL);
 	}
 	//if(card->complete) card->complete(card);
 }
@@ -268,6 +276,7 @@ void * makeList(void *_k)
 	}
 	UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//Stage_redraw
 
+	//readAsk(NULL); return NULL;
 	pthread_t thread;//创建不同的子线程以区别不同的客户端  
 	if(pthread_create(&thread, NULL, readAsk, NULL)!=0)//创建子线程  
 	{  

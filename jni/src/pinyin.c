@@ -351,7 +351,7 @@ int playHzPinyin(char * s)
 
 #if 0
 void loadDouyinzi()
-{
+{/*{{{*/
 	FILE * file2 = fopen("duoyinzi.txt","w");
 	int i=0;
 	while(i<25)
@@ -390,8 +390,9 @@ void loadDouyinzi()
 		++i;
 	}
 	fclose(file2);
-}
+}/*}}}*/
 
+#endif
 void getDuoyinzi()
 {
 	char * data = readfile("~/sound/pinyin.txt",NULL);
@@ -427,7 +428,9 @@ void getDuoyinzi()
 	{
 		printf("%d\n",pinyinArr->length);
 	}
-	FILE * dfile = fopen("duoyinzi","wb");
+	char * duoyinziPath = decodePath("~/sound/duoyinzi.txt");
+	FILE * dfile = fopen(duoyinziPath,"wb");
+	free(duoyinziPath);
 	if(hanziArr)
 	{
 		printf("%d\n",hanziArr->length);
@@ -490,7 +493,6 @@ void getDuoyinzi()
 	Array_clear(hanziArr);
 	free(data);
 }
-#endif
 
 // 10 -> 一十
 char * readNum(int num)
@@ -575,11 +577,11 @@ char * readNum(int num)
 #ifdef debug_pinyin
 int main()
 {
+	printf("%s\n",readNum(8));
 	printf("%s\n",readNum(44));
 	printf("%s\n",readNum(1000));
 	printf("%s\n",Array_joins(UTF8_each("hello苦短"),"-"));
-	//getDuoyinzi();
-	//loadDouyinzi();
+	getDuoyinzi();
 	//numToShengdiao("sui3");
 	if ( SDL_Init(SDL_INIT_AUDIO) < 0 ) {
 		fprintf(stderr, "Couldn't initialize SDL: %s\n",SDL_GetError());

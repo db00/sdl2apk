@@ -5,23 +5,11 @@
  */
 #include "files.h"
 
-const char * App_storageDir()
-{
-#ifdef __ANDROID__
-	return "/sdcard/";
-	//return SDL_AndroidGetExternalStoragePath();
-	// /storage/sdcard0/Android/data/your.app.package/files
-	//SDL_AndroidGetInternalStoragePath();
-	// /data/data/your.app.package/files
-	//SDL_AndroidGetExternalStorageState()==0 failed
-	//SDL_ANDROID_EXTERNAL_STORAGE_READ, SDL_ANDROID_EXTERNAL_STORAGE_WRITE. 
-#endif
-	return "./";
-}
-
 char * decodePath(char * path)
 {
-	char * p = regex_replace_all(path,"/[\\\\/]+/","/");
+	if(path==NULL)
+		return NULL;
+	char * p = path;
 	if(*p=='~'){
 		char * home = NULL;
 #ifndef __ANDROID__
@@ -34,7 +22,8 @@ char * decodePath(char * path)
 		p = contact_str(home,path+1);
 		free(home);
 	}
-	return p;
+	path = regex_replace_all(p,"/[\\\\/]+/g","/");
+	return path;
 }
 
 int fileExists(char * path)

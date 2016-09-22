@@ -167,10 +167,6 @@ int TextField_getMaxScrollV(TextField *textfield);
 TTF_Font * getFontByPath(char * path,int fontSize);
 TTF_Font * getDefaultFont(int fontSize);
 
-#if defined(__ANDROID__)
-#define	DEFAULT_TTF_FILE "/sdcard/DroidSansFallback.ttf"
-#else
-#define	DEFAULT_TTF_FILE "DroidSansFallback.ttf"
-#endif
+#define	DEFAULT_TTF_FILE "~/sound/DroidSansFallback.ttf"
 
 #endif

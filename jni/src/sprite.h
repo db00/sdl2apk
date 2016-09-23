@@ -20,6 +20,7 @@
 
 #include "matrix.h"
 #include "array.h"
+#include "music.h"
 
 
 #ifdef __EMSCRIPTEN__
@@ -162,6 +163,7 @@ typedef struct Stage{
 	unsigned int lastEventTime;
 	unsigned int numsprite;//
 	World3d *world;
+	Sound * sound;
 }Stage;
 
 typedef void (*EventFunc)(SpriteEvent*); 

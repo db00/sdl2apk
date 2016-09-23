@@ -12,6 +12,7 @@
 #include "httploader.h"
 #include "readbaidu.h"
 #include "music.h"
+#include "sprite.h"
 
 int playHzPinyin(char * s);
 char * readNum(int num);

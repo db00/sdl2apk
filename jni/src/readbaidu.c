@@ -61,7 +61,10 @@ static int plays(char *url,char * fileName)
 			if(writefile(fileName,data,data_length)==0) {
 				if(strcmp(fileName+strlen(fileName)-4,".mp3")==0)
 				{
-					Sound_playFile(NULL,fileName);
+					if(stage->sound==NULL)
+						stage->sound=Sound_new(16000);
+					if(Sound_playFile(stage->sound,fileName))
+						stage->sound = NULL;
 					free(data);
 					return 0;
 				}
@@ -70,9 +73,12 @@ static int plays(char *url,char * fileName)
 	}
 	if(data)
 	{
-		if(Sound_playData(NULL,data,data_length)==0)
+		if(stage->sound==NULL)
+			stage->sound=Sound_new(16000);
+		if(Sound_playData(NULL,data,data_length))
 		{
-			SDL_Log("data play successfully!\n");
+			stage->sound = NULL;
+			SDL_Log("data play Error!\n");
 		}
 		free(data);
 	}
@@ -101,7 +107,10 @@ void Sound_playEng(char * s,int type)
 	if(!!fileExists(engPath))
 	{
 		printf("file %s exists!\n",engPath);
-		Sound_playFile(NULL,engPath);
+		if(stage->sound==NULL)
+			stage->sound=Sound_new(16000);
+		if(Sound_playFile(stage->sound,engPath))
+			stage->sound = NULL;
 	}else{
 		READ_loadSound(s,type);
 	}

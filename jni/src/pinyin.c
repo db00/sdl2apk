@@ -336,7 +336,10 @@ int playHzPinyin(char * s)
 				char * pinyinFile0 = contact_str("~/sound/pinyin/",pinyin);
 				char * pinyinFile = pinyinFile = contact_str(pinyinFile0,".ogg");
 				free(pinyinFile0);
-				Sound_playFile(NULL,pinyinFile);
+				if(stage->sound==NULL)
+					stage->sound=Sound_new(16000);
+				if(Sound_playFile(stage->sound,pinyinFile))
+					stage->sound = NULL;
 				free(pinyinFile);
 			}else{
 				//SDL_Delay(400);
@@ -503,7 +506,7 @@ char * readNum(int num)
 	char s[32];
 	memset(s,0,32);
 	sprintf(s,"%d",num);
-	
+
 	int i = 0;
 	int len = strlen(s);
 	char * retstr = malloc(1);
@@ -515,47 +518,47 @@ char * readNum(int num)
 		char * n = Array_getByIndex(hzstr,c-'0');
 		if(i%4==1){
 			if((i-1)/4 >0){
-			   	char * _retstr = contact_str(Array_getByIndex(wei,(int)(i/4)),retstr);
+				char * _retstr = contact_str(Array_getByIndex(wei,(int)(i/4)),retstr);
 				free(retstr);
 				retstr = _retstr;
 			}
 			if(c!='0'){
-			   	char * _retstr = contact_str(n,retstr);
+				char * _retstr = contact_str(n,retstr);
 				free(retstr);
 				retstr = _retstr;
 			}
 		}else if(i%4==2){
 			if(c == '0'){
-			   	char * _retstr = contact_str("零",retstr);
+				char * _retstr = contact_str("零",retstr);
 				free(retstr);
 				retstr = _retstr;
 			}else{
-			   	char * str1 = contact_str(n,"十");
-			   	char * _retstr = contact_str(str1,retstr);
+				char * str1 = contact_str(n,"十");
+				char * _retstr = contact_str(str1,retstr);
 				free(str1);
 				free(retstr);
 				retstr = _retstr;
 			}
 		}else if(i%4==3){
 			if(c== '0'){
-			   	char * _retstr = contact_str("零",retstr);
+				char * _retstr = contact_str("零",retstr);
 				free(retstr);
 				retstr = _retstr;
 			}else{
-			   	char * str1 = contact_str(n,"百");
-			   	char * _retstr = contact_str(str1,retstr);
+				char * str1 = contact_str(n,"百");
+				char * _retstr = contact_str(str1,retstr);
 				free(str1);
 				free(retstr);
 				retstr = _retstr;
 			}
 		} else if(i%4==0){
 			if(c== '0'){
-			   	char * _retstr = contact_str("零",retstr);
+				char * _retstr = contact_str("零",retstr);
 				free(retstr);
 				retstr = _retstr;
 			}else{
-			   	char * str1 = contact_str(n,"千");
-			   	char * _retstr = contact_str(str1,retstr);
+				char * str1 = contact_str(n,"千");
+				char * _retstr = contact_str(str1,retstr);
 				free(str1);
 				free(retstr);
 				retstr = _retstr;

@@ -10,7 +10,7 @@ APK:= $(APK_DIR)/$(APP_NAME)-debug.apk
 CC:=gcc
 SRC_DIR:=.
 INCLUDE_ROOT=..
-INCLUDE:=-I"$(INCLUDE_ROOT)/SDL2/include/" -I"$(INCLUDE_ROOT)/SDL2_ttf/" -I"$(INCLUDE_ROOT)/SDL2_image/" -I"$(INCLUDE_ROOT)/SDL2_mixer/" -I"include"
+INCLUDE:=-I"$(INCLUDE_ROOT)/SDL2/include/" -I"$(INCLUDE_ROOT)/SDL2_ttf/" -I"$(INCLUDE_ROOT)/SDL2_image/" -I"$(INCLUDE_ROOT)/SDL2_mixer/" 
 # -I"$(ANDROID_NDK_HOME)/sources/ffmpeg/android/arm/include/"
 DEFINES:= -DSTDC_HEADERS
 # -D debug_sprite

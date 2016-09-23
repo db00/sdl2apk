@@ -103,7 +103,9 @@ void *readAsk(void*k)
 			&&
 			*((unsigned char*)curArray[cardskey*3]) <= 'Z'
 			)
+	{
 		Sound_playEng(curArray[cardskey*3],1);
+	}
 	else
 		playHzPinyin(curArray[cardskey*3]);
 	playHzPinyin("在哪");
@@ -291,6 +293,8 @@ int main()
 {
 	Stage_init(1);
 	if(stage==NULL)return 1;
+	stage->sound = Sound_new(16000);
+
 	SDL_Log("sizeof numArr : %ld\n",sizeof(numArr));
 	SDL_Log("alphaArr len: %d\n",getArrLen((char**)alphaArr));
 	/*

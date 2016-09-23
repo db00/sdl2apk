@@ -16,6 +16,7 @@
 #include "httploader.h"
 #include "files.h"
 #include "music.h"
+#include "sprite.h"
 
 #ifdef HAVE_SIGNAL_H
 #include <signal.h>

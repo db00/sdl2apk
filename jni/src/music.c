@@ -121,14 +121,14 @@ int playSound(Sound * sound)
 	{
 		SDL_Log("Mix_VolumeMusic: %s\n",Mix_GetError());
 		Sound_free(sound);
-		return 2;
+		return 3;
 	}
 	while((Mix_PlayingMusic() || Mix_PausedMusic()))
 	{
 		SDL_Delay(100);
 		//SDL_Log("--------------------");
 	}
-	Sound_free(sound);
+	//Sound_free(sound);
 	return 0;
 }
 
@@ -138,6 +138,8 @@ int Sound_playFile(Sound*sound,char * file)
 {
 	SDL_Log("Sound_playFile :%s",file);
 
+#ifdef __ANDROID__
+#else
 	if(sound==NULL && strcasecmp(file+strlen(file)-4,".mp3")==0){
 		sound = Sound_new(16000);
 		char * f= decodePath(file);
@@ -151,6 +153,7 @@ int Sound_playFile(Sound*sound,char * file)
 		sound->music = Mix_LoadMUS(f);
 		return playSound(sound);
 	}
+#endif
 
 
 	size_t data_length=0;
@@ -182,7 +185,7 @@ int Sound_playData(Sound*sound,char * data,size_t data_length)
 	}else{
 		SDL_Log("Mix_LoadMUS_RW : %s\n",Mix_GetError());
 		Sound_free(sound);
-		return 1;
+		return 3;
 	}
 
 	return 0;

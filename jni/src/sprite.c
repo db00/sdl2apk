@@ -760,6 +760,8 @@ Sprite*Sprite_removeChild(Sprite*parent,Sprite*sprite)
 		return sprite;
 	if(stage->currentTarget==sprite || Sprite_contains(stage->currentTarget,sprite))
 		stage->currentTarget = NULL;
+	if(stage->focus ==sprite || Sprite_contains(stage->focus,sprite))
+		stage->focus= NULL;
 
 	if(parent!= sprite->parent || sprite->parent == NULL) {
 		return sprite;
@@ -842,6 +844,8 @@ void Sprite_removeEvents(Sprite * sprite)
 {
 	if(stage->currentTarget==sprite)
 		stage->currentTarget = NULL;
+	if(stage->focus==sprite)
+		stage->focus= NULL;
 	if(sprite && sprite->events)
 	{
 		Array_freeEach(sprite->events);
@@ -853,7 +857,7 @@ int Sprite_dispatchEvent(Sprite*sprite,const SDL_Event *event)
 {
 	if(stage->focus!=sprite && stage->currentTarget!=sprite && sprite!=stage->sprite)
 		return 1;
-	if(sprite==NULL || sprite->events == NULL || Sprite_getVisible(sprite)==0)
+	if(sprite==NULL || sprite->events == NULL)
 		return 2;
 	if(event==NULL)
 		return 3;
@@ -1151,6 +1155,8 @@ int Sprite_removeChildren(Sprite*sprite)
 {
 	if(Sprite_contains(sprite,stage->currentTarget))
 		stage->currentTarget = NULL;
+	if(Sprite_contains(sprite,stage->focus))
+		stage->focus = NULL;
 	while(sprite->children)
 	{
 		Sprite*child = Sprite_removeChildAt(sprite,0);
@@ -1395,13 +1401,14 @@ int PrintEvent(const SDL_Event * event)
 			}
 		case SDL_TEXTINPUT:
 		case SDL_TEXTEDITING:
-			if(stage->focus)
+			if(stage->focus){
 				Sprite_dispatchEvent(stage->focus,(SDL_Event*)event);//舞台事件
-			else{
+			}else{
 				SDL_Log("no focus\n");
 			}
-			if(stage->focus!=stage->sprite)
+			if(stage->focus!=stage->sprite){
 				Sprite_dispatchEvent(stage->sprite,(SDL_Event*)event);//舞台事件
+			}
 			return 0;
 			break;
 		case SDL_QUIT:

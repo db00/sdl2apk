@@ -162,7 +162,6 @@ float Sprite_getAlpha(Sprite * sprite)
 int Sprite_getVisible(Sprite*sprite)
 {
 	if(sprite){
-		int i=1;
 		Sprite*cur = sprite;
 		while(cur)
 		{
@@ -2051,16 +2050,13 @@ int main(int argc, char *argv[])
 {
 	Stage_init(1);
 	Sprite_addEventListener(stage->sprite,SDL_MOUSEBUTTONDOWN,mouseDown);
+	char * path = "/home/db0/sound/1.bmp";
 	if(stage->GLEScontext == NULL){
 		//return 0;
 	}else {
 		Sprite*sprite = Sprite_new();
 		sprite->is3D = 1;
-#ifdef __ANDROID__
-		sprite->surface = SDL_LoadBMP("/sdcard/1.bmp");
-#else
-		sprite->surface = SDL_LoadBMP("1.bmp");
-#endif
+		sprite->surface = SDL_LoadBMP(path);
 		Data3d*_data3D = sprite->data3d;
 		if(_data3D==NULL){
 			_data3D = Data3D_new();
@@ -2091,11 +2087,7 @@ int main(int argc, char *argv[])
 		Sprite_addEventListener(sprite,SDL_MOUSEMOTION,mouseMove);
 		/***
 		  Sprite*sprite2 = Sprite_new();
-#ifdef __ANDROID__
-sprite2->surface = SDL_LoadBMP("/sdcard/1.bmp");
-#else
-sprite2->surface = SDL_LoadBMP("1.bmp");
-#endif
+		  sprite2->surface = SDL_LoadBMP(path);
 		//sprite2->texture = SDL_CreateTextureFromSurface(stage->renderer,sprite2->surface);
 		//sprite2->filter= 3;
 		sprite2->rotationZ =90;
@@ -2120,11 +2112,7 @@ sprite2->surface = SDL_LoadBMP("1.bmp");
 		*/
 	}
 	Sprite*sprite3 = Sprite_new();
-#ifdef __ANDROID__
-	sprite3->surface = SDL_LoadBMP("/sdcard/1.bmp");
-#else
-	sprite3->surface = SDL_LoadBMP("1.bmp");
-#endif
+	sprite3->surface = SDL_LoadBMP(path);
 	sprite3->filter= 3;
 	sprite3->y = 0;
 	sprite3->x = 0;

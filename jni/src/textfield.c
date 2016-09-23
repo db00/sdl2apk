@@ -83,6 +83,8 @@ Array * Font_getlist()
 	ttfDir ="/system/fonts";	
 #elif defined(linux)
 	ttfDir ="/usr/share/fonts";	
+#else
+	ttfDir ="/usr/share/fonts";	
 #endif
 	int fontSize = 12;
 	if(fontFileList == NULL){

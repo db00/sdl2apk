@@ -295,6 +295,12 @@ int main(int argc,char**argv)
 	//if(argc>1) Sound_playFile(NULL,argv[1]); else
 	Sound_playFile(NULL,"/home/db0/sound/pinyin/cao4.ogg");
 	Sound_playFile(NULL,"/home/db0/sound/uk/black.mp3");
+	int i=0x12345678;
+	char * p =  (char*)(&i);
+	printf("%x",*(p+3));
+	printf("%x",*(p+2));
+	printf("%x",*(p+1));
+	printf("%x",*(p+0));
 	return 0;
 }
 #endif

@@ -1,6 +1,6 @@
 /**
  *
- gcc files.c myregex.c mystring.c array.c -lm  -D debug_files -lSDL2_image && ./a.out
+ gcc -g files.c myregex.c mystring.c array.c -lm  -D debug_files -lSDL2_image && ./a.out
  gcc files.c  -D debug_files && a
  */
 #include "files.h"
@@ -14,6 +14,8 @@ char * decodePath(char * path)
 		char * home = NULL;
 #ifndef __ANDROID__
 		char * _home = mysystem("echo $HOME",NULL);
+		if(_home==NULL)
+			return contact_str("",path);
 		home = regex_replace_all(_home,"/[\r\n]/g","");
 		free(_home);
 #else
@@ -153,6 +155,7 @@ int rmDir(char *p)
 	int cmdlen = strlen(path)+16;
 	char*cmd= malloc(strlen(path)+16);
 	memset(cmd,0,cmdlen);
+	//printf("cmd",cmd);
 #ifdef linux
 	sprintf(cmd,"rm -rf \"%s\"",path);
 #else
@@ -176,22 +179,27 @@ size_t fileSize(FILE*stream)
 
 char* readfile(char * path,size_t * _filesize)
 {
+	if(_filesize)*_filesize = 0;
 	if(path==NULL)
 		return NULL;
-	if(_filesize)*_filesize = 0;
 	char * _path = decodePath(path);
 	FILE * file = fopen(_path,"rb");	
 	free(_path);
 	if(file==NULL)
 		return NULL;
-	size_t filesize = fileSize(file);
+	size_t filesize = 0;
+	filesize = fileSize(file);
 	char *buffer = (char*)malloc(filesize+1);
-	memset(buffer,0,filesize+1);
-	rewind(file);
-	int ret=fread(buffer,1,filesize,file);
-	if(ret!=filesize){
-		free(buffer);
-		buffer = NULL;
+	if(buffer)
+	{
+		memset(buffer,0,filesize+1);
+		rewind(file);
+		int ret=fread(buffer,1,filesize,file);
+		if(ret!=filesize){
+			free(buffer);
+			buffer = NULL;
+			filesize = 0;
+		}
 	}
 	fclose(file);
 	if(_filesize)*_filesize = filesize;
@@ -200,9 +208,17 @@ char* readfile(char * path,size_t * _filesize)
 char * getParentDir(char * path)
 {
 	char * dir= NULL;
-	char * end = strrchr(path,'/');
-	if(end)
-		dir = getSubStr(path,0,end-path);
+	if(path){
+		char * s = contact_str("",path);
+		while(strlen(s) && s[strlen(s)-1]=='/')
+			s[strlen(s)-1]='\0';
+		char * end = strrchr(s,'/');
+		if(end)
+			dir = getSubStr(s,0,end-s);
+		free(s);
+	}
+	if(dir)
+		printf("parent:%s\n",dir);
 	return dir;
 }
 
@@ -214,6 +230,7 @@ int writefile(char * path,char *data,size_t data_length)
 	char * _path = decodePath(path);
 
 	char * parent = getParentDir(_path);
+	printf("path: %s ,parent:%s\n",_path,parent);
 	if(parent)
 	{
 		creatdir(parent);
@@ -242,7 +259,8 @@ int writefile(char * path,char *data,size_t data_length)
 #ifdef debug_files
 int main(int argc, char *argv[])
 {
-	char* filename="~/hello/hi/test";
+	char* filename="~//hello//hi/test/dd////test";
+	printf("decodePath:%s\n",decodePath(filename));
 	/*
 	//if( remove(filename) == 0 )
 	if( unlink(filename) == 0 )

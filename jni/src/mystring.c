@@ -328,7 +328,11 @@ char * mysystem(char *cmd,int * retlen)
 	{
 		++num_page;
 		size = page_size*(num_page);
-		output = realloc(output,size);
+		char * _output = realloc(output,size);
+		if(_output==NULL){
+			break;
+		}
+		output = _output;
 		len+=fread(output+len, 1, size-len, f);  
 		//printf("%d <--> %d\n",size,len);
 		fflush(stdout);

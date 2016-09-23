@@ -166,10 +166,13 @@ int Sprite_getVisible(Sprite*sprite)
 		Sprite*cur = sprite;
 		while(cur)
 		{
-			i = cur->visible && i;
+			if(cur->visible==0)
+			{
+				return 0;
+			}
 			cur = cur->parent;
 		}
-		return i;
+		return 1;
 	}
 	return 0;
 }
@@ -848,16 +851,20 @@ void Sprite_removeEvents(Sprite * sprite)
 
 int Sprite_dispatchEvent(Sprite*sprite,const SDL_Event *event)
 {
-	if(sprite==NULL || sprite->events == NULL)
+	if(stage->focus!=sprite && stage->currentTarget!=sprite && sprite!=stage->sprite)
 		return 1;
+	if(sprite==NULL || sprite->events == NULL || Sprite_getVisible(sprite)==0)
+		return 2;
+	if(event==NULL)
+		return 3;
 	stage->currentTarget = sprite;
 	int i = 0;
-	while(sprite->events && i < sprite->events->length)
+	while(stage->currentTarget==sprite && sprite->events && i < sprite->events->length)
 	{
 		SpriteEvent*e = Array_getByIndex(sprite->events,i);
-		if(event && e && sprite && sprite->events && sprite->name) 
+		if(stage->currentTarget==sprite && e && sprite && sprite->events && sprite->name) 
 		{
-			if(event->type && event->type == e->type){
+			if(stage->currentTarget==sprite && event->type && event->type == e->type){
 				e->e = (SDL_Event*)event;
 				if(e->func!=NULL){
 					if(e->lastEventTime != event->motion.timestamp){

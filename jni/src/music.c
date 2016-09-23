@@ -35,11 +35,11 @@ Sound * Sound_new(int audio_rate)
 		Mix_Quit();
 
 	/*
-	while(Mix_PlayingMusic())
-		SDL_Delay(1500);
-	Mix_CloseAudio();
-	SDL_Delay(100);
-	*/
+	   while(Mix_PlayingMusic())
+	   SDL_Delay(1500);
+	   Mix_CloseAudio();
+	   SDL_Delay(100);
+	   */
 	//if(Mix_OpenAudio(44100,MIX_DEFAULT_FORMAT,2,1024)<0)
 	if(Mix_OpenAudio(sound->audio_rate,MIX_DEFAULT_FORMAT,2,4096)<0)
 	{
@@ -138,32 +138,50 @@ int Sound_playFile(Sound*sound,char * file)
 {
 	SDL_Log("Sound_playFile :%s",file);
 
-#ifdef __ANDROID__
-#else
-	if(sound==NULL && strcasecmp(file+strlen(file)-4,".mp3")==0){
+	Sound * _sound = sound;
+
+	if(sound==NULL)
 		sound = Sound_new(16000);
-		char * f= decodePath(file);
+	if(sound==NULL)
+		return 2;
+
+	char * f= decodePath(file);
+	sound->music = Mix_LoadMUS(f);
+	if(sound->music==NULL)
+	{
+		SDL_Log("Mix_LoadMUS_RW : %s\n",Mix_GetError());
 #ifdef __ANDROID__
 		Mix_SetMusicCMD("am start -n com.android.music/.MediaPlaybackActivity -d");
 #else
 		Mix_SetMusicCMD("mplayer");
 #endif
-		SDL_Log("playMp3 : %s",f);
-
+		SDL_Log("Mix_SetMusicCMD");
 		sound->music = Mix_LoadMUS(f);
-		return playSound(sound);
+		//sound->music = Mix_LoadMUS_RW(SDL_RWFromConstMem(data,data_length), SDL_TRUE);
 	}
-#endif
 
-
-	size_t data_length=0;
-	char * data = readfile(file,&data_length);
-	if(data){
-		int i = Sound_playData(sound,data,data_length);
-		free(data);
+	if(sound->music)
+	{
+		int i = playSound(sound);
+		if(i==0 && _sound==NULL)//play successfully,
+			Sound_free(sound);
 		return i;
+	}else{
+		SDL_Log("Mix_LoadMUS_RW : %s\n",Mix_GetError());
+		Sound_free(sound);
+		return 3;
 	}
-	return 1;
+
+	/*
+	   size_t data_length=0;
+	   char * data = readfile(file,&data_length);
+	   if(data){
+	   int i = Sound_playData(sound,data,data_length);
+	   free(data);
+	   return i;
+	   }
+	   */
+	return 0;
 }
 
 int Sound_playData(Sound*sound,char * data,size_t data_length)
@@ -179,6 +197,7 @@ int Sound_playData(Sound*sound,char * data,size_t data_length)
 	/* load the song */
 	sound->music = Mix_LoadMUS_RW(SDL_RWFromConstMem(data,data_length), SDL_TRUE);
 	//sound->music=Mix_LoadMUS(file);
+
 	if(sound->music)
 	{
 		return playSound(sound);

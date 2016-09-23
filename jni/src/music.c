@@ -181,7 +181,7 @@ int Sound_playData(Sound*sound,char * data,size_t data_length)
 	//sound->music=Mix_LoadMUS(file);
 	if(sound->music)
 	{
-		playSound(sound);
+		return playSound(sound);
 	}else{
 		SDL_Log("Mix_LoadMUS_RW : %s\n",Mix_GetError());
 		Sound_free(sound);

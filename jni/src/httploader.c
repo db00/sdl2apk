@@ -504,7 +504,8 @@ char * loadUrl(char * url,size_t* len)
 			if(len)
 				*len=urlrequest->respond->contentLength;
 			memset(data,0,urlrequest->respond->contentLength+1);
-			memcpy(data,urlrequest->data,urlrequest->respond->contentLength+1);
+			if(urlrequest->data)
+				memcpy(data,urlrequest->data,urlrequest->respond->contentLength+1);
 		}
 	}
 	URLRequest_clear(urlrequest);

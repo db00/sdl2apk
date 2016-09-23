@@ -75,7 +75,7 @@ static int plays(char *url,char * fileName)
 	{
 		if(stage->sound==NULL)
 			stage->sound=Sound_new(16000);
-		if(Sound_playData(NULL,data,data_length))
+		if(Sound_playData(stage->sound,data,data_length))
 		{
 			stage->sound = NULL;
 			SDL_Log("data play Error!\n");

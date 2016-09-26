@@ -1,6 +1,6 @@
 /**
  * @file gif.c
- gcc -Wall -I"../SDL2/include/" gif.c ease.c array.c mystring.c tween.c matrix.c sprite.c -lSDL2 -D test_gif -lm  dgif_lib.c gif_err.c gifalloc.c  && ./a.out
+ gcc -Wall -I"../SDL2/include/" gif.c ease.c array.c files.c mystring.c myregex.c tween.c matrix.c sprite.c -lSDL2 -D test_gif -lm  dgif_lib.c gif_err.c gifalloc.c  && ./a.out
  gcc -Wall -I"../SDL2/include/" gif.c ease.c array.c mystring.c tween.c matrix.c sprite.c -lmingw32 -lSDL2main -lSDL2 -D test_gif -lm  dgif_lib.c gif_err.c gifalloc.c  && a
  *  
  * @author db0@qq.com
@@ -222,17 +222,11 @@ Array * Surface_gif(char *data, int * delay)
 	return surfaces;
 }
 #ifdef test_gif 
+#include "files.h"
 int main(int argc, char *argv[])
 {
-	FILE * _file = fopen("wait.gif","rb");
-	int fileLen = fseek(_file,0,SEEK_END);
-	fileLen = ftell(_file);
-	rewind(_file);
-	//printf("%s,%d\n",FileName,fileLen);
-
-	char data[fileLen];
-	fread(data,1,fileLen,_file);
-	fclose(_file);
+	size_t fileLen;
+	char * data = readfile("~/sound/wait.gif",&fileLen);
 
 	Stage_init(1);
 

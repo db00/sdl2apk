@@ -57,7 +57,7 @@ typedef struct Tween{
 TweenObj * TweenObj_new(Sprite*sprite);
 Tween * tween_to(Sprite*sprite,int time,TweenObj*obj);
 Tween * Tween_new(Sprite*sprite,int time,TweenObj*obj);
-void Tween_kill(Tween*tween,int toEnd);
+void Tween_kill(void*tween,int toEnd);
 SpriteStatus*storeStatus(Sprite*sprite,SpriteStatus*status);
 int setSpriteStatus(Sprite*sprite,SpriteStatus*status);
 

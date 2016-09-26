@@ -1,15 +1,13 @@
 /**
  * @file sprite.c
- gcc -g -Wall -I"../SDL2/include/" -L"/usr/local/lib/" array.c tween.c ease.c sprite.c mystring.c matrix.c -lGLESv2 -lm -lSDL2 -D debug_sprite && ./a.out
+ gcc -g -Wall -I"../SDL2/include/" array.c sprite.c matrix.c -lSDL2 -lm -Ddebug_sprite && ./a.out
  gcc -g -Wall -I"../SDL2/include/" -I"include" sprite.c ease.c tween.c mystring.c array.c files.c matrix.c libGLES.lib -lopengl32 -lmingw32 -lSDL2main -lSDL2 -Ddebug_sprite && a
- gcc -Wall -I"../SDL2/include/" ease.c httploader.c ipstring.c -lssl -lcrypto mystring.c base64.c  tween.c matrix.c sprite.c -lSDL2 -Ddebug_tweenlite -lm && ./a.out
  apt-get install -y libpcap-dev libsqlite3-dev sqlite3 libpcap0.8-dev libssl-dev build-essential iw tshark
  * @author db0@qq.com
  * @version 1.0.1
  * @date 2015-07-21
  */
 #include "sprite.h"
-#include "tween.h"
 
 GLES2_Context gles2;
 Stage * stage = NULL;
@@ -1133,9 +1131,9 @@ int Sprite_destroy(Sprite*sprite)
 	if(sprite->events){
 		Sprite_removeEvents(sprite);
 	}
-	if(sprite->tween)
+	if(sprite->tween && sprite->Tween_kill)
 	{
-		Tween_kill(sprite->tween,0);
+		sprite->Tween_kill(sprite->tween,0);
 	}
 
 	Sprite_destroySurface(sprite);

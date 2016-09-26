@@ -1,6 +1,6 @@
 /**
  * @file sprite.h
- gcc -Wall -I"../SDL2/include/" -I"../SDL2_ttf/" -I"../SDL2_image/" array.c textfield.c files.c tween.c ease.c base64.c sprite.c matrix.c httploader.c ipstring.c mystring.c -lssl -lcrypto -lSDL2_image -lSDL2_ttf -lSDL2 -lm -Ddebug_sprite && ./a.out
+ gcc -Wall -I"../SDL2/include/" array.c sprite.c matrix.c -lSDL2 -lm -Ddebug_sprite && ./a.out
  gcc -Wall -I"../SDL2/include/" -I"../SDL2_ttf/" -I"../SDL2_image/"  sprite.c matrix.c -lSDL2_image -lSDL2_ttf -lmingw32 -lSDL2_test -lSDL2main -lSDL2 -Ddebug_sprite && a
  *  
  * @author db0@qq.com
@@ -10,13 +10,9 @@
 #ifndef sprite_h
 #define sprite_h
 #include <stdio.h>
-//#include <malloc.h>
 #include <string.h>
 #include "SDL_opengles2.h"
 #include "SDL.h"
-//#include "SDL_image.h"
-//#include "SDL_ttf.h"
-//#include "httploader.h"
 
 #include "matrix.h"
 #include "array.h"
@@ -126,6 +122,8 @@ typedef struct Sprite{
 	int filter;
 
 	void * tween;//动画效果
+	void (*Tween_kill)(void*,int);//动画效果清除,arguments[0]:tween,arguments[1]:toEnd
+
 
 	int x;
 	int y;

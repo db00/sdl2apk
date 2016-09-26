@@ -1,6 +1,6 @@
 /**
  * @file readbaidu.c
- gcc -I"../SDL2_image/" -I"../SDL2_ttf" -I"../SDL2_mixer/" myregex.c readbaidu.c music.c urlcode.c ipstring.c files.c matrix.c array.c tween.c ease.c base64.c sprite.c httploader.c mystring.c -lssl -lcrypto  -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lSDL2 -I"../SDL2/include/" -lm -D debug_readloader && ./a.out
+ gcc -g -I"../SDL2_image/" -I"../SDL2_ttf" -I"../SDL2_mixer/" myregex.c readbaidu.c music.c urlcode.c ipstring.c files.c matrix.c array.c tween.c ease.c base64.c sprite.c httploader.c mystring.c -lssl -lcrypto  -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lSDL2 -I"../SDL2/include/" -lm -D debug_readloader && ./a.out
  diagram 英式与美式发音
 http://fanyi.baidu.com/gettts?lan=uk&text=diagram&spd=2&source=alading
 http://fanyi.baidu.com/gettts?lan=en&text=diagram&spd=2&source=alading
@@ -61,8 +61,10 @@ static int plays(char *url,char * fileName)
 			if(writefile(fileName,data,data_length)==0) {
 				if(strcmp(fileName+strlen(fileName)-4,".mp3")==0)
 				{
-					if(stage->sound==NULL)
-						stage->sound=Sound_new(16000);
+					if(stage->sound==NULL){
+						//stage->sound=Sound_new(16000);
+						stage->sound=Sound_new(44100);
+					}
 					if(Sound_playFile(stage->sound,fileName))
 						stage->sound = NULL;
 					free(data);
@@ -73,8 +75,10 @@ static int plays(char *url,char * fileName)
 	}
 	if(data)
 	{
-		if(stage->sound==NULL)
-			stage->sound=Sound_new(16000);
+		if(stage->sound==NULL){
+			//stage->sound=Sound_new(16000);
+			stage->sound=Sound_new(44100);
+		}
 		if(Sound_playData(stage->sound,data,data_length))
 		{
 			stage->sound = NULL;
@@ -107,8 +111,10 @@ void Sound_playEng(char * s,int type)
 	if(!!fileExists(engPath))
 	{
 		printf("file %s exists!\n",engPath);
-		if(stage->sound==NULL)
-			stage->sound=Sound_new(16000);
+		if(stage->sound==NULL){
+			//stage->sound=Sound_new(16000);
+			stage->sound=Sound_new(44100);
+		}
 		if(Sound_playFile(stage->sound,engPath))
 			stage->sound = NULL;
 	}else{
@@ -126,6 +132,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "Couldn't initialize SDL: %s\n",SDL_GetError());
 		return(255);
 	}
+	Stage_init(1);
 	//SDL_Log("%s",loadUrl("http://www.baidu.com/",NULL));
 	//fflush(stdout);
 	Sound_playEng("black",1);

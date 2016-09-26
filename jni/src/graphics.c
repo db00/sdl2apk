@@ -1,6 +1,6 @@
 /**
  * @file graphics.c
- gcc -g -Wall -I"include" -I"../SDL2/include/" -I"../SDL2_ttf/" -I"../SDL2_image/" graphics.c utf8.c array.c tween.c ease.c sprite.c  mystring.c textfield.c files.c matrix.c -lSDL2_image -lssl -lcrypto -lSDL2_ttf -LGLESv2 -lm -lSDL2 -D debug_graphics && ./a.out
+ gcc -g -Wall -I"../SDL2/include/" graphics.c array.c  sprite.c matrix.c  -lm -lSDL2 -D debug_graphics && ./a.out
  * sprite 3d graphics using sampler
  * @author db0@qq.com
  * @version 1.0.1
@@ -189,8 +189,8 @@ static void mouseDown(SpriteEvent*e)
 	//Sprite * sprite1 = Sprite_getChildByName(stage,"sprite1");
 	SDL_Log("mouseDown:-----------------------------%s,%d,%d,\n"
 			,e->target->name
-			,e->target->mouse->x
-			,e->target->mouse->y
+			,stage->mouse->x
+			,stage->mouse->y
 		   );
 	if(e->target->parent)
 		Sprite_addChild(e->target->parent,e->target);

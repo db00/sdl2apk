@@ -111,8 +111,9 @@ int setSpriteStatus(Sprite*sprite,SpriteStatus*status)
 }
 
 
-void Tween_kill(Tween*tween,int toEnd)
+void Tween_kill(void *tweenobj,int toEnd)
 {
+	Tween * tween = tweenobj;
 	TweenObj*obj = tween->obj;
 	if(toEnd){
 		memcpy(obj->cur,obj->end,sizeof(SpriteStatus));//结束值
@@ -128,6 +129,7 @@ void Tween_kill(Tween*tween,int toEnd)
 static Uint32 my_callbackfunc(Uint32 interval, void *param) {
 	Uint32 then = SDL_GetTicks();//当前时间;
 	Tween*tween = (Tween*)param;
+	Sprite *sprite = tween->sprite;
 
 	tween->passedTime += tween->interval;
 	int timeLeft = tween->time - tween->passedTime;
@@ -138,6 +140,10 @@ static Uint32 my_callbackfunc(Uint32 interval, void *param) {
 	if(timeLeft <=0) {
 		if(tween->surfaces && tween->surfaces->length>0)
 			Sprite_setSurface(tween->sprite,Array_getByIndex(tween->surfaces,tween->surfaces->length-1));
+		if(sprite->Tween_kill==NULL)
+		{
+			sprite->Tween_kill = Tween_kill;
+		}
 		Tween_kill(tween,1);
 	}else{
 		SpriteStatus*cur = tween->obj->cur;
@@ -211,9 +217,13 @@ Tween * tween_to(Sprite*sprite,int time,TweenObj*obj)
 	tween->time = time;
 	tween->obj = obj;
 
+	if(sprite->Tween_kill==NULL)
+	{
+		sprite->Tween_kill = Tween_kill;
+	}
 
 	if(sprite->tween){
-		Tween_kill(sprite->tween,1);
+		sprite->Tween_kill(sprite->tween,1);
 		sprite->tween = tween;
 	}
 
@@ -273,7 +283,7 @@ int main(int argc, char *argv[])
 
 	Sprite*sprite = Sprite_new(NULL);
 	//sprite->surface = IMG_Load("1.bmp");
-	sprite->surface = SDL_LoadBMP("1.bmp");
+	sprite->surface = SDL_LoadBMP("/home/db0/sound/1.bmp");
 	//sprite->x =30;
 	//sprite->y =100;
 	sprite->h=50.0;

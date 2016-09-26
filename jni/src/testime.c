@@ -60,12 +60,15 @@ void changeStats()
     {
         case KODI:
             Kodi_initBtns(1);
+            SDL_SetWindowTitle(stage->window, "kodi");
             break;
         case DICT:
             showSearchDict(1);
+            SDL_SetWindowTitle(stage->window, "dict");
             break;
         case CARD:
             showCardTest(1);
+            SDL_SetWindowTitle(stage->window, "card");
             break;
         default:
             break;
@@ -139,6 +142,7 @@ int main(int argc, char *argv[]) {
         //pthread_join(thread1,NULL);
     }
 
+    SDL_SetWindowTitle(stage->window, "card");
     showCardTest(1);
     //showSearchDict(1);
 

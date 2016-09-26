@@ -40,6 +40,7 @@ Sound * Sound_new(int audio_rate)
 	   Mix_CloseAudio();
 	   SDL_Delay(100);
 	   */
+	//if(Mix_OpenAudio(16000,MIX_DEFAULT_FORMAT,2,1024)<0)
 	//if(Mix_OpenAudio(44100,MIX_DEFAULT_FORMAT,2,1024)<0)
 	if(Mix_OpenAudio(sound->audio_rate,MIX_DEFAULT_FORMAT,2,4096)<0)
 	{
@@ -141,11 +142,14 @@ int Sound_playFile(Sound*sound,char * file)
 	Sound * _sound = sound;
 
 	if(sound==NULL)
-		sound = Sound_new(16000);
+		sound = Sound_new(44100);
 	if(sound==NULL)
 		return 2;
 
 	char * f= decodePath(file);
+
+	if(sound->music)
+		Mix_FreeMusic(sound->music);
 	sound->music = Mix_LoadMUS(f);
 	if(sound->music==NULL)
 	{
@@ -194,6 +198,8 @@ int Sound_playData(Sound*sound,char * data,size_t data_length)
 	if(sound==NULL)
 		return 2;
 
+	if(sound->music)
+		Mix_FreeMusic(sound->music);
 	/* load the song */
 	sound->music = Mix_LoadMUS_RW(SDL_RWFromConstMem(data,data_length), SDL_TRUE);
 	//sound->music=Mix_LoadMUS(file);
@@ -292,9 +298,10 @@ int main(int argc,char**argv)
 	/*
 	   ffmpeg -i /home/db0/sound/pinyin/bei4.mp3 /home/db0/sound/pinyin/bei4.ogg
 	   */
+
 	//if(argc>1) Sound_playFile(NULL,argv[1]); else
-	Sound_playFile(NULL,"/home/db0/sound/pinyin/cao4.ogg");
-	Sound_playFile(NULL,"/home/db0/sound/uk/black.mp3");
+	Sound_playFile(NULL,"~/sound/pinyin/cao4.ogg");
+	Sound_playFile(NULL,"~/sound/uk/black.mp3");
 	int i=0x12345678;
 	char * p =  (char*)(&i);
 	printf("%x",*(p+3));

@@ -336,8 +336,10 @@ int playHzPinyin(char * s)
 				char * pinyinFile0 = contact_str("~/sound/pinyin/",pinyin);
 				char * pinyinFile = pinyinFile = contact_str(pinyinFile0,".ogg");
 				free(pinyinFile0);
-				if(stage->sound==NULL)
-					stage->sound=Sound_new(16000);
+				if(stage->sound==NULL){
+					//stage->sound=Sound_new(16000);
+					stage->sound=Sound_new(44100);
+				}
 				if(Sound_playFile(stage->sound,pinyinFile))
 					stage->sound = NULL;
 				free(pinyinFile);

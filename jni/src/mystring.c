@@ -455,21 +455,16 @@ int main(int argc, char *argv[])
 	printf("%s\n",getStrBtw("01234567890","2","4",2));
 	printf("%s\n",getStrBtw("01234567890","2","4",3));
 	printf("%s\n",getStrBtw("01234567890","","",3));
-	return 0;
+	//return 0;
 	printf("%s\n",(char*)getSubStr("01234567890",2,1));
 	printf("%s\n",getSubString("01234567890",2,4));
 
 	int len;
 	Array *arr = string_split("a good test string"," s");
+
 	if(arr && arr->length>0)
 	{
-		int i = 0;
-		while(i<arr->length)
-		{
-			char * s = Array_getByIndex(arr,i);
-			printf("%d:%s:%d\n",i,s,strlen(s));
-			++i;
-		}
+		Array_prints(arr);
 		printf("contact:%s",string_concat(arr,","));
 		free(Array_getByIndex(arr,0));//all new data stored in arr[0]
 		Array_clear(arr);

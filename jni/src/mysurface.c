@@ -168,7 +168,7 @@ Sprite * Sprite_newText(char *s,int fontSize,Uint32 fontColor,Uint32 bgColor)
 	}else{
 		SDL_Log("font ERROR!");
 	}
-	sprite->obj = contact_str("",s);
+	sprite->obj = s;
 	free(color);
 	free(color2);
 	return sprite;

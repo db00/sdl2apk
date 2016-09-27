@@ -252,7 +252,7 @@ int main(int argc, char *argv[])
 		//container->w = stage->stage_w;
 		//container->h = stage->stage_h;
 		container->alpha = 0.8;
-		container->surface = SDL_LoadBMP("1.bmp");
+		container->surface = SDL_LoadBMP("/home/db0/sound/1.bmp");
 
 		Sprite_addEventListener(container,SDL_MOUSEMOTION,mouseMove);
 		//Sprite_addEventListener(sprite,SDL_MOUSEMOTION,mouseMove);

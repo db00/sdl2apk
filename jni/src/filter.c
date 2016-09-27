@@ -198,14 +198,14 @@ unsigned char * Filter_apply(Filter * filter,unsigned char * src_bmp,int w,int h
 				unsigned char a=0xff;
 
 				unsigned char * p = getPixel(_x,_y,src_bmp,w,h);
-				b = *(p+0);
+				r = *(p+0);
 				g = *(p+1);
-				r = *(p+2);
+				b = *(p+2);
 				a = *(p+3);
 
-				bitmap[(_x+_y*targetw)*4+0]=b;
+				bitmap[(_x+_y*targetw)*4+0]=r;
 				bitmap[(_x+_y*targetw)*4+1]=g;
-				bitmap[(_x+_y*targetw)*4+2]=r;
+				bitmap[(_x+_y*targetw)*4+2]=b;
 				bitmap[(_x+_y*targetw)*4+3]=a;
 				++_x;
 			}
@@ -340,8 +340,8 @@ int main()
 
 	Stage_init(1);
 	Sprite*sprite = Sprite_new();
-	//sprite->surface = SDL_LoadBMP("/home/db0/sound/1.bmp");
-	sprite->surface = IMG_Load("/home/db0/1.jpg");
+	//sprite->surface = RGBA_surface(SDL_LoadBMP("/home/db0/sound/1.bmp"));
+	sprite->surface = RGBA_surface(IMG_Load("/home/db0/1.jpg"));
 	Filter * filter = Filter_new();
 #if debug==1
 	//锐化

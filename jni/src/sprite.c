@@ -93,6 +93,15 @@ SDL_Color * uintColor(Uint32 _color)
 	return color;
 }
 
+SDL_Surface * RGBA_surface(SDL_Surface * surface)
+{
+	if(surface==NULL)
+		return NULL;
+	SDL_Surface * image = Surface_new(surface->w,surface->h);
+	SDL_BlitSurface(surface, NULL, image, NULL);
+	return image;
+}
+
 GLuint SDL_GL_LoadTexture(SDL_Surface * surface, GLfloat * texcoord)
 {
 	GLuint texture;
@@ -1046,10 +1055,12 @@ Sprite* getSpriteByStagePoint(int x,int y)
 
 Sprite * Sprite_removeChildAt(Sprite*sprite,int index)
 {
+	if(sprite == NULL || sprite->children==NULL || index<0 || index>=sprite->children->length)
+		return NULL;
 	Sprite*child = Sprite_getChildByIndex(sprite,index);
 	if(child){
 		child->parent = NULL;
-		Array_removeByIndex(sprite->children,index);
+		sprite->children = Array_removeByIndex(sprite->children,index);
 
 		if(sprite->children->length==0)
 		{
@@ -1126,10 +1137,12 @@ int Sprite_destroy(Sprite*sprite)
 	if(sprite->children)
 	{
 		Sprite_removeChildren(sprite);
+		sprite->children = NULL;
 	}
 
 	if(sprite->events){
 		Sprite_removeEvents(sprite);
+		sprite->events = NULL;
 	}
 	if(sprite->tween && sprite->Tween_kill)
 	{
@@ -1150,18 +1163,23 @@ int Sprite_destroy(Sprite*sprite)
 }
 int Sprite_removeChildren(Sprite*sprite)
 {
+	if(sprite==NULL)
+		return 1;
 	if(Sprite_contains(sprite,stage->currentTarget))
 		stage->currentTarget = NULL;
 	if(Sprite_contains(sprite,stage->focus))
 		stage->focus = NULL;
-	while(sprite->children)
+	while(sprite->children && sprite->children->length>0)
 	{
-		Sprite*child = Sprite_removeChildAt(sprite,0);
-		if(child->children){
+		Sprite*child = Sprite_getChildByIndex(sprite,0);
+		if(child && child->children && child->children->length>0){
 			Sprite_removeChildren(child);
+			child->children = NULL;
 		}
-		Sprite_destroy(child);
+		Sprite_removeChildAt(sprite,0);
 	}
+	if(sprite->children)
+		Array_clear(sprite->children);
 	sprite->children = NULL;
 	return 0;
 }

@@ -6,71 +6,15 @@
  * @date 2016-09-18
  */
 #include "read_card.h"
-
-static const char *numArr[] = {
-	"1","one","~/sound/img/1.jpg",
-	"2","two","~/sound/img/2.jpg",
-	"3","three","~/sound/img/3.jpg",
-	"4","four","~/sound/img/4.jpg",
-	"5","five","~/sound/img/5.jpg",
-	"6","six","~/sound/img/6.jpg",
-	"7","seven","~/sound/img/7.jpg",
-	"8","eight","~/sound/img/8.jpg",
-	"9","nine","~/sound/img/9.jpg",
-	NULL,NULL,NULL
-};
-static const char *alphaArr[] = {
-	"A","a","~/sound/img/a.jpg",
-	"B","b","~/sound/img/b.jpg",
-	"C","c","~/sound/img/c.jpg",
-	"D","d","~/sound/img/d.jpg",
-	"E","e","~/sound/img/e.jpg",
-	"F","f","~/sound/img/f.jpg",
-	"G","g","~/sound/img/g.jpg",
-	"H","h","~/sound/img/h.jpg",
-	"I","i","~/sound/img/i.jpg",
-	"J","j","~/sound/img/j.jpg",
-	"K","k","~/sound/img/k.jpg",
-	"L","l","~/sound/img/l.jpg",
-	"M","m","~/sound/img/m.jpg",
-	"N","n","~/sound/img/n.jpg",
-	"O","o","~/sound/img/o.jpg",
-	"P","p","~/sound/img/p.jpg",
-	"Q","q","~/sound/img/q.jpg",
-	"R","r","~/sound/img/r.jpg",
-	"S","s","~/sound/img/s.jpg",
-	"T","t","~/sound/img/t.jpg",
-	"U","u","~/sound/img/u.jpg",
-	"V","v","~/sound/img/v.jpg",
-	"W","w","~/sound/img/w.jpg",
-	"X","x","~/sound/img/x.jpg",
-	"Y","y","~/sound/img/y.jpg",
-	"Z","z","~/sound/img/z.jpg",
-	NULL,NULL,NULL
-};
-char ** getCurArr()
-{
-	return (char**)numArr;
-	//return (char**)alphaArr;
-}
-
-int getArrLen(char ** arr)
-{
-	char **p = (char**)arr;
-	int len=0;
-	while(*p!=NULL)
-	{
-		p+=3;
-		len++;
-	}
-	return len;
-}
+static Array * askArr = NULL;
+static int curAskIndex = 0;
+static int curKeyIndex=0;
 
 int getNumInLine()
 {
-	int len = getArrLen(getCurArr());
+	Array * curAsk= Array_getByIndex(askArr,curAskIndex);
+	int len = curAsk->length;
 	int i = sqrt(len);
-	//SDL_Log("arr sqrt len:%d",i);
 	while(i*i<len)
 		i=i+1;
 	return i;
@@ -88,8 +32,10 @@ typedef struct Card
 
 void *readAsk(void*k)
 {
-	char ** curArray = getCurArr();
-	int num = atoi(curArray[cardskey*3]);
+	Array * curAsk = Array_getByIndex(askArr,curAskIndex);
+	Array * curLine = Array_getByIndex(curAsk,curKeyIndex);
+	char * item = Array_getByIndex(curLine,0);
+	int num = atoi(item);
 	if(num){
 		SDL_Log("read %d",num);
 		char * hzNum = readNum(num);
@@ -98,16 +44,15 @@ void *readAsk(void*k)
 			playHzPinyin(hzNum);
 			free(hzNum);
 		}
-	}else if(
-			*((unsigned char*)curArray[cardskey*3]) >= 'A'
-			&&
-			*((unsigned char*)curArray[cardskey*3]) <= 'Z'
+	}else if((((unsigned char)item[0] >= 'A') && ((unsigned char)item[0] <= 'Z'))
+			||
+			(((unsigned char)item[0] >= 'a') && ((unsigned char)item[0] <= 'z'))
 			)
 	{
-		Sound_playEng(curArray[cardskey*3],1);
+		Sound_playEng(item,1);
 	}
 	else
-		playHzPinyin(curArray[cardskey*3]);
+		playHzPinyin(item);
 	playHzPinyin("在哪");
 	return NULL;
 }
@@ -118,8 +63,6 @@ void clicked(SpriteEvent* e)
 	Card * card = sprite->parent->obj;
 	char * word = sprite->obj;
 
-	char ** curArray = getCurArr();
-	int array_len = getArrLen(curArray);
 	//SDL_Log(word);
 	if(
 			( (unsigned char)(word[0])>='A' && (unsigned char)(word[0])<='Z')
@@ -143,22 +86,9 @@ void clicked(SpriteEvent* e)
 	if(card->isRight==1)
 	{
 		playHzPinyin("对");
-		//Sprite_removeChildren(stage->sprite);
-		srand(time(NULL));  
-		int i= ((rand()%array_len));
-		if(cardskey-i==0)
-			cardskey = (i+1)%array_len;
-		else
-			cardskey = (i%array_len);
-		SDL_Log("cardskey =  %d,%d",cardskey,i);
+		//Sprite_removeEvents(sprite);
 
-		pthread_t thread;//创建不同的子线程以区别不同的客户端  
-		if(pthread_create(&thread, NULL, makeList, &cardskey)!=0)//创建子线程  
-		{  
-			perror("pthread_create");  
-		}else
-			pthread_detach(thread);
-
+		makeNewAsk(-1,-1);
 	}else if(card->isRight==2){
 		playHzPinyin("错");
 		//readAsk(NULL);
@@ -177,9 +107,7 @@ Card * Card_new(char * ch,char*en,char * url)
 	card->ch = Sprite_newText(ch,stage->stage_h/320*18,0xff0000ff,0xffff00ff);
 	card->en = Sprite_newText(en,stage->stage_h/320*18,0xff0000ff,0xffff00ff);
 	card->img = Sprite_newImg(url);
-	if(card->img->obj)
-		free(card->img->obj);
-	card->img->obj = contact_str(ch,"");
+	card->img->obj = ch;
 
 	int len = getNumInLine();
 
@@ -210,70 +138,78 @@ void Card_free(Card*card)
 {
 	if(card)
 	{
-		if(card->ch)
-			free(card->ch->obj);
-		if(card->en)
-			free(card->en->obj);
-		if(card->img)
-			free(card->img->obj);
-		if(card->sprite)
-		{
-			Sprite_removeChildren(card->sprite);
-			Sprite_destroy(card->sprite);
-		}
 		free(card);
 	}
 }
-
-void * makeList(void *_k)
+void removeCardContainer()
 {
-	char ** curArray = getCurArr();
-	int k = *(int*)_k;
-	cardskey = k;
 	if(cardContainer){
+		/*
 		int i = cardContainer->children->length;
 		while(i>0)
 		{
 			--i;
-			Sprite * card = Sprite_getChildByIndex(cardContainer,i);
-			if(strcmp(card->name,"card")==0)
-				Card_free(card->obj);
+			Sprite * son = Sprite_getChildByIndex(cardContainer,i);
+			if(strcmp(son->name,"card")==0)
+			{
+				if(son->obj)
+					Card_free(son->obj);
+				son->obj=NULL;
+			}
 		}
+		*/
 		Sprite_removeChildren(cardContainer);
 		Sprite_removeChild(stage->sprite,cardContainer);
 	}
-	int sq = getNumInLine();
-	cardContainer = Sprite_new();
-	cardContainer->surface = Surface_new(1,1);
-	char pixels[4] ={'\0','\0','\0','\xff'};
-	memcpy(cardContainer->surface->pixels,(char*)pixels,sizeof(pixels));
-	cardContainer->w = stage->stage_w;
-	cardContainer->h = stage->stage_h;
+}
+
+void makeList()
+{
+	Array * curAsk= Array_getByIndex(askArr,curAskIndex);
+	removeCardContainer();
+	if(cardContainer == NULL)
+	{
+		cardContainer = Sprite_new();
+		cardContainer->surface = Surface_new(1,1);
+		char pixels[4] ={'\0','\0','\0','\xff'};
+		memcpy(cardContainer->surface->pixels,(char*)pixels,sizeof(pixels));
+		cardContainer->w = stage->stage_w;
+		cardContainer->h = stage->stage_h;
+	}
 	Sprite_addChild(stage->sprite,cardContainer);
 
-	char * ask = contact_str((char*)curArray[k*3],"在哪？");
+	Array * curLine = Array_getByIndex(curAsk,curKeyIndex);
+	char * ask = contact_str(Array_getByIndex(curLine,0),"在哪？");
 	Sprite * sprite = Sprite_newText(ask,18,0xff0000ff,0xffff00ff);
 	free(ask);
+	free(sprite->name);
 	Sprite_addChild(cardContainer,sprite);
 	int i = 0;
+	int sq = getNumInLine();
 	int w = stage->stage_w/sq;
 	int h = stage->stage_h/sq;
-	int _y =  (sq*sq-getArrLen(getCurArr()))/sq*stage->stage_h/sq/2;
-	while(1)
+	int _y =  (sq*sq-curAsk->length)/sq*stage->stage_h/sq/2;
+	while(i<curAsk->length)
 	{
-		if((char*)(curArray[i*3])==NULL)
-			break;
-		Card * card = Card_new((char*)curArray[i*3],(char*)curArray[i*3+1],(char*)curArray[i*3+2]);
-		if(i==k)
-			card->isRight = 1;
-		else
-			card->isRight = 2;
-		if(card->sprite->name)
-			free(card->sprite->name);
-		card->sprite->name = contact_str("","card");
-		Sprite_addChild(cardContainer,card->sprite);
-		Sprite_center(card->sprite,(i%sq)*w,(i/sq)*h+_y,w,h);
-		//SDL_Log("cardskey:%d,%d",k,i);
+		Array * itemArr = Array_getByIndex(curAsk,i);
+		char * s1 = Array_getByIndex(itemArr,0);
+		char * s2 = Array_getByIndex(itemArr,1);
+		char * s3 = Array_getByIndex(itemArr,2);
+		if(s1 && s2 && s3 && strlen(s1) && strlen(s2) && strlen(s3))
+		{
+			printf("%s,%s,%s\n",s1,s2,s3);
+			Card * card = Card_new(s1,s2,s3);
+			if(i==curKeyIndex)
+				card->isRight = 1;
+			else
+				card->isRight = 2;
+			if(card->sprite->name)
+				free(card->sprite->name);
+			card->sprite->name = contact_str("","card");
+			Sprite_addChild(cardContainer,card->sprite);
+			Sprite_center(card->sprite,(i%sq)*w,(i/sq)*h+_y,w,h);
+		}
+		//SDL_Log("curKeyIndex:%d,%d",curKeyIndex,i);
 		++i;
 	}
 	UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//Stage_redraw
@@ -283,9 +219,91 @@ void * makeList(void *_k)
 	if(pthread_create(&thread, NULL, readAsk, NULL)!=0)//创建子线程  
 	{  
 		perror("pthread_create");  
-	}else
+	}else{
 		pthread_detach(thread);
-	return NULL;
+	}
+}
+
+Array * getAskArr()
+{
+	if(askArr)
+		return askArr;
+	size_t data_len = 0;
+	char * data = NULL;
+	data = readfile("~/sound/test.txt",&data_len);
+	Array * array0 = string_split(data,"\n\n");
+	if(array0 == NULL || array0->length == 0)
+	{
+		if(array0)
+			Array_clear(array0);
+		if(data)
+			free(data);
+		return NULL;
+	}
+
+	askArr = Array_new();
+	int i = 0;
+	while(i<array0->length)
+	{
+		char * s = Array_getByIndex(array0,i);
+		if(s==NULL || strlen(s)==0)
+		{
+			++i;
+			continue;
+		}
+		Array * line = string_split(s,"\n");
+		Array * lineArr = NULL;
+		int l = 0;
+		while(l<line->length)
+		{
+			char * sl = Array_getByIndex(line,l);
+			if(sl && strlen(sl))
+			{
+				Array * arr = string_split(sl,",");
+				if(arr && arr->length==3)
+				{
+					if(lineArr==NULL){
+						lineArr = Array_new();
+						Array_push(askArr,lineArr);
+					}
+					Array_push(lineArr,arr);
+				}
+			}
+			++l;
+		}
+		Array_clear(line);
+		++i;
+	}
+	return askArr;
+}
+
+void makeNewAsk(int askIndex,int keyIndex)
+{
+	if(askArr == NULL)
+		askArr = getAskArr();
+	if(askArr == NULL)
+		return;
+	if(askIndex<0){
+		srand((unsigned)time(NULL));  
+		askIndex =(int)(rand()%askArr->length);
+	}
+	if(askIndex>=askArr->length)
+		askIndex = askArr->length-1;
+	curAskIndex = askIndex;
+	Array * curAsk= Array_getByIndex(askArr,curAskIndex);
+
+	if(keyIndex<0)
+	{
+		srand((unsigned)time(NULL));  
+		keyIndex =(int)(rand()%curAsk->length);
+	}
+	if(keyIndex>=curAsk->length)
+		keyIndex = curAsk->length-1;
+	curKeyIndex = keyIndex;
+
+	SDL_Log("curAskIndex: %d,curKeyIndex: %d\n",curAskIndex,curKeyIndex);
+
+	makeList();
 }
 
 #ifdef test_readcard
@@ -295,8 +313,6 @@ int main()
 	if(stage==NULL)return 1;
 	stage->sound = Sound_new(16000);
 
-	SDL_Log("sizeof numArr : %ld\n",sizeof(numArr));
-	SDL_Log("alphaArr len: %d\n",getArrLen((char**)alphaArr));
 	/*
 	   Card * card = Card_new("1","one","~/sound/img/1.jpg");
 	//card->isRight = 1;
@@ -304,10 +320,7 @@ int main()
 	Sprite_addChild(stage->sprite,card->sprite);
 	*/
 
-	char ** curArray = getCurArr();
-	srand((unsigned)time(NULL));  
-	cardskey=(int)(rand()%getArrLen(curArray));
-	makeList(&cardskey);
+	makeNewAsk(-1,-1);
 
 	Stage_loopEvents();
 	return 0;

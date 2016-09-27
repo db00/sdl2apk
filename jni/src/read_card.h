@@ -4,6 +4,5 @@
 #include "mysurface.h"
 #include "pinyin.h"
 static Sprite * cardContainer = NULL;
-void *makeList(void * k);
-int cardskey;
+void makeNewAsk(int askIndex,int keyIndex);
 #endif

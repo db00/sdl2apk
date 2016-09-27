@@ -36,13 +36,7 @@ void showCardTest(int b)
     if(cardContainer)
         cardContainer->visible = b;
     if(b){
-        srand((unsigned)time(NULL));  
-        int i=(int)(rand()%9);
-        if(cardskey==i)
-            cardskey = (i+1)%9;
-        else
-            cardskey = i;
-        makeList(&cardskey);
+        makeNewAsk(-1,-1);
     }
 }
 

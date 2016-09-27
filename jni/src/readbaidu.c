@@ -32,11 +32,7 @@ char * getEngUrl(char * s,int type)
 char * getEngPath(char * s,int type)
 {
 	char * path = NULL;
-#ifdef __ANDROID__
-	char * _path = "/sdcard/sound/";
-#else
-	char * _path = "~/sound/";
-#endif
+	char * _path = decodePath("~/sound/");
 	if(type==1){
 		path = contact_str(_path,"uk/");
 	}else if(type==2){
@@ -44,6 +40,7 @@ char * getEngPath(char * s,int type)
 	}else{
 		path = contact_str(_path,"pinyin/");
 	}
+	free(_path);
 	_path = contact_str(path,s);
 	free(path);
 	path = contact_str(_path,".mp3");
@@ -62,8 +59,8 @@ static int plays(char *url,char * fileName)
 				if(strcmp(fileName+strlen(fileName)-4,".mp3")==0)
 				{
 					if(stage->sound==NULL){
-						//stage->sound=Sound_new(16000);
-						stage->sound=Sound_new(44100);
+						stage->sound=Sound_new(16000);
+						//stage->sound=Sound_new(44100);
 					}
 					if(Sound_playFile(stage->sound,fileName))
 						stage->sound = NULL;
@@ -76,8 +73,8 @@ static int plays(char *url,char * fileName)
 	if(data)
 	{
 		if(stage->sound==NULL){
-			//stage->sound=Sound_new(16000);
-			stage->sound=Sound_new(44100);
+			stage->sound=Sound_new(16000);
+			//stage->sound=Sound_new(44100);
 		}
 		if(Sound_playData(stage->sound,data,data_length))
 		{
@@ -112,8 +109,8 @@ void Sound_playEng(char * s,int type)
 	{
 		printf("file %s exists!\n",engPath);
 		if(stage->sound==NULL){
-			//stage->sound=Sound_new(16000);
-			stage->sound=Sound_new(44100);
+			stage->sound=Sound_new(16000);
+			//stage->sound=Sound_new(44100);
 		}
 		if(Sound_playFile(stage->sound,engPath))
 			stage->sound = NULL;

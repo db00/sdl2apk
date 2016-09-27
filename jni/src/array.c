@@ -50,20 +50,26 @@ Array * Array_resize(Array* array,int i)
 {
 	if(array==NULL)
 		array = Array_new();
+	if(i==array->length)
+		return array;
 	if(i>0)
 	{
 		if(array->length==0)
 		{
 			array->data = malloc(i*sizeof(void*));
 			memset(array->data,0,i*sizeof(void*));
-		}else{
+		}else if(i>array->length){
 			array->data = realloc(array->data,i*sizeof(void*));
 			if(i>array->length)
 				memset(&(array->data[array->length]),0,(i-array->length)*sizeof(void*));
+		}else{//i<array->length
+			memset(&(array->data[i]),0,(array->length-i)*sizeof(void*));
+			array->data = realloc(array->data,i*sizeof(void*));
 		}
 		array->length = i;
 		return array;
 	}
+	//i<=0
 	if(array->length>0)
 		free(array->data);
 	array->length = 0;
@@ -109,12 +115,17 @@ Array * Array_insert(Array * array,int i,void * data)
 		array = Array_new();
 	if(i>=0)
 	{
-		if(i>array->length)
+		if(i>=array->length)
 		{
 			array = Array_resize(array,i+1);
 		}else{
-			array = Array_resize(array,array->length+1);
-			memmove(&(array->data[i+1]),&(array->data[i]),(array->length-i-1)*sizeof(void*));
+			array = Array_resize(array,array->length+1);//length + 1
+			int movelen = (array->length-1-i)*sizeof(void*);//from i
+			char * tmp = malloc(movelen);
+			memcpy(tmp,&(array->data[i]),movelen);//copy start from i
+			memcpy(&(array->data[i+1]),tmp,movelen);//copy to i+1
+			free(tmp);
+			//memmove(&(array->data[i+1]),&(array->data[i]),(array->length-i-1)*sizeof(void*));
 		}
 		array->data[i]=data;
 	}
@@ -131,7 +142,12 @@ Array * Array_removeByIndexs(Array*array,int start,int end)
 	int num = end-start+1;
 	if(num>=0 && num<=array->length)
 	{
-		memmove(&(array->data[start]),&(array->data[start+num]),(array->length-start-num)*sizeof(void*));
+		int movelen = (array->length-(start+num))*sizeof(void*);//from start+num
+		char * tmp = malloc(movelen);
+		memcpy(tmp,&(array->data[start+num]),movelen);//copy from start+num
+		memcpy(&(array->data[start]),tmp,movelen);//copy to start
+		free(tmp);
+		//memmove(&(array->data[start]),&(array->data[start+num]),(array->length-start-num)*sizeof(void*));
 		array = Array_resize(array,array->length-num);
 	}
 	return array;
@@ -142,7 +158,14 @@ Array * Array_removeByIndex(Array*array,int i)
 		return NULL;
 	if(i>=0 && i<array->length)
 	{
-		memmove(&(array->data[i]),&(array->data[i+1]),(array->length-i-1)*sizeof(void*));
+		int movelen = (array->length-(i+1))*sizeof(void*);//copy from i+1
+		if(movelen>0){
+			char * tmp = malloc(movelen);
+			memcpy(tmp,&(array->data[i+1]),movelen);//copy from i+1
+			memcpy(&(array->data[i]),tmp,movelen);//copy to i
+			free(tmp);
+		}
+		//memmove(&(array->data[i]),&(array->data[i+1]),(array->length-i-1)*sizeof(void*));
 		array = Array_resize(array,array->length-1);
 	}
 	return array;
@@ -298,12 +321,13 @@ int main(int argc,char**argv)
 		printf("%d:%s\n",i,argv[i]);
 		++i;
 	}
+	printf("\n");
 
 	Array * array =Array_new();
-	Array_print(array);
+	Array_prints(array);
 	char * a="1";
 	Array_push(array,a);
-	Array_print(array);
+	Array_prints(array);
 	a = "2";
 	Array_push(array,a);
 	a = "3";
@@ -314,16 +338,23 @@ int main(int argc,char**argv)
 	Array_push(array,a);
 	a = "6";
 	Array_push(array,a);
-	Array_print(array);
+	Array_prints(array);
 	Array_removeByIndex(array,0);
-	Array_print(array);
+	Array_prints(array);
 	Array_removeByIndexs(array,0,1);
-	Array_print(array);
+	Array_prints(array);
 	a = "iiiiiiiiii";
 	Array_insert(array,9,a);
-	Array_print(array);
-	Array_removeByIndexs(array,1,8);
-	Array_print(array);
+	Array_prints(array);
+	Array_removeByIndexs(array,2,8);
+	Array_prints(array);
+	Array_removeByIndex(array,0);
+	Array_prints(array);
+	Array_removeByIndex(array,0);
+	Array_prints(array);
+	Array_removeByIndex(array,0);
+	Array_prints(array);
+	printf("%d",array->length);
 	return 0;
 }
 #endif

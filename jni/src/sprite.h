@@ -186,6 +186,7 @@ Sprite* Sprite_getChildByName(Sprite*sprite,const char*name);
 int Sprite_dispatchEvent(Sprite*sprite,const SDL_Event *event);
 int Sprite_addEventListener(Sprite*sprite,Uint32 type,EventFunc func);
 int Sprite_removeEventListener(Sprite*sprite,Uint32 type,EventFunc func);
+void Sprite_removeEvents(Sprite * sprite);
 Sprite*Sprite_addChildAt(Sprite*parent,Sprite*sprite,int index);
 Sprite * Sprite_addChild(Sprite*parent,Sprite*sprite);
 Sprite* getSpriteByStagePoint(int x,int y);
@@ -233,6 +234,7 @@ void Sprite_scale(Sprite*sprite,float scaleX,float scaleY,float scaleZ);
 
 GLuint SDL_GL_LoadTexture(SDL_Surface * surface, GLfloat * texcoord);
 SDL_Surface * Surface_new(int width,int height);
+SDL_Surface * RGBA_surface(SDL_Surface * surface);
 SDL_Surface * Stage_readpixel(Sprite *stage,SDL_Rect* rect);
 void Sprite_setSurface(Sprite*sprite,SDL_Surface * surface);
 void quit(int rc);

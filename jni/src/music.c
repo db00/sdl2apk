@@ -142,14 +142,13 @@ int Sound_playFile(Sound*sound,char * file)
 	Sound * _sound = sound;
 
 	if(sound==NULL)
-		sound = Sound_new(44100);
+		sound = Sound_new(16000);
 	if(sound==NULL)
 		return 2;
 
 	char * f= decodePath(file);
 
-	if(sound->music)
-		Mix_FreeMusic(sound->music);
+	//if(sound->music) Mix_FreeMusic(sound->music);
 	sound->music = Mix_LoadMUS(f);
 	if(sound->music==NULL)
 	{
@@ -157,7 +156,7 @@ int Sound_playFile(Sound*sound,char * file)
 #ifdef __ANDROID__
 		Mix_SetMusicCMD("am start -n com.android.music/.MediaPlaybackActivity -d");
 #else
-		Mix_SetMusicCMD("mplayer");
+		Mix_SetMusicCMD("nohup mplayer");
 #endif
 		SDL_Log("Mix_SetMusicCMD");
 		sound->music = Mix_LoadMUS(f);
@@ -194,12 +193,11 @@ int Sound_playData(Sound*sound,char * data,size_t data_length)
 	if(data==NULL || data_length==0)
 		return 1;
 	if(sound==NULL)
-		sound = Sound_new(44100);
+		sound = Sound_new(16000);
 	if(sound==NULL)
 		return 2;
 
-	if(sound->music)
-		Mix_FreeMusic(sound->music);
+	//if(sound->music) Mix_FreeMusic(sound->music);
 	/* load the song */
 	sound->music = Mix_LoadMUS_RW(SDL_RWFromConstMem(data,data_length), SDL_TRUE);
 	//sound->music=Mix_LoadMUS(file);

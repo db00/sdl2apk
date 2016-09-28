@@ -56,13 +56,13 @@ char * showExplain(char *explain)
 static void * readWordUs(void * _key)
 {
 	Word * word = _key;
-	READ_loadSound(word->word,2);
+	Sound_playEng(word->word,2);
 	return NULL;
 }
 static void * readWordEn(void * _key)
 {
 	Word * word = _key;
-	READ_loadSound(word->word,1);
+	Sound_playEng(word->word,1);
 	return NULL;
 }
 
@@ -84,7 +84,7 @@ int getMean(Word*word)
 			perror("pthread_create");  
 		}
 		pthread_detach(thread);
-		//READ_loadSound(word->word,2);
+		//Sound_playEng(word->word,2);
 	}
 	return 0;
 }
@@ -103,7 +103,7 @@ int searchWord(char* _word)
 				perror("pthread_create");  
 			}
 			pthread_detach(thread);
-			//READ_loadSound(word->word,1);
+			//Sound_playEng(word->word,1);
 		}
 		explain = Dict_getMean(dict,word);
 		showExplain(explain);

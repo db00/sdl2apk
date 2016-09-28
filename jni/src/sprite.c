@@ -93,13 +93,19 @@ SDL_Color * uintColor(Uint32 _color)
 	return color;
 }
 
+//need free
 SDL_Surface * RGBA_surface(SDL_Surface * surface)
 {
 	if(surface==NULL)
 		return NULL;
-	SDL_Surface * image = Surface_new(surface->w,surface->h);
-	SDL_BlitSurface(surface, NULL, image, NULL);
-	return image;
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN
+	return SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_ABGR8888, 0);
+#else
+	return SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA8888, 0);//
+#endif
+	//SDL_Surface * image = Surface_new(surface->w,surface->h);
+	//SDL_BlitSurface(surface, NULL, image, NULL);
+	//return image;
 }
 
 GLuint SDL_GL_LoadTexture(SDL_Surface * surface, GLfloat * texcoord)

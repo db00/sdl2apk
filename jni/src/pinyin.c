@@ -1,6 +1,6 @@
 /**
  * @file pinyin.c
- gcc -g -Wall -I"../SDL2_mixer/" -I"../SDL2/include/" -lSDL2 -lSDL2_mixer music.c pinyin.c utf8.c urlcode.c files.c array.c base64.c myregex.c ipstring.c httploader.c mystring.c  -lssl -lcrypto  -lm -D debug_pinyin &&./a.out
+ gcc -g -Wall -I"../SDL2_mixer/" -I"../SDL2/include/" -lSDL2 -lSDL2_mixer sprite.c matrix.c music.c pinyin.c utf8.c urlcode.c files.c array.c base64.c myregex.c ipstring.c httploader.c mystring.c  -lssl -lcrypto  -lm -D debug_pinyin &&./a.out
  gcc -I"../SDL2_image/" -I"../SDL2_ttf" -I"../SDL2_mixer/" readbaidu.c urlcode.c ipstring.c files.c matrix.c array.c tween.c ease.c base64.c sprite.c httploader.c mystring.c -lssl -lcrypto  -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lSDL2 -I"../SDL2/include/" -lm -D debug_readloader && ./a.out
  *  
  *
@@ -21,7 +21,7 @@ static char * shengArr = "aoeiuü";
 //āáǎàōóǒòēéěèīíǐìūúǔùǖǘǚǜü
 
 //a1 => ā
-char * numToShengdiao(char *s)
+char * easy2pinyin(char *s)
 {
 	char * ret = NULL;
 	char *pinyin = getSubStr(s,0,strlen(s)-1);
@@ -82,7 +82,7 @@ char * numToShengdiao(char *s)
 
 
 //ā => a1
-char * pinyinFormat(char * s)
+char * pinyin2easy(char * s)
 {
 	if(s==NULL || strlen(s)==0)
 		return NULL;
@@ -142,7 +142,7 @@ char * pinyinFormat(char * s)
 	return ret;
 }
 
-char * getHZpinyin(char *s)
+char * hz2pinyin(char *s)
 {
 	char * txt = readfile("~/sound/pinyin.txt",NULL);
 	char * p = strstr(txt,s);
@@ -160,7 +160,7 @@ char * getHZpinyin(char *s)
 	return py;
 }
 
-Array * toFormatPinyin(char*s)
+Array * hzs2easyPinyin(char*s)
 {
 	Array * pinyinArr = NULL;
 	Array * words = UTF8_each(s);
@@ -172,10 +172,10 @@ Array * toFormatPinyin(char*s)
 			char * hz = Array_getByIndex(words,i);
 			if(hz)
 			{
-				char * pinyin = getHZpinyin(hz);
+				char * pinyin = hz2pinyin(hz);
 				//if(pinyin)
 				{
-					char * fpinyin = pinyinFormat(pinyin);
+					char * fpinyin = pinyin2easy(pinyin);
 					free(pinyin);
 					pinyinArr = Array_push(pinyinArr,fpinyin);
 				}
@@ -186,7 +186,7 @@ Array * toFormatPinyin(char*s)
 	return pinyinArr;
 }
 
-Array * toPinyin(char*s)
+Array * hzs2pinyin(char*s)
 {
 	Array * pinyinArr = NULL;
 	Array * words = UTF8_each(s);
@@ -198,7 +198,7 @@ Array * toPinyin(char*s)
 			char * hz = Array_getByIndex(words,i);
 			if(hz)
 			{
-				char * pinyin = getHZpinyin(hz);
+				char * pinyin = hz2pinyin(hz);
 				if(pinyin)
 				{
 					pinyinArr = Array_push(pinyinArr,pinyin);
@@ -323,9 +323,63 @@ int getlines(char * data)
 }
 
 #endif
-int playHzPinyin(char * s)
+
+//playEasyPinyin("hao3");
+// single word
+int playEasyPinyin(char*pinyin)
 {
-	Array * pinyinArr = toFormatPinyin(s);
+	if(pinyin){
+		char * _pinyin = regex_replace_all(pinyin,"/v/","ü");
+		char * pinyinFile0 = contact_str("~/sound/pinyin/",_pinyin);
+		free(_pinyin);
+		char * pinyinFile = pinyinFile = contact_str(pinyinFile0,".ogg");
+		free(pinyinFile0);
+		if(stage->sound==NULL){
+			//stage->sound=Sound_new(16000);
+			stage->sound=Sound_new(44100);
+		}
+		if(Sound_playFile(stage->sound,pinyinFile))
+			stage->sound = NULL;
+		free(pinyinFile);
+		return 0;
+	}
+	return 1;
+}
+/*
+int playYinbiao(char*pinyin)
+{
+	if(pinyin){
+		char * pinyinFile0 = contact_str("~/sound/pron/",pinyin);
+		char * pinyinFile = pinyinFile = contact_str(pinyinFile0,".mp3");
+		free(pinyinFile0);
+		if(stage->sound==NULL){
+			//stage->sound=Sound_new(16000);
+			stage->sound=Sound_new(44100);
+		}
+		if(Sound_playFile(stage->sound,pinyinFile))
+			stage->sound = NULL;
+		free(pinyinFile);
+		return 0;
+	}
+	return 1;
+}
+*/
+int playPinyin(char * pinyin)
+{
+	char * easyPinyin = pinyin2easy(pinyin);
+	if(easyPinyin){
+		playEasyPinyin(easyPinyin);
+		free(easyPinyin);
+	}
+	return 0;
+}
+/**
+ * s: hz string
+ playHzsPinyin("对。错");
+ */
+int playHzsPinyin(char * s)
+{
+	Array * pinyinArr = hzs2easyPinyin(s);
 	if(pinyinArr)
 	{
 		int i = 0;
@@ -333,16 +387,7 @@ int playHzPinyin(char * s)
 		{
 			char * pinyin = Array_getByIndex(pinyinArr,i);
 			if(pinyin){
-				char * pinyinFile0 = contact_str("~/sound/pinyin/",pinyin);
-				char * pinyinFile = pinyinFile = contact_str(pinyinFile0,".ogg");
-				free(pinyinFile0);
-				if(stage->sound==NULL){
-					//stage->sound=Sound_new(16000);
-					stage->sound=Sound_new(44100);
-				}
-				if(Sound_playFile(stage->sound,pinyinFile))
-					stage->sound = NULL;
-				free(pinyinFile);
+				playEasyPinyin(pinyin);
 			}else{
 				//SDL_Delay(400);
 			}
@@ -500,7 +545,7 @@ void getDuoyinzi()
 }
 
 // 10 -> 一十
-char * readNum(int num)
+char * num2hzs(int num)
 {
 	if(num == 0)return contact_str("","零");
 	Array *hzstr = UTF8_each("零一二三四五六七八九十");
@@ -580,29 +625,34 @@ char * readNum(int num)
 }
 
 #ifdef debug_pinyin
+#include "sprite.h"
 int main()
 {
-	printf("%s\n",readNum(8));
-	printf("%s\n",readNum(44));
-	printf("%s\n",readNum(1000));
+	Stage_init(1);
+	printf("%s\n",num2hzs(8));
+	printf("%s\n",num2hzs(44));
+	printf("%s\n",num2hzs(1000));
 	printf("%s\n",Array_joins(UTF8_each("hello苦短"),"-"));
 	getDuoyinzi();
-	//numToShengdiao("sui3");
+	//easy2pinyin("sui3");
 	if ( SDL_Init(SDL_INIT_AUDIO) < 0 ) {
 		fprintf(stderr, "Couldn't initialize SDL: %s\n",SDL_GetError());
 		return(255);
 	}
-	printf("%s\n",getHZpinyin("丕"));
-	return 0;
-	Array_prints(toPinyin("民国"));
-	Array_prints(toFormatPinyin("民国"));
-	//playHzPinyin("球");
-	printf("%s\n",getHZpinyin("合"));
-	printf("%s\n",getHZpinyin("貌"));
-	playHzPinyin("对。错");
+	printf("%s\n",hz2pinyin("丕"));
+	//return 0;
+	Array_prints(hzs2pinyin("民国"));
+	Array_prints(hzs2easyPinyin("民国"));
+	//playHzsPinyin("球");
+	printf("%s\n",hz2pinyin("合"));
+	printf("%s\n",hz2pinyin("貌"));
+	playHzsPinyin("对。错");
+	playEasyPinyin("hao3");
+	playPinyin("nüè");
+	playEasyPinyin("nve4");
 	return 0;
 
-	//pinyinFormat("nüè");
+	//pinyin2easy("nüè");
 
 #if 0
 	file = fopen("~/sound/pinyin.txt","w");

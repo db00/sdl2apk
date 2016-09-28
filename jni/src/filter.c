@@ -120,17 +120,13 @@ unsigned char ConvolutionFilter(Filter * filter,int rgba,int x,int y,unsigned ch
 			int k = filter->matrix[_x+_y*filter->matrixX];
 			if(k){
 				unsigned char * p = getPixel(x+_x,y+_y,pixels,w,h)+rgba;
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN
+				//#if SDL_BYTEORDER == SDL_LIL_ENDIAN
 				if(p==NULL)
 					p = (unsigned char*)(&(filter->color))+rgba;
-				//printf("%I64x\n",p);
-				//printf("%I64x\n",p);
-				//printf("%x\n",*p);
-				//exit(0);
-#else
-				if(p==NULL)
-					p = (unsigned char*)(&(filter->color)) + (3-rgba);
-#endif
+				//#else
+				//if(p==NULL)
+				//p = (unsigned char*)(&(filter->color)) + (3-rgba);
+				//#endif
 				//# if __WORDSIZE == 64
 				//#else
 				//#endif
@@ -339,6 +335,9 @@ int main()
 	printf("%x\n",*(p+3));
 
 	Stage_init(1);
+
+	//SDL_SetWindowOpacity(stage->window,.5);
+	//SDL_SetWindowBrightness(stage->window,1.0);
 	Sprite*sprite = Sprite_new();
 	//sprite->surface = RGBA_surface(SDL_LoadBMP("/home/db0/sound/1.bmp"));
 	sprite->surface = RGBA_surface(IMG_Load("/home/db0/1.jpg"));

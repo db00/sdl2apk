@@ -10,6 +10,51 @@ static Array * askArr = NULL;
 static int curAskIndex = 0;
 static int curKeyIndex=0;
 
+//
+//playPinyins("(hao3 a1)");
+int playPinyins(char * s)
+{
+	if(s==NULL)
+		return 1;
+	char * pinyins = getStrBtw(s,"[","]",0);
+	if(pinyins==NULL)
+		return 2;
+	Array * arr = string_split(pinyins," ");
+	int i = 0;
+	while(i<arr->length)
+	{
+		char * pinyin = Array_getByIndex(arr,i);
+		if(pinyin && strlen(pinyin))
+			playEasyPinyin(pinyin);
+		++i;
+	}
+	return 0;
+}
+
+/*
+   int playYinbiaos(char * s)
+   {
+   if(s==NULL)
+   return 1;
+   char * pinyins = getStrBtw(s,"[","]",0);
+   if(pinyins==NULL)
+   return 2;
+//Array * arr = string_split(pinyins," ");
+Array * arr = UTF8_each(pinyins);
+int i = 0;
+while(i<arr->length)
+{
+char * pinyin = Array_getByIndex(arr,i);
+if(pinyin && strlen(pinyin))
+playYinbiao(pinyin);
+++i;
+}
+free(pinyins);
+Array_clear(arr);
+return 0;
+}
+*/
+
 int getNumInLine()
 {
 	Array * curAsk= Array_getByIndex(askArr,curAskIndex);
@@ -22,6 +67,7 @@ int getNumInLine()
 
 typedef struct Card
 {
+	int index;
 	Sprite * sprite;
 	Sprite * img;
 	Sprite * ch;//->obj
@@ -36,12 +82,17 @@ void *readAsk(void*k)
 	Array * curLine = Array_getByIndex(curAsk,curKeyIndex);
 	char * item = Array_getByIndex(curLine,0);
 	int num = atoi(item);
-	if(num){
+	char * zhuyin = Array_getByIndex(curLine,3);
+	if(zhuyin){
+		//if(zhuyin[0]=='(')
+		playPinyins(zhuyin);
+		//else playYinbiaos(zhuyin);
+	}else if(num){
 		SDL_Log("read %d",num);
-		char * hzNum = readNum(num);
+		char * hzNum = num2hzs(num);
 		SDL_Log("read %d -> %s",num,hzNum);
 		if(hzNum){
-			playHzPinyin(hzNum);
+			playHzsPinyin(hzNum);
 			free(hzNum);
 		}
 	}else if((((unsigned char)item[0] >= 'A') && ((unsigned char)item[0] <= 'Z'))
@@ -52,8 +103,8 @@ void *readAsk(void*k)
 		Sound_playEng(item,1);
 	}
 	else
-		playHzPinyin(item);
-	playHzPinyin("在哪");
+		playHzsPinyin(item);
+	playHzsPinyin("在哪");
 	return NULL;
 }
 
@@ -62,13 +113,20 @@ void clicked(SpriteEvent* e)
 	Sprite * sprite = e->target;
 	Card * card = sprite->parent->obj;
 	char * word = sprite->obj;
-
 	//SDL_Log(word);
-	if(
+
+	Array * curAsk = Array_getByIndex(askArr,curAskIndex);
+	Array * curLine = Array_getByIndex(curAsk,card->index);
+	char * zhuyin = Array_getByIndex(curLine,3);
+	if(zhuyin){
+		//if(zhuyin[0]=='(')
+		playPinyins(zhuyin);
+		//else playYinbiaos(zhuyin);
+	}else if(
 			( (unsigned char)(word[0])>='A' && (unsigned char)(word[0])<='Z')
 			||
 			( (unsigned char)(word[0])>='a' && (unsigned char)(word[0])<='z')
-	  )
+			)
 	{
 		Sound_playEng(word,1);//1:uk,2:us
 	}else if(
@@ -77,20 +135,20 @@ void clicked(SpriteEvent* e)
 			(unsigned char)(word[0])<='9'
 			)
 	{
-		char *num = readNum(atoi(word));
-		playHzPinyin(num);
+		char *num = num2hzs(atoi(word));
+		playHzsPinyin(num);
 		free(num);
 	}else{
-		playHzPinyin(word);
+		playHzsPinyin(word);
 	}
 	if(card->isRight==1)
 	{
-		playHzPinyin("对");
+		playHzsPinyin("对");
 		//Sprite_removeEvents(sprite);
 
 		makeNewAsk(-1,-1);
 	}else if(card->isRight==2){
-		playHzPinyin("错");
+		playHzsPinyin("错");
 		//readAsk(NULL);
 	}
 	//if(card->complete) card->complete(card);
@@ -104,6 +162,7 @@ Card * Card_new(char * ch,char*en,char * url)
 
 	card->sprite = Sprite_new();
 	card->sprite->obj = card;
+	en = contact_str(eenn,Array_joins(hzs2pinyin(en),""));
 	card->ch = Sprite_newText(ch,stage->stage_h/320*18,0xff0000ff,0xffff00ff);
 	card->en = Sprite_newText(en,stage->stage_h/320*18,0xff0000ff,0xffff00ff);
 	card->img = Sprite_newImg(url);
@@ -145,19 +204,19 @@ void removeCardContainer()
 {
 	if(cardContainer){
 		/*
-		int i = cardContainer->children->length;
-		while(i>0)
-		{
-			--i;
-			Sprite * son = Sprite_getChildByIndex(cardContainer,i);
-			if(strcmp(son->name,"card")==0)
-			{
-				if(son->obj)
-					Card_free(son->obj);
-				son->obj=NULL;
-			}
-		}
-		*/
+		   int i = cardContainer->children->length;
+		   while(i>0)
+		   {
+		   --i;
+		   Sprite * son = Sprite_getChildByIndex(cardContainer,i);
+		   if(strcmp(son->name,"card")==0)
+		   {
+		   if(son->obj)
+		   Card_free(son->obj);
+		   son->obj=NULL;
+		   }
+		   }
+		   */
 		Sprite_removeChildren(cardContainer);
 		Sprite_removeChild(stage->sprite,cardContainer);
 	}
@@ -203,6 +262,7 @@ void makeList()
 				card->isRight = 1;
 			else
 				card->isRight = 2;
+			card->index = i;
 			if(card->sprite->name)
 				free(card->sprite->name);
 			card->sprite->name = contact_str("","card");
@@ -260,7 +320,7 @@ Array * getAskArr()
 			if(sl && strlen(sl))
 			{
 				Array * arr = string_split(sl,",");
-				if(arr && arr->length==3)
+				if(arr && arr->length>=3)
 				{
 					if(lineArr==NULL){
 						lineArr = Array_new();
@@ -319,8 +379,10 @@ int main()
 	Sprite_center(card->sprite,0,0,stage->stage_w,stage->stage_h);
 	Sprite_addChild(stage->sprite,card->sprite);
 	*/
+	//playPinyins("(hao3 a1)");
 
-	makeNewAsk(-1,-1);
+	//makeNewAsk(-1,-1);
+	makeNewAsk(0,-1);
 
 	Stage_loopEvents();
 	return 0;

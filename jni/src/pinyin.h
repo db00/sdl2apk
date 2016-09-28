@@ -14,7 +14,10 @@
 #include "music.h"
 #include "sprite.h"
 
-int playHzPinyin(char * s);
-char * readNum(int num);
+int playHzsPinyin(char * s);
+int playEasyPinyin(char*pinyin);
+char * num2hzs(int num);
+Array * hzs2pinyin(char*s);
+//int playYinbiao(char*pinyin);
 
 #endif

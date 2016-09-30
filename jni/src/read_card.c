@@ -162,7 +162,7 @@ Card * Card_new(char * ch,char*en,char * url)
 
 	card->sprite = Sprite_new();
 	card->sprite->obj = card;
-	en = contact_str(eenn,Array_joins(hzs2pinyin(en),""));
+	en = contact_str(en,Array_joins(hzs2pinyin(en),""));
 	card->ch = Sprite_newText(ch,stage->stage_h/320*18,0xff0000ff,0xffff00ff);
 	card->en = Sprite_newText(en,stage->stage_h/320*18,0xff0000ff,0xffff00ff);
 	card->img = Sprite_newImg(url);

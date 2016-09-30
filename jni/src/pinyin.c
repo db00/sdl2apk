@@ -144,8 +144,27 @@ char * pinyin2easy(char * s)
 
 char * hz2pinyin(char *s)
 {
-	char * txt = readfile("~/sound/pinyin.txt",NULL);
+	char * txt = readfile("~/sound/duoyinzi.txt",NULL);
 	char * p = strstr(txt,s);
+	if(p)
+	{
+		char * pinyins = getStrBtw(p,":","\n",0);
+#if 1
+		Array * arr = string_split(pinyins," ");
+		char * rets = Array_getByIndex(arr,0);
+		printf("%d",arr->length);
+		//return (Array_joins(arr,"+"));
+		Array_clear(arr);
+		free(pinyins);
+		free(txt);
+		return rets;
+#endif
+		return pinyins;
+	}
+
+	free(txt);
+	txt = readfile("~/sound/pinyin.txt",NULL);
+	p = strstr(txt,s);
 	if(p==NULL)
 		return NULL;
 	char * end = NULL;
@@ -346,22 +365,22 @@ int playEasyPinyin(char*pinyin)
 	return 1;
 }
 /*
-int playYinbiao(char*pinyin)
-{
-	if(pinyin){
-		char * pinyinFile0 = contact_str("~/sound/pron/",pinyin);
-		char * pinyinFile = pinyinFile = contact_str(pinyinFile0,".mp3");
-		free(pinyinFile0);
-		if(stage->sound==NULL){
-			//stage->sound=Sound_new(16000);
-			stage->sound=Sound_new(44100);
-		}
-		if(Sound_playFile(stage->sound,pinyinFile))
-			stage->sound = NULL;
-		free(pinyinFile);
-		return 0;
-	}
-	return 1;
+   int playYinbiao(char*pinyin)
+   {
+   if(pinyin){
+   char * pinyinFile0 = contact_str("~/sound/pron/",pinyin);
+   char * pinyinFile = pinyinFile = contact_str(pinyinFile0,".mp3");
+   free(pinyinFile0);
+   if(stage->sound==NULL){
+//stage->sound=Sound_new(16000);
+stage->sound=Sound_new(44100);
+}
+if(Sound_playFile(stage->sound,pinyinFile))
+stage->sound = NULL;
+free(pinyinFile);
+return 0;
+}
+return 1;
 }
 */
 int playPinyin(char * pinyin)
@@ -629,6 +648,7 @@ char * num2hzs(int num)
 int main()
 {
 	Stage_init(1);
+	printf("%s\n",hz2pinyin("好"));
 	printf("%s\n",num2hzs(8));
 	printf("%s\n",num2hzs(44));
 	printf("%s\n",num2hzs(1000));

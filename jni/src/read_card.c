@@ -6,9 +6,24 @@
  * @date 2016-09-18
  */
 #include "read_card.h"
+
+typedef struct Card
+{
+	int index;
+	Sprite * sprite;
+	Sprite * img;
+	Sprite * ch;//->obj
+	Sprite * en;//->obj
+	int isRight;//1:right,2:wrong
+	void(*complete)(struct Card*);
+}Card;
+
 static Array * askArr = NULL;
 static int curAskIndex = 0;
 static int curKeyIndex=0;
+
+static int enMode = 1;
+static Card * rightCard;
 
 //
 //playPinyins("(hao3 a1)");
@@ -65,62 +80,37 @@ int getNumInLine()
 	return i;
 }
 
-typedef struct Card
-{
-	int index;
-	Sprite * sprite;
-	Sprite * img;
-	Sprite * ch;//->obj
-	Sprite * en;//->obj
-	int isRight;//1:right,2:wrong
-	void(*complete)(struct Card*);
-}Card;
 
-void *readAsk(void*k)
+static void playCardSound(Card * card)
 {
-	Array * curAsk = Array_getByIndex(askArr,curAskIndex);
-	Array * curLine = Array_getByIndex(curAsk,curKeyIndex);
-	char * item = Array_getByIndex(curLine,0);
-	int num = atoi(item);
-	char * zhuyin = Array_getByIndex(curLine,3);
-	if(zhuyin){
-		//if(zhuyin[0]=='(')
-		playPinyins(zhuyin);
-		//else playYinbiaos(zhuyin);
-	}else if(num){
-		SDL_Log("read %d",num);
-		char * hzNum = num2hzs(num);
-		SDL_Log("read %d -> %s",num,hzNum);
-		if(hzNum){
-			playHzsPinyin(hzNum);
-			free(hzNum);
-		}
-	}else if((((unsigned char)item[0] >= 'A') && ((unsigned char)item[0] <= 'Z'))
-			||
-			(((unsigned char)item[0] >= 'a') && ((unsigned char)item[0] <= 'z'))
-			)
-	{
-		Sound_playEng(item,1);
-	}
-	else
-		playHzsPinyin(item);
-	playHzsPinyin("在哪");
-	return NULL;
-}
-
-void clicked(SpriteEvent* e)
-{
-	Sprite * sprite = e->target;
-	Card * card = sprite->parent->obj;
-	char * word = sprite->obj;
-	//SDL_Log(word);
-
+	char * word = NULL;
 	Array * curAsk = Array_getByIndex(askArr,curAskIndex);
 	Array * curLine = Array_getByIndex(curAsk,card->index);
-	char * zhuyin = Array_getByIndex(curLine,3);
-	if(zhuyin){
+	char * zhuyin = NULL;
+	if(enMode){
+		word = Array_getByIndex(curLine,1);
+		zhuyin = Array_getByIndex(curLine,4);
+	}else{
+		word = Array_getByIndex(curLine,0);
+		zhuyin = Array_getByIndex(curLine,3);
+	}
+	/*
+	if(word){
+		char * _word = regex_replace_all(word,"/\\[.+\\]/","");
+		if(_word)
+		{
+			free(word);
+			word = _word;
+		}
+	}
+	*/
+
+	if(zhuyin && strlen(zhuyin)){
 		//if(zhuyin[0]=='(')
-		playPinyins(zhuyin);
+		if(enMode)
+			Sound_playEng(zhuyin,1);
+		else
+			playPinyins(zhuyin);
 		//else playYinbiaos(zhuyin);
 	}else if(
 			( (unsigned char)(word[0])>='A' && (unsigned char)(word[0])<='Z')
@@ -141,6 +131,25 @@ void clicked(SpriteEvent* e)
 	}else{
 		playHzsPinyin(word);
 	}
+}
+
+void *readAsk(void*k)
+{
+	//Array * curAsk = Array_getByIndex(askArr,curAskIndex);
+	//Array * curLine = Array_getByIndex(curAsk,curKeyIndex);
+	Card * card = k;
+	playCardSound(card);
+
+	playHzsPinyin("在哪");
+	return NULL;
+}
+
+void clicked(SpriteEvent* e)
+{
+	Sprite * sprite = e->target;
+	Card * card = sprite->parent->obj;
+	playCardSound(card);
+
 	if(card->isRight==1)
 	{
 		playHzsPinyin("对");
@@ -149,7 +158,7 @@ void clicked(SpriteEvent* e)
 		makeNewAsk(-1,-1);
 	}else if(card->isRight==2){
 		playHzsPinyin("错");
-		//readAsk(NULL);
+		//readAsk(rightCard);
 	}
 	//if(card->complete) card->complete(card);
 }
@@ -162,7 +171,8 @@ Card * Card_new(char * ch,char*en,char * url)
 
 	card->sprite = Sprite_new();
 	card->sprite->obj = card;
-	en = contact_str(en,Array_joins(hzs2pinyin(en),""));
+	if((unsigned char)(en[0])>0x80)
+		en = contact_str(en,Array_joins(hzs2pinyin(en),""));
 	card->ch = Sprite_newText(ch,stage->stage_h/320*18,0xff0000ff,0xffff00ff);
 	card->en = Sprite_newText(en,stage->stage_h/320*18,0xff0000ff,0xffff00ff);
 	card->img = Sprite_newImg(url);
@@ -258,10 +268,12 @@ void makeList()
 		{
 			printf("%s,%s,%s\n",s1,s2,s3);
 			Card * card = Card_new(s1,s2,s3);
-			if(i==curKeyIndex)
+			if(i==curKeyIndex){
 				card->isRight = 1;
-			else
+				rightCard = card;
+			}else{
 				card->isRight = 2;
+			}
 			card->index = i;
 			if(card->sprite->name)
 				free(card->sprite->name);
@@ -276,7 +288,7 @@ void makeList()
 
 	//readAsk(NULL); return NULL;
 	pthread_t thread;//创建不同的子线程以区别不同的客户端  
-	if(pthread_create(&thread, NULL, readAsk, NULL)!=0)//创建子线程  
+	if(pthread_create(&thread, NULL, readAsk, rightCard)!=0)//创建子线程  
 	{  
 		perror("pthread_create");  
 	}else{

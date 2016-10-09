@@ -1548,9 +1548,9 @@ void Stage_loopEvents()
 		SDL_Event event;
 		//memset(&event,0,sizeof(event));
 #if SDL_VIDEO_DRIVER_RPI || defined(__ANDROID__)
-		if(SDL_WaitEvent(&event))
+		if(SDL_WaitEvent(&event))//embed device
 #else
-			if(SDL_PollEvent(&event)) 
+			if(SDL_PollEvent(&event)) //pc
 #endif
 			{
 				if(SDL_QUIT == event.type) {

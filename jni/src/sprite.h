@@ -95,7 +95,7 @@ typedef struct World3d{
 } World3d;
 
 typedef struct Sprite{
-	int is3D;
+	int is3D;//1:is3D,0:2d;
 	char* name;
 	int visible;
 	SDL_Rect* Bounds;//鼠标响应区

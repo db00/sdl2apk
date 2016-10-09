@@ -54,6 +54,7 @@ void quit(int rc)
 		}
 		Sprite_destroy(stage->sprite);
 		stage->sprite = NULL;
+		free(stage);
 		stage=NULL;
 	}
 

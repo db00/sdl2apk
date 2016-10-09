@@ -340,7 +340,7 @@ int main()
 	//SDL_SetWindowBrightness(stage->window,1.0);
 	Sprite*sprite = Sprite_new();
 	//sprite->surface = RGBA_surface(SDL_LoadBMP("/home/db0/sound/1.bmp"));
-	sprite->surface = RGBA_surface(IMG_Load("/home/db0/1.jpg"));
+	sprite->surface = RGBA_surface(IMG_Load("/home/db0/sound/img/9.jpg"));
 	Filter * filter = Filter_new();
 #if debug==1
 	//锐化

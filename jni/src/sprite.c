@@ -2071,7 +2071,7 @@ int main(int argc, char *argv[])
 {
 	Stage_init(1);
 	Sprite_addEventListener(stage->sprite,SDL_MOUSEBUTTONDOWN,mouseDown);
-	char * path = "/home/db0/sound/1.bmp";
+	char * path = "/home/libiao/sound/1.bmp";
 	if(stage->GLEScontext == NULL){
 		//return 0;
 	}else {

@@ -156,7 +156,7 @@ int Sound_playFile(Sound*sound,char * file)
 #ifdef __ANDROID__
 		Mix_SetMusicCMD("am start -n com.android.music/.MediaPlaybackActivity -d");
 #else
-		Mix_SetMusicCMD("nohup mplayer");
+		Mix_SetMusicCMD("mplayer");
 #endif
 		SDL_Log("Mix_SetMusicCMD");
 		sound->music = Mix_LoadMUS(f);

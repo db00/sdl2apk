@@ -1,6 +1,6 @@
 /**
  * @file sprite.c
- gcc -g -Wall -I"../SDL2/include/" array.c sprite.c matrix.c -lSDL2 -lm -Ddebug_sprite && ./a.out
+ gcc -g -Wall -I"../SDL2/include/" array.c sprite.c matrix.c -lSDL2 -lm -Ddebug_sprite -lGL && ./a.out
  gcc -g -Wall -I"../SDL2/include/" -I"include" sprite.c ease.c tween.c mystring.c array.c files.c matrix.c libGLES.lib -lopengl32 -lmingw32 -lSDL2main -lSDL2 -Ddebug_sprite && a
  apt-get install -y libpcap-dev libsqlite3-dev sqlite3 libpcap0.8-dev libssl-dev build-essential iw tshark
  * @author db0@qq.com
@@ -36,7 +36,11 @@ int LoadContext(GLES2_Context * data)
 	} while ( 0 );
 #endif /* _SDL_NOGETPROCADDR_ */
 
+#ifdef HAVE_OPENGL
+#include "SDL_glfuncs.h"
+#else
 #include "SDL_gles2funcs.h"
+#endif
 #undef SDL_PROC
 	return 0;
 }
@@ -327,8 +331,10 @@ static void initGL()
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);//or -1
 	//SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);//gldebug ..not Available in sdl2.0.4,dont know why.
-#if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__) || defined(__NACL__) || linux
+#ifndef HAVE_OPENGL
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+#else
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
 #endif
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);//or 1
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);//or 1
@@ -411,8 +417,21 @@ Stage * Stage_init(int is3D)
 					quit(2);
 					return stage;
 				}
-				SDL_GL_SetSwapInterval(1);
-
+				//SDL_GL_SetSwapInterval(1);
+				SDL_GL_SetSwapInterval(0);  /* disable vsync. */
+#ifdef HAVE_OPENGL
+				SDL_Log("OpenGL2.0");
+				gles2.glMatrixMode(GL_PROJECTION);//gl
+				gles2.glLoadIdentity();//gl
+				gles2.glOrtho(-1.0, 1.0, -1.0, 1.0, 1.0, 20.0);//gl
+				//gles2.glMatrixMode(GL_MODELVIEW);//gl
+				gles2.glMatrixMode(GL_PROJECTION);
+				gles2.glLoadIdentity();//gl
+				//gles2.glEnable(GL_DEPTH_TEST);
+				gles2.glDepthFunc(GL_LESS);
+				gles2.glShadeModel(GL_SMOOTH);//gl
+				gles2.glTranslatef(0,0,-2.0);
+#endif
 				if(stage->world == NULL)
 				{
 					//SDL_Log("init 3d world");
@@ -1191,6 +1210,7 @@ int Sprite_removeChildren(Sprite*sprite)
 	sprite->children = NULL;
 	return 0;
 }
+  
 //UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//Stage_redraw
 int Stage_redraw()
 {
@@ -1575,7 +1595,7 @@ GLuint LoadShader(GLenum type, GLbyte *shaderSrc)
 	if(shader == 0) 
 		return 0; 
 	// Load the shader source 
-	GL_CHECK(gles2.glShaderSource(shader, 1, (const char**)&shaderSrc, NULL)); 
+	GL_CHECK(gles2.glShaderSource((GLuint)shader, (GLsizei)1, (const GLchar**)&shaderSrc, NULL)); 
 	// Compile the shader 
 	GL_CHECK(gles2.glCompileShader(shader)); 
 	// Check the compile status 
@@ -1588,7 +1608,7 @@ GLuint LoadShader(GLenum type, GLbyte *shaderSrc)
 		{ 
 			char* infoLog = malloc(sizeof(char) * infoLen); 
 			GL_CHECK(gles2.glGetShaderInfoLog(shader, infoLen, NULL, infoLog)); 
-			SDL_Log("Error compiling shader:\n%s\n", infoLog); 
+			SDL_Log("Error compiling shader:\n%s\n%s", infoLog,shaderSrc); 
 			free(infoLog); 
 		} 
 		GL_CHECK(gles2.glDeleteShader(shader)); 
@@ -1665,9 +1685,6 @@ Data3d* Data3D_new()
 
 Data3d* Data3D_init()
 {
-#ifndef __ANDROID__
-	//#define __test_glsl__
-#endif
 	if(data2D==NULL){
 		data2D = Data3D_new();
 		GLbyte vShaderStr[] =  
@@ -1675,180 +1692,28 @@ Data3d* Data3D_init()
 			"attribute vec2 a_texCoord;   \n"
 			"attribute vec3 a_position;   \n"
 			"varying vec2 v_texCoord;     \n"
-
-#ifdef __test_glsl__
-			"attribute vec3 anormal;   \n"
-			"varying vec3 v_normal;     \n"
-#endif
 			"void main()                  \n"
 			"{                            \n"
-			"   gl_Position = u_mvpMatrix * vec4(a_position,1.0);  \n"//
-			"   v_texCoord = a_texCoord;  \n"
-#ifdef __test_glsl__
-			"   v_normal = anormal;  \n"
-#endif
+			"	gl_Position = u_mvpMatrix * vec4(a_position,1.0);  \n"//
+			"	v_texCoord = a_texCoord;  \n"
 			"}                            \n";
 
+		/* fragment shader */
 		GLbyte fShaderStr[] =  
+#ifndef HAVE_OPENGL
 			"precision mediump float;                            \n"
-			"varying vec2 v_texCoord;                            \n"
-			"uniform sampler2D s_texture;                        \n"
-			"uniform float u_alpha;   		\n"
-#ifdef __test_glsl__
-			"varying vec3 v_normal;                            \n"
-			"uniform int u_filter;       		                 \n"
-			/*
-			   "vec4 dip_filter(mat3 _filter, sampler2D _image, vec2 _xy, vec2 texSize)               \n"
-			   "{                                                									  \n"
-			   "	mat3 _filter_pos_delta_x=mat3(vec3(-1.0, 0.0, 1.0), vec3(0.0, 0.0 ,1.0) ,vec3(1.0,0.0,1.0));            \n"
-			   "   mat3 _filter_pos_delta_y=mat3(vec3(-1.0,-1.0,-1.0),vec3(-1.0,0.0,0.0),vec3(-1.0,1.0,1.0));              \n"
-			   "	vec4 final_color = vec4(0.0, 0.0, 0.0, 0.0);                                      \n"
-			   "	for(int i = 0; i<3; i++)                                                          \n"
-			   "	{                                                                                 \n"
-			   "		for(int j = 0; j<3; j++)                                                      \n"
-			   "		{                                                                             \n"
-			   "			vec2 _xy_new = vec2(_xy.x + _filter_pos_delta_x[i][j], _xy.y + _filter_pos_delta_y[i][j]); \n"
-			   "			vec2 _uv_new = vec2(_xy_new.x/texSize.x, _xy_new.y/texSize.y);            \n"
-			   "			final_color += texture2D(_image,_uv_new) * _filter[i][j];                 \n"
-			   "		}																			  \n"
-			   "	}																				  \n"
-			   "	return final_color;																  \n"
-			   "}																					  \n"
-			   "vec4 xposure(vec4 _color, float gray, float ex)  \n"
-			   "{							  \n"
-			   "	float b = (4.0*ex - 1.0);     \n"
-			   "	float a = 1.0 - b;          \n"
-			   "	float f = gray*(a*gray + b); \n"
-			   "	return f*_color;		  \n"
-			   "}							  \n"
-			   "vec4 quant(vec4 _cl, float n)  \n"
-			   "{                            \n"
-			   "	_cl.x = floor(_cl.x*255.0/n)*n/255.0;  \n"
-			   "	_cl.y = floor(_cl.y*255.0/n)*n/255.0;  \n"
-			   "	_cl.z = floor(_cl.z*255.0/n)*n/255.0;  \n"
-			   "	return _cl;                            \n"
-			   "}                                         \n"
-			   */
 #endif
-
+			"uniform float u_alpha;   		\n"
+			"uniform sampler2D s_texture;                        \n"
+			"varying vec2 v_texCoord;                            \n"
 			"void main()                                         \n"
 			"{                                                   \n"
-			"  vec4 vsampler = texture2D( s_texture, v_texCoord );\n"
-			"  float alpha = 1.0; 							\n"
-			"  if(alpha > vsampler.a)\n alpha=vsampler.a;							\n"
-			"  if(alpha > u_alpha)\n alpha = u_alpha;							\n"
-#ifdef __test_glsl__
-			"  vec3 n = v_normal;							\n"
-			"  if(u_filter > 0){									\n"
-			"   vec4 sample0, \n"
-			"        sample1, \n"
-			"        sample2, \n"
-			"        sample3; \n"
-			"   float step = 1.0/150.0; \n"
-			"if(u_filter==1){\n"//模糊滤镜
-			"   sample0 = texture2D(s_texture,  \n"
-			"                       vec2(v_texCoord.x - step,  \n"
-			"                            v_texCoord.y - step)); \n"
-			"   sample1 = texture2D(s_texture,  \n"
-			"                       vec2(v_texCoord.x + step,  \n"
-			"                            v_texCoord.y + step)); \n"
-			"   sample2 = texture2D(s_texture,  \n"
-			"                       vec2(v_texCoord.x + step,  \n"
-			"                            v_texCoord.y - step)); \n"
-			"   sample3 = texture2D(s_texture,  \n"
-			"                       vec2(v_texCoord.x - step,  \n"
-			"                            v_texCoord.y + step)); \n"
-			//"	gl_FragColor = vec4(vec3(sample0 + sample1 + sample2 + sample3),alpha)/4.0; \n"
-			"	gl_FragColor = vec4(sample0 + sample1 + sample2 + sample3)/4.0; \n"
-			"  }else if(u_filter==2){												\n"// 黑白滤镜
-			"    vec4 _texCol = texture2D( s_texture,  v_texCoord);\n"
-			"    float _texGray = dot(_texCol.rgb, vec3(0.299, 0.587, 0.114));\n"
-			"	  gl_FragColor = vec4(vec3(_texGray),alpha);\n"
-			"  }else if(u_filter==5){												\n"//马赛克
-			"	vec2 TexSize=vec2(200);            \n"
-			"	vec2 mosaicSize = vec2(8);\n"
-			"	vec2 intXY = vec2(v_texCoord.x*TexSize.x, v_texCoord.y*TexSize.y);   \n"
-			"	vec2 XYMosaic = vec2(floor(intXY.x/mosaicSize.x)*mosaicSize.x,floor(intXY.y/mosaicSize.y)*mosaicSize.y);  \n"
-			"	vec2 UVMosaic = vec2(XYMosaic.x/TexSize.x,XYMosaic.y/TexSize.y);     \n"
-			"	vec4 baseMap = texture2D(s_texture,UVMosaic);                        \n"
-			"	gl_FragColor = baseMap;                                              \n"
-			"  }else if(u_filter==3){												\n"//浮雕
-			"	vec2 TexSize=vec2(0.000001);            \n"
-			"   vec2 tex =v_texCoord;   \n"
-			"	vec2 upLeftUV = vec2(tex.x-1.0/TexSize.x,tex.y-1.0/TexSize.y);           \n"
-			"	vec4 curColor = texture2D(s_texture,v_texCoord);                           \n"
-			"	vec4 upLeftColor = texture2D(s_texture,upLeftUV);                  \n"
-			"	vec4 delColor = curColor - upLeftColor;                           \n"
-			"	float h = 0.3*delColor.x + 0.59*delColor.y + 0.11*delColor.z;                  \n"
-			"   vec4 bkColor = vec4(0.5, 0.5, 0.5, 1.0);                   \n"
-			"	gl_FragColor = vec4(h,h,h,0.0) +bkColor;                             \n"
-			"  }else if(u_filter==6){												\n"//马赛克2
-			"	vec2 TexSize=vec2(200);            \n"
-			"	vec2 mosaicSize = vec2(8);\n"
-			"	vec2 intXY = vec2(v_texCoord.x*TexSize.x, v_texCoord.y*TexSize.y);    \n"
-			"	vec2 XYMosaic = vec2(floor(intXY.x/mosaicSize.x)*mosaicSize.x,floor(intXY.y/mosaicSize.y)*mosaicSize.y) + 0.5*mosaicSize; \n"
-			"	vec2 delXY = XYMosaic - intXY;   \n"
-			"	float delL = length(delXY);      \n"
-			"	vec2 UVMosaic = vec2(XYMosaic.x/TexSize.x,XYMosaic.y/TexSize.y); \n"
-			"	vec4 _finalColor;                \n"
-			"	if(delL< 0.5*mosaicSize.x)       \n"
-			"		_finalColor = texture2D(s_texture,UVMosaic);  \n"
-			"	else                             \n"
-			"		_finalColor = texture2D(s_texture,v_texCoord);  \n"
-			"	gl_FragColor = _finalColor;      \n"
-			/*
-			   "  }else if(u_filter==7){								\n"
-			   "	vec2 TexSize=vec2(.005);      						      \n"
-			   "	vec2 intXY = vec2(v_texCoord.x * TexSize.x, v_texCoord.y * TexSize.y);   		  \n"
-			   "	mat3 _smooth_fil = mat3(1.0/9.0,1.0/9.0,1.0/9.0,								  \n"
-			   "							1.0/9.0,1.0/9.0,1.0/9.0,								  \n"
-			   "							1.0/9.0,1.0/9.0,1.0/9.0);								  \n"
-			   "   vec4 tmp = dip_filter(_smooth_fil, s_texture, intXY, TexSize);						\n"
-			   "	gl_FragColor = tmp;																	\n"
-			   "  }else if(u_filter==4){												\n"// 素描
-			   "	vec2 TexSize=vec2(100.0);      						      \n"
-			   "	vec2 intXY = vec2(v_texCoord.x * TexSize.x, v_texCoord.y * TexSize.y);   		  \n"
-			   "	mat3 _smooth_fil = mat3(-0.5,-1.0,0.0,										  \n"
-			   "							-1.0,0.0,1.0,										  \n"
-			   "							 0.0,1.0,0.5);										  \n"
-			   "   vec4 delColor = dip_filter(_smooth_fil, s_texture, intXY, TexSize);           \n"
-			   "   float deltaGray = 0.3*delColor.x + 0.59*delColor.y + 0.11*delColor.z;          \n"
-			   "   if(deltaGray < 0.0) deltaGray = -1.0 * deltaGray;                             \n"
-			   "   deltaGray = 1.0 - deltaGray;                                                  \n"
-			   "	gl_FragColor = vec4(deltaGray,deltaGray,deltaGray,1.0);                        \n"
-			   "  }else if(u_filter==9){												\n"//让亮的更亮，暗的更暗一些
-			   "	float k=.5;      						      \n"//0.5 – 2.0
-			   "	vec4 _dsColor = texture2D(s_texture, v_texCoord); \n"
-			   "	float _lum = 0.3*_dsColor.x + 0.59*_dsColor.y;    \n"
-			   "	vec4 _fColor = texture2D(s_texture, v_texCoord);  \n"
-			   "	gl_FragColor = xposure(_fColor, _lum, k);         \n"
-			   "  }else if(u_filter==10){												\n"//
-			   "vec2 TexSize = vec2(5.1);       \n"
-			   "float _waterPower = 40.0;     \n"//8-64
-			   "float _quatLevel = 5.0;       \n"//2-6
-			   "	vec4 noiseColor = _waterPower*texture2D(s_texture,v_texCoord);           \n"
-			   "	vec2 newUV =vec2 (v_texCoord.x + noiseColor.x/TexSize.x,v_texCoord.y + noiseColor.y/TexSize.y);  \n"
-			   "	vec4 _fColor = texture2D(s_texture,newUV);                 \n"
-			   "	gl_FragColor = quant(_fColor, 255.0/pow(2,_quatLevel));   \n"
-			//"  }else if(u_filter==8){\n"//fire
-			//"  }else if(u_filter==10){\n"//fire
-			//"  }else if(u_filter==11){												\n"
-			//"  }else if(u_filter==12){												\n"
-			*/
-			"  }else{												\n"
-			"	  gl_FragColor = vec4(vec3(vsampler),alpha);\n"
-			"  }												\n"
-			"}else{												\n"
-			"	  gl_FragColor = vec4(vec3(vsampler),alpha);\n"
-			"}												\n"
-#else
-			"	  gl_FragColor = vec4(vec3(vsampler),alpha);\n"
-#endif
+			"	vec4 vsampler = texture2D( s_texture, v_texCoord );\n"
+			"	float alpha = vsampler.a; 							\n"
+			"	if(alpha > u_alpha){alpha = u_alpha;}				\n"
+			"	gl_FragColor = vec4(vec3(vsampler),alpha);\n"
 			"}                                                   \n";
 
-#ifdef __test_glsl__
-#undef __test_glsl__
-#endif
 		data2D->programObject = esLoadProgram ( vShaderStr, fShaderStr );
 		//SDL_Log("programObject:%d\n",data2D->programObject);
 

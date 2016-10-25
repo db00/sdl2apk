@@ -12,12 +12,10 @@ typedef struct GL_Context
 #undef SDL_PROC
 } GL_Context;
 
-SDL_Window *window;
 
 /* Undefine this if you want a flat cube instead of a rainbow cube */
 #define SHADED_CUBE
 
-static SDL_GLContext context;
 static GL_Context ctx;
 
 int LoadContext(GL_Context * data)
@@ -199,12 +197,16 @@ int main(int argc, char *argv[])
 	//SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);//gldebug ..not Available in sdl2.0.4,dont know why.
 #if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__) || defined(__NACL__) //|| linux 
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+#else
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
 #endif
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);//or 1
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);//or 1
 
+	SDL_Window *window;
 	window = SDL_CreateWindow("", 0, 0, 240, 320, SDL_WINDOW_OPENGL);
 	SDL_ShowWindow(window);
+	static SDL_GLContext context;
 	context = SDL_GL_CreateContext(window);
 	/* Important: call this *after* creating the context */
 	if (LoadContext(&ctx) < 0) {
@@ -217,8 +219,9 @@ int main(int argc, char *argv[])
 
 	ctx.glMatrixMode(GL_PROJECTION);//gl
 	ctx.glLoadIdentity();//gl
-	ctx.glOrtho(-2.0, 2.0, -2.0, 2.0, -20.0, 20.0);//gl
+	ctx.glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);//gl
 	ctx.glMatrixMode(GL_MODELVIEW);//gl
+	//ctx.glMatrixMode(GL_PROJECTION);
 	ctx.glLoadIdentity();//gl
 	ctx.glEnable(GL_DEPTH_TEST);
 	ctx.glDepthFunc(GL_LESS);

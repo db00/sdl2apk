@@ -1,6 +1,6 @@
 /**
  * @file sprite.h
- gcc -Wall -I"../SDL2/include/" array.c sprite.c matrix.c -lSDL2 -lm -Ddebug_sprite && ./a.out
+ gcc -Wall -I"../SDL2/include/" array.c sprite.c matrix.c -lSDL2 -lm -Ddebug_sprite -lGL && ./a.out
  gcc -Wall -I"../SDL2/include/" -I"../SDL2_ttf/" -I"../SDL2_image/"  sprite.c matrix.c -lSDL2_image -lSDL2_ttf -lmingw32 -lSDL2_test -lSDL2main -lSDL2 -Ddebug_sprite && a
  *  
  * @author db0@qq.com
@@ -17,6 +17,17 @@
 #include "matrix.h"
 #include "array.h"
 
+#ifdef __MACOS__
+#define HAVE_OPENGL
+#else
+#if !defined(__IPHONEOS__) && !defined(__ANDROID__) && !defined(__EMSCRIPTEN__) && !defined(__NACL__) //&& !linux
+#define HAVE_OPENGL
+#endif
+#endif
+
+#ifdef HAVE_OPENGL
+#include "SDL_opengl.h"
+#endif
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
@@ -26,17 +37,13 @@
 typedef struct GLES2_Context
 {
 #define SDL_PROC(ret,func,params) ret (APIENTRY *func) params;
+#ifdef HAVE_OPENGL
+#include "SDL_glfuncs.h"
+#else
 #include "SDL_gles2funcs.h"
+#endif
 #undef SDL_PROC
 } GLES2_Context;
-
-typedef struct GL_Context
-{
-#define SDL_PROC(ret,func,params) ret (APIENTRY *func) params;
-#include "SDL_glfuncs.h"
-#undef SDL_PROC
-} GL_Context;
-
 
 
 #define GL_CHECK(x) \

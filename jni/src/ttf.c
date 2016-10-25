@@ -75,9 +75,9 @@ char * utf2u(char * utf,int * outlen)
 static short int getUtfQW(char * utf8,unsigned char * q,unsigned char *w)
 {
 #ifdef __ANDROID__
-	FILE * file = fopen("/sdcard/qw.txt","rb");
+	FILE * file = fopen("/sdcard/sound/qw.txt","rb");
 #else
-	FILE * file = fopen("qw.txt","rb");
+	FILE * file = fopen("/home/libiao/sound/qw.txt","rb");
 #endif
 	fseek(file,0,SEEK_END);
 	int flen = ftell(file);
@@ -124,9 +124,9 @@ static void showBox(int x,int y,int w)
 	strcpy(sprite->name,sname);
 	stage->is3D = 1;
 #ifdef __ANDROID__
-	sprite->surface = IMG_Load("/sdcard/1.bmp");
+	sprite->surface = IMG_Load("/sdcard/sound/1.bmp");
 #else
-	sprite->surface = IMG_Load("1.bmp");
+	sprite->surface = IMG_Load("/home/libiao/sound/1.bmp");
 #endif
 	Data3d*_data3D = sprite->data3d;
 	if(_data3D==NULL){
@@ -219,9 +219,9 @@ int main(int argc,char** argv)
 			0x80,0x40,0x20,0x10,0x08,0x04,0x02,0x01
 		};
 #ifdef __ANDROID__
-		fphzk = fopen("/sdcard/hzk1216/HZK16", "rb");
+		fphzk = fopen("/sdcard/sound/hzk1216/HZK16", "rb");
 #else
-		fphzk = fopen("hzk1216/HZK16", "rb");
+		fphzk = fopen("/home/libiao/sound/hzk1216/HZK16", "rb");
 #endif
 		if(fphzk == NULL){
 			fprintf(stderr, "error hzk16\n");

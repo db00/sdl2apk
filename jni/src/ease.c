@@ -1,6 +1,6 @@
 /**
  *
- gcc -Wall -I"../SDL2/include/" -I"../SDL2_ttf/" -I"../SDL2_image/" ease.c array.c httploader.c ipstring.c -lssl -lcrypto mystring.c base64.c  tween.c matrix.c sprite.c -lSDL2_image -lSDL2_ttf -lSDL2 -D debug_tween -lm && ./a.out
+ gcc -Wall -I"../SDL2/include/" ease.c array.c  tween.c matrix.c sprite.c -lSDL2 -D debug_tween -lm && ./a.out
  gcc -D test_ease ease.c -lm && ./a.out 
  */
 #include "ease.h"

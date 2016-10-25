@@ -283,7 +283,7 @@ int main(int argc, char *argv[])
 
 	Sprite*sprite = Sprite_new(NULL);
 	//sprite->surface = IMG_Load("1.bmp");
-	sprite->surface = SDL_LoadBMP("/home/db0/sound/1.bmp");
+	sprite->surface = SDL_LoadBMP("/home/libiao/sound/1.bmp");
 	//sprite->x =30;
 	//sprite->y =100;
 	sprite->h=50.0;

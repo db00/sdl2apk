@@ -30,6 +30,14 @@ typedef struct GLES2_Context
 #undef SDL_PROC
 } GLES2_Context;
 
+typedef struct GL_Context
+{
+#define SDL_PROC(ret,func,params) ret (APIENTRY *func) params;
+#include "SDL_glfuncs.h"
+#undef SDL_PROC
+} GL_Context;
+
+
 
 #define GL_CHECK(x) \
 	x; \

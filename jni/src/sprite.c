@@ -543,7 +543,6 @@ static void Data3d_show(Sprite*sprite)
 			_data3D->samplerLoc = data2D->samplerLoc;
 			_data3D->alphaLoc = data2D->alphaLoc;
 			_data3D->mvpLoc = data2D->mvpLoc;
-			_data3D->filterLoc= data2D->filterLoc;
 		}
 		sprite->data3d = _data3D;
 	}
@@ -667,8 +666,6 @@ static void Data3d_show(Sprite*sprite)
 
 	if(_data3D->alphaLoc>=0)
 		GL_CHECK(gles2.glUniform1f( _data3D->alphaLoc, Sprite_getAlpha(sprite)));
-	if(_data3D->filterLoc>=0)
-		GL_CHECK(gles2.glUniform1i( _data3D->filterLoc,sprite->filter));
 
 
 	if(_data3D->mvpLoc>=0){
@@ -1679,7 +1676,6 @@ Data3d* Data3D_new()
 	data3D->samplerLoc = -1;
 	data3D->alphaLoc = -1;
 	data3D->mvpLoc= -1;
-	data3D->filterLoc = -1;
 	return data3D;
 }
 
@@ -1724,8 +1720,6 @@ Data3d* Data3D_init()
 			//SDL_Log("texCoordLoc:%d\n",data2D->texCoordLoc);
 			data2D->samplerLoc = GL_CHECK(gles2.glGetUniformLocation ( data2D->programObject, "s_texture" ));
 			//SDL_Log("samplerLoc:%d\n",data2D->samplerLoc);
-			data2D->filterLoc= GL_CHECK(gles2.glGetUniformLocation ( data2D->programObject, "u_filter" ));
-			//SDL_Log("filterLoc:%d\n",data2D->filterLoc);
 			data2D->alphaLoc = GL_CHECK(gles2.glGetUniformLocation (data2D->programObject, "u_alpha"));
 			//SDL_Log("alphaLoc:%d\n",data2D->alphaLoc);
 			data2D->mvpLoc = GL_CHECK(gles2.glGetUniformLocation( data2D->programObject, "u_mvpMatrix" ));
@@ -1955,7 +1949,6 @@ int main(int argc, char *argv[])
 				_data3D->samplerLoc = data2D->samplerLoc;
 				_data3D->mvpLoc= data2D->mvpLoc;
 				_data3D->alphaLoc = data2D->alphaLoc;
-				_data3D->filterLoc = data2D->filterLoc;
 			}
 			sprite->data3d = _data3D;
 			_data3D->numIndices = esGenSphere ( 20, .75f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );

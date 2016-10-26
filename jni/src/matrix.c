@@ -4,13 +4,13 @@
  */
 #include "matrix.h"
 
-int esGenCube ( GLfloat scale, GLfloat **vertices, GLfloat **normals, GLfloat **texCoords, GLuint **indices )
+int esGenCube ( float scale, float **vertices, float **normals, float **texCoords, unsigned **indices )
 {/*{{{*/
 	int i;
 	int numVertices = 24;
 	int numIndices = 36;
 
-	GLfloat cubeVerts[] =
+	float cubeVerts[] =
 	{
 		-0.5f, -0.5f, -0.5f,
 		-0.5f, -0.5f,  0.5f,
@@ -38,7 +38,7 @@ int esGenCube ( GLfloat scale, GLfloat **vertices, GLfloat **normals, GLfloat **
 		0.5f,  0.5f, -0.5f,
 	};
 
-	GLfloat cubeNormals[] =
+	float cubeNormals[] =
 	{
 		0.0f, -1.0f, 0.0f,
 		0.0f, -1.0f, 0.0f,
@@ -66,7 +66,7 @@ int esGenCube ( GLfloat scale, GLfloat **vertices, GLfloat **normals, GLfloat **
 		1.0f, 0.0f, 0.0f,
 	};
 
-	GLfloat cubeTex[] =
+	float cubeTex[] =
 	{
 		0.0f, 0.0f,
 		0.0f, 1.0f,
@@ -97,7 +97,7 @@ int esGenCube ( GLfloat scale, GLfloat **vertices, GLfloat **normals, GLfloat **
 	// Allocate memory for buffers
 	if ( vertices != NULL )
 	{
-		*vertices = malloc ( sizeof(GLfloat) * 3 * numVertices );
+		*vertices = malloc ( sizeof(float) * 3 * numVertices );
 		memcpy( *vertices, cubeVerts, sizeof( cubeVerts ) );
 		for ( i = 0; i < numVertices * 3; i++ )
 		{
@@ -107,13 +107,13 @@ int esGenCube ( GLfloat scale, GLfloat **vertices, GLfloat **normals, GLfloat **
 
 	if ( normals != NULL )
 	{
-		*normals = malloc ( sizeof(GLfloat) * 3 * numVertices );
+		*normals = malloc ( sizeof(float) * 3 * numVertices );
 		memcpy( *normals, cubeNormals, sizeof( cubeNormals ) );
 	}
 
 	if ( texCoords != NULL )
 	{
-		*texCoords = malloc ( sizeof(GLfloat) * 2 * numVertices );
+		*texCoords = malloc ( sizeof(float) * 2 * numVertices );
 		memcpy( *texCoords, cubeTex, sizeof( cubeTex ) ) ;
 	}
 
@@ -121,7 +121,7 @@ int esGenCube ( GLfloat scale, GLfloat **vertices, GLfloat **normals, GLfloat **
 	// Generate the indices
 	if ( indices != NULL )
 	{
-		GLuint cubeIndices[] =
+		unsigned cubeIndices[] =
 		{
 			0, 2, 1,
 			0, 3, 2, 
@@ -137,33 +137,33 @@ int esGenCube ( GLfloat scale, GLfloat **vertices, GLfloat **normals, GLfloat **
 			20, 22, 21
 		};
 
-		*indices = malloc ( sizeof(GLuint) * numIndices );
+		*indices = malloc ( sizeof(unsigned) * numIndices );
 		memcpy( *indices, cubeIndices, sizeof( cubeIndices ) );
 	}
 
 	return numIndices;
 }/*}}}*/
-int esGenSphere ( int numSlices, GLfloat radius, GLfloat **vertices, GLfloat **normals, GLfloat **texCoords, GLuint **indices )
+int esGenSphere ( int numSlices, float radius, float **vertices, float **normals, float **texCoords, unsigned **indices )
 {/*{{{*/
 	int i;
 	int j;
 	int numParallels = numSlices / 2;
 	int numVertices = ( numParallels + 1 ) * ( numSlices + 1 );
 	int numIndices = numParallels * numSlices * 6;
-	GLfloat angleStep = (2.0f * M_PI) / ((GLfloat) numSlices);
+	float angleStep = (2.0f * M_PI) / ((float) numSlices);
 
 	// Allocate memory for buffers
 	if ( vertices != NULL )
-		*vertices = malloc ( sizeof(GLfloat) * 3 * numVertices );
+		*vertices = malloc ( sizeof(float) * 3 * numVertices );
 
 	if ( normals != NULL )
-		*normals = malloc ( sizeof(GLfloat) * 3 * numVertices );
+		*normals = malloc ( sizeof(float) * 3 * numVertices );
 
 	if ( texCoords != NULL )
-		*texCoords = malloc ( sizeof(GLfloat) * 2 * numVertices );
+		*texCoords = malloc ( sizeof(float) * 2 * numVertices );
 
 	if ( indices != NULL )
-		*indices = malloc ( sizeof(GLuint) * numIndices );
+		*indices = malloc ( sizeof(unsigned) * numIndices );
 
 	for ( i = 0; i < numParallels + 1; i++ )
 	{
@@ -173,11 +173,11 @@ int esGenSphere ( int numSlices, GLfloat radius, GLfloat **vertices, GLfloat **n
 
 			if ( vertices )
 			{
-				(*vertices)[vertex + 0] = radius * sinf ( angleStep * (GLfloat)i ) *
-					sinf ( angleStep * (GLfloat)j );
-				(*vertices)[vertex + 1] = radius * cosf ( angleStep * (GLfloat)i );
-				(*vertices)[vertex + 2] = radius * sinf ( angleStep * (GLfloat)i ) *
-					cosf ( angleStep * (GLfloat)j );
+				(*vertices)[vertex + 0] = radius * sinf ( angleStep * (float)i ) *
+					sinf ( angleStep * (float)j );
+				(*vertices)[vertex + 1] = radius * cosf ( angleStep * (float)i );
+				(*vertices)[vertex + 2] = radius * sinf ( angleStep * (float)i ) *
+					cosf ( angleStep * (float)j );
 			}
 
 			if ( normals )
@@ -190,8 +190,8 @@ int esGenSphere ( int numSlices, GLfloat radius, GLfloat **vertices, GLfloat **n
 			if ( texCoords )
 			{
 				int texIndex = ( i * (numSlices + 1) + j ) * 2;
-				(*texCoords)[texIndex + 0] = (GLfloat) j / (GLfloat) numSlices;
-				(*texCoords)[texIndex + 1] = -( 1.0f - (GLfloat) i ) / (GLfloat) (numParallels - 1 );
+				(*texCoords)[texIndex + 0] = (float) j / (float) numSlices;
+				(*texCoords)[texIndex + 1] = -( 1.0f - (float) i ) / (float) (numParallels - 1 );
 			}
 		}
 	}
@@ -199,7 +199,7 @@ int esGenSphere ( int numSlices, GLfloat radius, GLfloat **vertices, GLfloat **n
 	// Generate the indices
 	if ( indices != NULL )
 	{
-		GLuint *indexBuf = (*indices);
+		unsigned *indexBuf = (*indices);
 		for ( i = 0; i < numParallels ; i++ ) 
 		{
 			for ( j = 0; j < numSlices; j++ )
@@ -247,11 +247,11 @@ void esMatrixMultiply(Matrix3D *result, Matrix3D *srcA, Matrix3D *srcB)
 	memcpy(result, &tmp, sizeof(Matrix3D));
 }/*}}}*/
 
-void esFrustum(Matrix3D *result, GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat nearZ, GLfloat farZ)
+void esFrustum(Matrix3D *result, float left, float right, float bottom, float top, float nearZ, float farZ)
 {/*{{{*/
-	GLfloat       deltaX = right - left;
-	GLfloat       deltaY = top - bottom;
-	GLfloat       deltaZ = farZ - nearZ;
+	float       deltaX = right - left;
+	float       deltaY = top - bottom;
+	float       deltaZ = farZ - nearZ;
 	Matrix3D    frust;
 
 	if ( (nearZ <= 0.0f) || (farZ <= 0.0f) ||
@@ -274,9 +274,9 @@ void esFrustum(Matrix3D *result, GLfloat left, GLfloat right, GLfloat bottom, GL
 
 	esMatrixMultiply(result, &frust, result);
 }/*}}}*/
-void esPerspective(Matrix3D *result, GLfloat fovy, GLfloat aspect, GLfloat nearZ, GLfloat farZ)
+void esPerspective(Matrix3D *result, float fovy, float aspect, float nearZ, float farZ)
 {/*{{{*/
-	GLfloat frustumW, frustumH;
+	float frustumW, frustumH;
 
 	frustumH = tanf( fovy / 360.0f * M_PI ) * nearZ;
 	frustumW = frustumH * aspect;
@@ -293,7 +293,7 @@ void Matrix_identity(Matrix3D *result)
 	result->rawData[3][3] = 1.0f;
 }/*}}}*/
 
-void esScale(Matrix3D *result, GLfloat sx, GLfloat sy, GLfloat sz)
+void esScale(Matrix3D *result, float sx, float sy, float sz)
 {/*{{{*/
 	result->rawData[0][0] *= sx;
 	result->rawData[0][1] *= sx;
@@ -313,7 +313,7 @@ void esScale(Matrix3D *result, GLfloat sx, GLfloat sy, GLfloat sz)
 
 
 
-void esTranslate(Matrix3D *result, GLfloat tx, GLfloat ty, GLfloat tz)
+void esTranslate(Matrix3D *result, float tx, float ty, float tz)
 {/*{{{*/
 	result->rawData[3][0] += (result->rawData[0][0] * tx + result->rawData[1][0] * ty + result->rawData[2][0] * tz);
 	result->rawData[3][1] += (result->rawData[0][1] * tx + result->rawData[1][1] * ty + result->rawData[2][1] * tz);
@@ -321,17 +321,17 @@ void esTranslate(Matrix3D *result, GLfloat tx, GLfloat ty, GLfloat tz)
 	result->rawData[3][3] += (result->rawData[0][3] * tx + result->rawData[1][3] * ty + result->rawData[2][3] * tz);
 }/*}}}*/
 
-void esRotate(Matrix3D *result, GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
+void esRotate(Matrix3D *result, float angle, float x, float y, float z)
 {/*{{{*/
-	GLfloat sinAngle, cosAngle;
-	GLfloat mag = sqrtf(x * x + y * y + z * z);
+	float sinAngle, cosAngle;
+	float mag = sqrtf(x * x + y * y + z * z);
 
 	sinAngle = sinf ( angle * M_PI / 180.0f );
 	cosAngle = cosf ( angle * M_PI / 180.0f );
 	if ( mag > 0.0f )
 	{
-		GLfloat xx, yy, zz, xy, yz, zx, xs, ys, zs;
-		GLfloat oneMinusCos;
+		float xx, yy, zz, xy, yz, zx, xs, ys, zs;
+		float oneMinusCos;
 		Matrix3D rotMat;
 
 		x /= mag;
@@ -374,11 +374,11 @@ void esRotate(Matrix3D *result, GLfloat angle, GLfloat x, GLfloat y, GLfloat z)
 }/*}}}*/
 
 
-void esOrtho(Matrix3D *result, GLfloat left, GLfloat right, GLfloat bottom, GLfloat top, GLfloat nearZ, GLfloat farZ)
+void esOrtho(Matrix3D *result, float left, float right, float bottom, float top, float nearZ, float farZ)
 {/*{{{*/
-	GLfloat       deltaX = right - left;
-	GLfloat       deltaY = top - bottom;
-	GLfloat       deltaZ = farZ - nearZ;
+	float       deltaX = right - left;
+	float       deltaY = top - bottom;
+	float       deltaZ = farZ - nearZ;
 	Matrix3D    ortho;
 
 	if ( (deltaX == 0.0f) || (deltaY == 0.0f) || (deltaZ == 0.0f) )
@@ -420,11 +420,11 @@ void Matrix_transformVector(Matrix3D * rawData, Vector3D * position, Vector3D * 
 /** 
  * 计算矩阵src的模 
  */ 
-GLfloat Matrix_determinant( Matrix3D * src, int n )  
+float Matrix_determinant( Matrix3D * src, int n )  
 {  
 	int i,j,k,x,y;  
 	Matrix3D tmp;  
-	GLfloat result = 0.0;  
+	float result = 0.0;  
 	double t;
 
 	if( n == 1 ) {
@@ -529,7 +529,7 @@ void Matrix_transpose(Matrix3D* m,Matrix3D *result)// 将当前 Matrix3D 对象�
 	if(m)
 	{
 		int i=0,j=0;
-		GLfloat tmp;
+		float tmp;
 		for(;i<4;i++)
 		{
 			for(j=0;i<4;i++)
@@ -542,11 +542,11 @@ void Matrix_transpose(Matrix3D* m,Matrix3D *result)// 将当前 Matrix3D 对象�
 	}
 }
 
-void Matrix_prependRotation(Matrix3D * m,GLfloat degrees, GLfloat rotationX,GLfloat rotationY,GLfloat rotationZ)// 在 Matrix3D 对象上后置一个增量旋转。
+void Matrix_prependRotation(Matrix3D * m,float degrees, float rotationX,float rotationY,float rotationZ)// 在 Matrix3D 对象上后置一个增量旋转。
 {
 	esRotate(m,-degrees,rotationX,rotationY,rotationZ);
 }
-void Matrix_appendRotation(Matrix3D * m,GLfloat degrees, GLfloat rotationX,GLfloat rotationY,GLfloat rotationZ)// 在 Matrix3D 对象上后置一个增量旋转。
+void Matrix_appendRotation(Matrix3D * m,float degrees, float rotationX,float rotationY,float rotationZ)// 在 Matrix3D 对象上后置一个增量旋转。
 {
 	esRotate(m,degrees,rotationX,rotationY,rotationZ);
 }
@@ -558,11 +558,11 @@ void Matrix_appendTranslation(Matrix3D *m ,int x, int y,int z)// 在 Matrix3D �
 {
 	esTranslate(m,-x,-y,-z);
 }
-void Matrix_prependScale(Matrix3D * m,GLfloat xScale, GLfloat yScale,GLfloat zScale)// 在 Matrix3D 对象上后置一个增量缩放，沿 x、y 和 z 轴改变位置。 
+void Matrix_prependScale(Matrix3D * m,float xScale, float yScale,float zScale)// 在 Matrix3D 对象上后置一个增量缩放，沿 x、y 和 z 轴改变位置。 
 {
 	esTranslate(m,1.0/xScale,1.0/yScale,1.0/zScale);
 }
-void Matrix_appendScale(Matrix3D * m,GLfloat xScale, GLfloat yScale,GLfloat zScale)// 在 Matrix3D 对象上后置一个增量缩放，沿 x、y 和 z 轴改变位置。
+void Matrix_appendScale(Matrix3D * m,float xScale, float yScale,float zScale)// 在 Matrix3D 对象上后置一个增量缩放，沿 x、y 和 z 轴改变位置。
 {
 	esTranslate(m,xScale,yScale,zScale);
 }
@@ -587,7 +587,7 @@ int Matrix_invert(Matrix3D * m,Matrix3D * result)
 	return r;
 }
 
-void Vector3DxNumber(Vector3D * result,Vector3D * position,GLfloat f)
+void Vector3DxNumber(Vector3D * result,Vector3D * position,float f)
 {
 	result->position[0] = position->position[0]*f;
 	result->position[1] = position->position[1]*f;
@@ -605,15 +605,15 @@ void crossProduct(Vector3D* result,Vector3D * v1,Vector3D * v2)
 	result->position[1]= v1->position[2]*v2->position[0] - v2->position[2]*v1->position[0];
 	result->position[2]= v1->position[0]*v2->position[1] - v2->position[0]*v1->position[1];
 }
-GLfloat dotProduct(Vector3D * v1 , Vector3D * v2)
+float dotProduct(Vector3D * v1 , Vector3D * v2)
 {
 	return v1->position[0]*v2->position[0] + v1->position[1]*v2->position[1] +  v1->position[2]*v2->position[2];// +  v1->position[3]*v2->position[4];
 }
-GLfloat esLength(Vector3D * position)
+float esLength(Vector3D * position)
 {
 	return sqrtf(dotProduct(position,position));
 }
-GLfloat esDistance(Vector3D * v1,Vector3D * v2)
+float esDistance(Vector3D * v1,Vector3D * v2)
 {
 	Vector3D r;
 	Vector3DMinus(&r,v2,v1);
@@ -621,13 +621,13 @@ GLfloat esDistance(Vector3D * v1,Vector3D * v2)
 }
 void normalize(Vector3D*result,Vector3D* position)
 {
-	//Vector3D * result = malloc(sizeof(GLfloat)*4);
+	//Vector3D * result = malloc(sizeof(float)*4);
 	Vector3DxNumber(result,position,1.0/esLength(position));
 	//return result;
 }
 void esFaceward(Vector3D*result,Vector3D * normal,Vector3D *in,Vector3D * nref)
 {
-	//Vector3D * result = malloc(sizeof(GLfloat)*4);
+	//Vector3D * result = malloc(sizeof(float)*4);
 	int f = -1;
 	if(dotProduct(nref,in)<0)
 	{
@@ -639,15 +639,15 @@ void esFaceward(Vector3D*result,Vector3D * normal,Vector3D *in,Vector3D * nref)
 void esReflect(Vector3D*result,Vector3D* in,Vector3D * normal)
 {
 	//return in - 2*dot(normal,in)*normal;
-	//Vector3D * result = malloc(sizeof(GLfloat)*4);
+	//Vector3D * result = malloc(sizeof(float)*4);
 	Vector3DxNumber(result,normal,dotProduct(normal,in)*2);
 	Vector3DMinus(result,in,result);
 }
-void esRefract(Vector3D*result,Vector3D* in,Vector3D * normal,GLfloat eta)
+void esRefract(Vector3D*result,Vector3D* in,Vector3D * normal,float eta)
 {
-	GLfloat k = 1.0 - eta*eta*(1.0-pow(dotProduct(normal,in),2));
+	float k = 1.0 - eta*eta*(1.0-pow(dotProduct(normal,in),2));
 	if(k<0){
-		memset(result,0,4*sizeof(GLfloat));
+		memset(result,0,4*sizeof(float));
 	}else{
 		Vector3DxNumber(result,in,eta);
 		Vector3D position;
@@ -661,7 +661,7 @@ void Matrix_lookAt(Matrix3D *matrix, Vector3D* pos,Vector3D * dir,Vector3D* up){
 	Vector3D dirN;
 	Vector3D upN;
 	Vector3D lftN;
-	GLfloat raw[16];
+	float raw[16];
 
 
 	crossProduct(&lftN,dir,up);
@@ -696,17 +696,17 @@ void Matrix_lookAt(Matrix3D *matrix, Vector3D* pos,Vector3D * dir,Vector3D* up){
 }
 
 typedef struct Plane3D{
-	GLfloat a;
-	GLfloat b;
-	GLfloat c;
-	GLfloat d;
+	float a;
+	float b;
+	float c;
+	float d;
 }Plane3D;
 void reflection(Plane3D * plane,Matrix3D * target){
-	GLfloat a = plane->a, b= plane->b, c= plane->c, d= plane->d;
-	GLfloat rawData[16];
-	GLfloat ab2 = -2 * a * b;
-	GLfloat ac2 = -2 * a * c;
-	GLfloat bc2 = -2 * b * c;
+	float a = plane->a, b= plane->b, c= plane->c, d= plane->d;
+	float rawData[16];
+	float ab2 = -2 * a * b;
+	float ac2 = -2 * a * c;
+	float bc2 = -2 * b * c;
 	// reflection matrix
 	rawData[0] = 1 - 2 * a * a;
 	rawData[4] = ab2;
@@ -728,31 +728,31 @@ void reflection(Plane3D * plane,Matrix3D * target){
 }
 
 void decompose(Matrix3D * sourceMatrix,int orientationStyle,Matrix3D * result){
-	GLfloat raw[16];
+	float raw[16];
 	memcpy(raw,sourceMatrix,sizeof(Matrix3D));
 
-	GLfloat a = raw[0];
-	GLfloat e = raw[1];
-	GLfloat i = raw[2];
-	GLfloat b = raw[4];
-	GLfloat f = raw[5];
-	GLfloat j = raw[6];
-	GLfloat c = raw[8];
-	GLfloat g = raw[9];
-	GLfloat k = raw[10];
+	float a = raw[0];
+	float e = raw[1];
+	float i = raw[2];
+	float b = raw[4];
+	float f = raw[5];
+	float j = raw[6];
+	float c = raw[8];
+	float g = raw[9];
+	float k = raw[10];
 
-	GLfloat x = raw[12];
-	GLfloat y = raw[13];
-	GLfloat z = raw[14];
+	float x = raw[12];
+	float y = raw[13];
+	float z = raw[14];
 
-	GLfloat tx = sqrt(a * a + e * e + i * i);
-	GLfloat ty = sqrt(b * b + f * f + j * j);
-	GLfloat tz = sqrt(c * c + g * g + k * k);
-	GLfloat tw = 0;
+	float tx = sqrt(a * a + e * e + i * i);
+	float ty = sqrt(b * b + f * f + j * j);
+	float tz = sqrt(c * c + g * g + k * k);
+	float tw = 0;
 
-	GLfloat scaleX = tx;
-	GLfloat scaleY = ty;
-	GLfloat scaleZ = tz;
+	float scaleX = tx;
+	float scaleY = ty;
+	float scaleZ = tz;
 
 	if (a*(f*k - j*g) - e*(b*k - j*c) + i*(b*g - f*c) < 0) {
 		scaleZ = -scaleZ;
@@ -775,17 +775,17 @@ void decompose(Matrix3D * sourceMatrix,int orientationStyle,Matrix3D * result){
 	if (orientationStyle == EULER_ANGLES) {
 		tx = atan2(j, k);
 		ty = atan2(-i, sqrt(a * a + e * e));
-		GLfloat s1 = sin(tx);
-		GLfloat c1 = cos(tx);
+		float s1 = sin(tx);
+		float c1 = cos(tx);
 		tz = atan2(s1*c-c1*b, c1*f - s1*g);
 	} else if (orientationStyle == AXIS_ANGLE) {
 		tw = acos((a + f + k - 1) / 2);
-		GLfloat len = sqrt((j - g) * (j - g) + (c - i) * (c - i) + (e - b) * (e - b));
+		float len = sqrt((j - g) * (j - g) + (c - i) * (c - i) + (e - b) * (e - b));
 		tx = (j - g) / len;
 		ty = (c - i) / len;
 		tz = (e - b) / len;
 	} else {//QUATERNION
-		GLfloat tr = a + f + k;
+		float tr = a + f + k;
 		if (tr > 0) {
 			tw = sqrt(1 + tr) / 2;
 			tx = (j - g) / (4 * tw);
@@ -823,28 +823,28 @@ void decompose(Matrix3D * sourceMatrix,int orientationStyle,Matrix3D * result){
 }
 
 void transformVector(Matrix3D * matrix,Vector3D * vector,Vector3D * result){
-	GLfloat raw[16];
+	float raw[16];
 	memcpy(raw,matrix,sizeof(Matrix3D));
-	GLfloat a = raw[0];
-	GLfloat e = raw[1];
-	GLfloat i = raw[2];
-	GLfloat m = raw[3];
-	GLfloat b = raw[4];
-	GLfloat f = raw[5];
-	GLfloat j = raw[6];
-	GLfloat n = raw[7];
-	GLfloat c = raw[8];
-	GLfloat g = raw[9];
-	GLfloat k = raw[10];
-	GLfloat o = raw[11];
-	GLfloat d = raw[12];
-	GLfloat h = raw[13];
-	GLfloat l = raw[14];
-	GLfloat p = raw[15];
+	float a = raw[0];
+	float e = raw[1];
+	float i = raw[2];
+	float m = raw[3];
+	float b = raw[4];
+	float f = raw[5];
+	float j = raw[6];
+	float n = raw[7];
+	float c = raw[8];
+	float g = raw[9];
+	float k = raw[10];
+	float o = raw[11];
+	float d = raw[12];
+	float h = raw[13];
+	float l = raw[14];
+	float p = raw[15];
 
-	GLfloat x = vector->position[0];
-	GLfloat y = vector->position[1];
-	GLfloat z = vector->position[2];
+	float x = vector->position[0];
+	float y = vector->position[1];
+	float z = vector->position[2];
 	result->position[0] = a * x + b * y + c * z + d;
 	result->position[1] = e * x + f * y + g * z + h;
 	result->position[2] = i * x + j * y + k * z + l;
@@ -852,23 +852,23 @@ void transformVector(Matrix3D * matrix,Vector3D * vector,Vector3D * result){
 }
 
 void deltaTransformVector(Matrix3D * matrix,Vector3D * vector,Vector3D * result){
-	GLfloat raw[16];
+	float raw[16];
 	memcpy(raw,matrix,sizeof(Matrix3D));
-	GLfloat a = raw[0];
-	GLfloat e = raw[1];
-	GLfloat i = raw[2];
-	GLfloat m = raw[3];
-	GLfloat b = raw[4];
-	GLfloat f = raw[5];
-	GLfloat j = raw[6];
-	GLfloat n = raw[7];
-	GLfloat c = raw[8];
-	GLfloat g = raw[9];
-	GLfloat k = raw[10];
-	GLfloat o = raw[11];
-	GLfloat x = vector->position[0];
-	GLfloat y = vector->position[1];
-	GLfloat z = vector->position[2];
+	float a = raw[0];
+	float e = raw[1];
+	float i = raw[2];
+	float m = raw[3];
+	float b = raw[4];
+	float f = raw[5];
+	float j = raw[6];
+	float n = raw[7];
+	float c = raw[8];
+	float g = raw[9];
+	float k = raw[10];
+	float o = raw[11];
+	float x = vector->position[0];
+	float y = vector->position[1];
+	float z = vector->position[2];
 	result->position[0] = a * x + b * y + c * z;
 	result->position[1] = e * x + f * y + g * z;
 	result->position[2] = i * x + j * y + k * z;
@@ -882,28 +882,28 @@ void getTranslation(Matrix3D *transform,Vector3D* result){
 	//transform.copyColumnTo(3, result);
 }
 
-void deltaTransformVectors(Matrix3D * matrix,GLfloat * vin,GLfloat * vout){
-	GLfloat raw[16];
+void deltaTransformVectors(Matrix3D * matrix,float * vin,float * vout){
+	float raw[16];
 	memcpy(raw,matrix,sizeof(Matrix3D));
-	GLfloat a = raw[0];
-	GLfloat e = raw[1];
-	GLfloat i = raw[2];
-	//GLfloat m = raw[3];
-	GLfloat b = raw[4];
-	GLfloat f = raw[5];
-	GLfloat j = raw[6];
-	//GLfloat n = raw[7];
-	GLfloat c = raw[8];
-	GLfloat g = raw[9];
-	GLfloat k = raw[10];
-	//GLfloat o = raw[11];
+	float a = raw[0];
+	float e = raw[1];
+	float i = raw[2];
+	//float m = raw[3];
+	float b = raw[4];
+	float f = raw[5];
+	float j = raw[6];
+	//float n = raw[7];
+	float c = raw[8];
+	float g = raw[9];
+	float k = raw[10];
+	//float o = raw[11];
 	int outIndex= 0;
 	int length = 16;
 	int index = 0;
 	for(index= 0; index<length; index+=3) {
-		GLfloat x = vin[index];
-		GLfloat y = vin[index+1];
-		GLfloat z = vin[index+2];
+		float x = vin[index];
+		float y = vin[index+1];
+		float z = vin[index+2];
 		vout[outIndex++] = a * x + b * y + c * z;
 		vout[outIndex++] = e * x + f * y + g * z;
 		vout[outIndex++] = i * x + j * y + k * z;
@@ -978,7 +978,7 @@ void printfM(Matrix3D * m)
 	int i = 0;
 	for(;i<4;i++){
 		printfV((Vector3D*)m + i);
-		printf(",\t%f\n",(GLfloat)*((GLfloat*)((Vector3D*)m+i)+3));
+		printf(",\t%f\n",(float)*((float*)((Vector3D*)m+i)+3));
 	}
 	printf("\n");
 }

@@ -1,7 +1,7 @@
 /**
  *
- gcc -g -Wall  httpserver.c array.c myregex.c regex.c filetypes.c dict.c files.c mystring.c urlcode.c base64.c -lpthread -lwsock32 -lm -DSTDC_HEADERS -D DEBUG -D debug_httpserver && a
  gcc -g -Wall -lpthread httpserver.c array.c myregex.c filetypes.c dict.c files.c mystring.c  urlcode.c base64.c -ldl -lm -D DEBUG -D debug_httpserver -o ~/a && ~/a
+ gcc -g -Wall  httpserver.c array.c myregex.c regex.c filetypes.c dict.c files.c mystring.c urlcode.c base64.c -lpthread -lwsock32 -lm -DSTDC_HEADERS -D DEBUG -D debug_httpserver && a
  gdb ~/a
  gcc -g -Wall -lpthread httpserver.c filetypes.c mystring.c urlcode.c base64.c -ldl -lm -D debug_httpserver -o ~/a && ~/a
 
@@ -502,8 +502,8 @@ int send_exec_end(Client*client)
 		paras = paras->next;
 		++i;
 	}
-	int ret;
-	int handle;
+	int ret = 0;
+	int handle = 0;
 	if(value[0]!=NULL && value[1] !=NULL){
 		if(strcmp(value[0],"fwrite")==0 && value[2]!=NULL && value[3]!=NULL && value[4]!=NULL){//fwrite,file_name,opentype,data,data_byte_len
 			FILE *file=fopen(value[1],value[2]);
@@ -600,10 +600,11 @@ int send_exec_end(Client*client)
 		}else if(strcmp(value[0],"nohup" )==0){
 			url_decode(value[1],strlen(value[1]));
 			printf("%s\n",value[1]);
+			char * nohup = NULL;
 #ifdef __ANDROID__
-			char * nohup = append_str(NULL,"HOME=/sdcard nohup %s &",value[1]);
+			nohup = append_str(NULL,"HOME=/sdcard nohup %s &",value[1]);
 #else
-			char * nohup = append_str(NULL,"HOME=/home/`whoami` nohup %s 2>/dev/null &",value[1]);
+			nohup = append_str(NULL,"HOME=/home/`whoami` nohup %s 2>/dev/null &",value[1]);
 #endif
 			if(nohup){
 				ret = system(nohup);

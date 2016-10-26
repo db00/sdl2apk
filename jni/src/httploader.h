@@ -1,22 +1,60 @@
 #ifndef _httploader_h
 #define _httploader_h
 
+/* Include normal system headers */
 #include <stdio.h>
 #include <stdlib.h>
-#ifdef linux
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#endif
 #include <string.h>
+#include <time.h>
 #include <ctype.h>
-#include <unistd.h>
-#ifdef WIN32
-#include <ws2tcpip.h>
-#include <winsock2.h>
-#include <windows.h>
+
+#ifndef _WIN32_WCE
+#include <errno.h>
 #endif
+
+/* Include system network headers */
+#if defined(__WIN32__) || defined(WIN32)
+#define __USE_W32_SOCKETS
+#ifdef _WIN64
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#else
+#include <winsock.h>
+/* NOTE: windows socklen_t is signed
+ * and is defined only for winsock2. */
+typedef int socklen_t;
+#endif /* W64 */
+#include <iphlpapi.h>
+#else /* UNIX */
+#include <sys/types.h>
+#ifdef __FreeBSD__
+#include <sys/socket.h>
+#endif
+#include <sys/ioctl.h>
+#include <sys/time.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <netinet/in.h>
+#ifndef __BEOS__
+#include <arpa/inet.h>
+#endif
+#include <netinet/tcp.h>
+#include <sys/socket.h>
+#include <net/if.h>
+#include <netdb.h>
+#endif /* WIN32 */
+
+#ifndef __USE_W32_SOCKETS
+#ifdef __OS2__
+#define closesocket soclose
+#else  /* !__OS2__ */
+#define closesocket close
+#endif /* __OS2__ */
+#define SOCKET  int
+#define INVALID_SOCKET  -1
+#define SOCKET_ERROR    -1
+#endif /* __USE_W32_SOCKETS */
+
 
 #include "base64.h"
 #include "urlcode.h"
@@ -30,6 +68,19 @@
 #include <openssl/err.h>
 #include <openssl/rand.h>
 //#endif
+
+#ifndef INADDR_ANY
+#define INADDR_ANY      0x00000000
+#endif
+#ifndef INADDR_NONE
+#define INADDR_NONE     0xFFFFFFFF
+#endif
+#ifndef INADDR_LOOPBACK
+#define INADDR_LOOPBACK     0x7f000001
+#endif
+#ifndef INADDR_BROADCAST
+#define INADDR_BROADCAST    0xFFFFFFFF
+#endif
 
 
 typedef struct RequestData

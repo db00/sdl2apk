@@ -11,7 +11,6 @@
 #define sprite_h
 #include <stdio.h>
 #include <string.h>
-#include "SDL_opengles2.h"
 #include "SDL.h"
 
 #include "matrix.h"
@@ -31,6 +30,8 @@
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
+#else
+#include "SDL_opengles2.h"
 #endif
 
 
@@ -92,7 +93,6 @@ typedef struct Data3d
 	GLint  samplerLoc;
 	GLint  mvpLoc;
 	GLint  alphaLoc;
-	GLint  filterLoc;
 
 	int      numIndices;
 	GLfloat *vertices;

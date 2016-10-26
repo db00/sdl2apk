@@ -1,6 +1,6 @@
 /**
  *
- gcc display.c mystring.c array.c && ./a.out
+ gcc display.c mystring.c array.c -o ~/display && ~/display
  */
 #include "mystring.h"
 int main()

@@ -1,6 +1,13 @@
 /**
  *
  gcc display.c mystring.c array.c -o ~/display && ~/display
+
+motherboard:Intel Koloe G41+ICH6 Series
+cpu:Intel Xeon E5430 @2.66GHz
+mem: kingston 4GB DDR3 1333MHz
+vga: G45/G43 Express Chipset(64MB)
+audio:Intel 82801FB Realtek
+net:RTL810x/8139 Family Fast Ethernet NIC
  */
 #include "mystring.h"
 int main()

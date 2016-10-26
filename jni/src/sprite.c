@@ -1207,7 +1207,7 @@ int Sprite_removeChildren(Sprite*sprite)
 	sprite->children = NULL;
 	return 0;
 }
-  
+
 //UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//Stage_redraw
 int Stage_redraw()
 {

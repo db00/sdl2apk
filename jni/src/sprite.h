@@ -26,12 +26,12 @@
 
 #ifdef HAVE_OPENGL
 #include "SDL_opengl.h"
+#else
+#include "SDL_opengles2.h"
 #endif
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
-#else
-#include "SDL_opengles2.h"
 #endif
 
 

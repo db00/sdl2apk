@@ -334,7 +334,6 @@ static void showEearth()
 			_data3D->samplerLoc = data2D->samplerLoc;
 			_data3D->alphaLoc = data2D->alphaLoc;
 			_data3D->mvpLoc = data2D->mvpLoc;
-			_data3D->filterLoc = data2D->filterLoc;
 		}
 		sprite->data3d = _data3D;
 		//_data3D->numIndices = esGenSphere ( 20, 0.5f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices);

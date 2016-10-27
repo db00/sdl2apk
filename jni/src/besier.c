@@ -1,6 +1,6 @@
 /**
  * @file besier.c
- gcc -g -Wall -I"include" -I"../SDL2/include/" besier.c -D DEBUG_BESIER  array.c tween.c ease.c base64.c ipstring.c sprite.c mystring.c  files.c matrix.c -lssl -lcrypto  -LGLESv2 -lm -lSDL2  && ./a.out
+ gcc -g -Wall -I"include" -I"../SDL2/include/" besier.c -D DEBUG_BESIER  array.c  sprite.c mystring.c   matrix.c  -lm -lSDL2  && ./a.out
 
  * @author db0@qq.com
  * @version 1.0.1
@@ -193,7 +193,9 @@ static void Data3d_show(Sprite*sprite)
 			"}                            \n";
 
 		GLbyte fShaderStr[] =  
-			"precision mediump float;\n"\
+#ifndef HAVE_OPENGL
+			"precision mediump float;\n"
+#endif
 			"varying vec4 vcolor;    \n"
 			"void main()                                  \n"
 			"{                                            \n"

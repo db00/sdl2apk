@@ -1,6 +1,6 @@
 /*
  *
- gcc earth.c SDL_test_common.c -I"../SDL2_image/" -I"../SDL2/include/"  -L. -lSDL2_image -lGLESv2 -lm  -lSDL2 && ./a.out
+ gcc earth.c -I"../SDL2/include/"  -L. -lSDL2_image -lm -lSDL2 && ./a.out
  gcc earth.c -I"../SDL2_image/" -I"../SDL2/include/"  -L. -lSDL2_image -lGLESv2 -lmingw32 -lSDL2_test -lSDL2main -lSDL2 && a 
  gcc earth.c  -lSDL2_test -lSDL2 -lm && ./a.out &&
  */
@@ -9,9 +9,7 @@
 #include <string.h>
 #include <math.h>
 #include "SDL.h"
-#include "SDL_image.h"
 #include "SDL_opengles2.h"
-#include "SDL_test_common.h"
 
 #define PI 3.1415926535897932384626433832795f
 #define NUM_PARTICLES	1000
@@ -22,8 +20,17 @@ typedef struct GLES2_Context
 #include "SDL_gles2funcs.h"
 #undef SDL_PROC
 } GLES2_Context;
+
+typedef struct
+{
+	/* Video info */
+	int window_w;
+	int window_h;
+	SDL_Window **windows;
+} SDLTest_CommonState;
+
 SDLTest_CommonState *state;
-static SDL_GLContext *context = NULL;
+static SDL_GLContext * context = NULL;
 static int depth = 16;
 GLES2_Context gles2;
 static int LoadContext(GLES2_Context * data)
@@ -42,6 +49,7 @@ static int LoadContext(GLES2_Context * data)
 	do { \
 		data->func = SDL_GL_GetProcAddress(#func); \
 		if ( ! data->func ) { \
+			SDL_Log("Couldn't load GLES2 function %s: %s\n", #func, SDL_GetError()); \
 			return SDL_SetError("Couldn't load GLES2 function %s: %s\n", #func, SDL_GetError()); \
 		} \
 	} while ( 0 );
@@ -154,14 +162,14 @@ void quit(int rc)
 {/*{{{*/
 	int i;
 	if (context != NULL) {
-		for (i = 0; i < state->num_windows; i++) {
+		for (i = 0; i < 1; i++) {
 			if (context[i]) {
 				SDL_GL_DeleteContext(context[i]);
 			}
 		}
 		SDL_free(context);
 	}
-	SDLTest_CommonQuit(state);
+	//SDLTest_CommonQuit(state);
 	exit(rc);
 }/*}}}*/
 Uint32 _then=0;
@@ -215,73 +223,88 @@ void Update ( Sprite *sprite , float deltaTime )
 {/*{{{*/
 	rotates(sprite,0,0);
 }/*}}}*/
+
+
 int main(int argc, char *argv[])
 {/*{{{*/
 	SDL_DisplayMode mode;
 	Sprite *sprite;
+	int i;
 	/* Initialize test framework */
-	state = SDLTest_CommonCreateState(argv, SDL_INIT_VIDEO);
+	//state = SDLTest_CommonCreateState(argv, SDL_INIT_VIDEO);
+	SDL_Init(SDL_INIT_VIDEO);
+	state = malloc(sizeof(*state));
+	memset(state,0,sizeof(*state));
 	if (!state) {
 		return 1;
 	}
-	/* Set OpenGL parameters */
-	state->window_flags |= SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_BORDERLESS;
-	state->gl_red_size = 5;
-	state->gl_green_size = 5;
-	state->gl_blue_size = 5;
-	state->gl_depth_size = depth;
-	state->gl_major_version = 2;
-	state->gl_minor_version = 0;
-	state->window_w = 24*10;
-	state->window_h = 32*10;
-#if defined(linux)    
-	state->gl_profile_mask = SDL_GL_CONTEXT_PROFILE_ES;
+
+	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
+	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 6);
+	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
+	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 0);
+	//SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);//模板测试
+	SDL_GL_SetAttribute(SDL_GL_ACCUM_RED_SIZE, 0);
+	SDL_GL_SetAttribute(SDL_GL_ACCUM_GREEN_SIZE, 0);
+	SDL_GL_SetAttribute(SDL_GL_ACCUM_BLUE_SIZE, 0);
+	SDL_GL_SetAttribute(SDL_GL_ACCUM_ALPHA_SIZE, 0);
+	SDL_GL_SetAttribute(SDL_GL_STEREO, 0);
+	SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 1);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);//or -1
+	//SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);//gldebug ..not Available in sdl2.0.4,dont know why.
+#if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__) || defined(__NACL__) || linux 
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+#else
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
 #endif
-	if (!SDLTest_CommonInit(state)) {
-		quit(2);
-		return 0;
-	}
-	context = SDL_calloc(state->num_windows, sizeof(context));
-	if (context == NULL) {
-		SDL_Log("Out of memory!\n");
-		quit(2);
-	}
-	int i;
-	/* Create OpenGL ES contexts */
-	for (i = 0; i < state->num_windows; i++) {
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);//or 1
+	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);//or 1
+
+	context = malloc(1*sizeof(* context));
+	state->windows =
+		(SDL_Window **) SDL_malloc(1 *
+				sizeof(*state->windows));
+	state->window_w = 200;
+	state->window_h = 200;
+	for (i = 0; i < 1; ++i) {
+		state->windows[i] =
+			SDL_CreateWindow("title", 0, 0,
+					state->window_w, state->window_h,
+					SDL_WINDOW_OPENGL);
+		SDL_ShowWindow(state->windows[i]);
 		context[i] = SDL_GL_CreateContext(state->windows[i]);
-		if (!context[i]) {
-			SDL_Log("SDL_GL_CreateContext(): %s\n", SDL_GetError());
-			quit(2);
-		}
 	}
+
+
 	/* Important: call this *after* creating the context */
-	if(gles2.glGetError==NULL)
-		if (LoadContext(&gles2) < 0) {
-			SDL_Log("Could not load GLES2 functions\n");
-			quit(2);
-		}
-	if (state->render_flags & SDL_RENDERER_PRESENTVSYNC) {
-		SDL_GL_SetSwapInterval(1);
-	} else {
-		SDL_GL_SetSwapInterval(0);
+	if (LoadContext(&gles2) != 0) {
+		SDL_Log("Could not load GLES2 functions\n");
+		quit(2);
 	}
+
+	SDL_GL_SetSwapInterval(0);
 	SDL_GetCurrentDisplayMode(0, &mode);
 #if defined(__ANDROID__)
 	state->window_h = mode.h;
 	state->window_w = mode.w;
 #endif
-	sprite= SDL_calloc(state->num_windows, sizeof(Sprite));
+	sprite= malloc(1*sizeof(Sprite));
+	memset(sprite,0,sizeof(Sprite));
 	int status;
 	/* Set rendering settings for each context */
-	for (i = 0; i < state->num_windows; ++i) {
+	for (i = 0; i < 1; ++i) {
 		status = SDL_GL_MakeCurrent(state->windows[i], context[i]);
 		if (status) {
 			SDL_Log("SDL_GL_MakeCurrent(): %s\n", SDL_GetError());
 			/* Continue for next window */
 			continue;
 		}
-		Init(&sprite[i]);
+		Init(sprite);
 	}
 	/* Main render loop */
 	Uint32 then, now, frames;
@@ -289,90 +312,15 @@ int main(int argc, char *argv[])
 	frames = 0;
 	then = SDL_GetTicks();
 	int done;
-	done = 0;
+	done = 100;
 	_then = then;
-	while (!done) {
+	while (done) {
 		/* Check for events */
 		++frames;
-		while (SDL_PollEvent(&event) && !done) {
-			switch (event.type) {
-				case SDL_WINDOWEVENT:
-					switch (event.window.event) {
-						case SDL_WINDOWEVENT_RESIZED:
-							for (i = 0; i < state->num_windows; ++i) {
-								if (event.window.windowID == SDL_GetWindowID(state->windows[i])) {
-									status = SDL_GL_MakeCurrent(state->windows[i], context[i]);
-									if (status) {
-										SDL_Log("SDL_GL_MakeCurrent(): %s\n", SDL_GetError());
-										break;
-									}
-									/* Change view port to the new window dimensions */
-									state->window_w = event.window.data1;
-									state->window_h = event.window.data2;
-									/* Update window content */
-									Draw(&sprite[i]);
-									SDL_GL_SwapWindow(state->windows[i]);
-									break;
-								}
-							}
-							break;
-					}
-				case SDL_MOUSEBUTTONDOWN:
-					if(event.button.which==0){
-						sprite->startDrag = 1;
-						sprite->startx = event.button.x;
-						sprite->starty = event.button.y;
-					}
-					SDL_Log("start mouse: %i,x: %i, y: %i",event.button.which, event.button.x,event.button.y);
-					break;
-				case SDL_FINGERDOWN:
-					//if(event.tfinger.fingerId==0)
-					{
-						sprite->startDrag = 1;
-						sprite->startx = event.tfinger.x;
-						sprite->starty = event.tfinger.y;
-					}
-					SDL_Log("Finger: %i down - x: %i, y: %i", event.tfinger.fingerId,event.tfinger.x,event.tfinger.y);
-					break;
-				case SDL_MOUSEMOTION:
-					if(sprite->startDrag && event.button.which==0){
-						int deltax ,deltay;
-						deltax = (int)event.button.x - (int)sprite->startx;
-						deltay = (int)event.button.y - (int)sprite->starty;
-						rotates(sprite,deltax,deltay);
-						sprite->startx = event.button.x;
-						sprite->starty = event.button.y;
-					}
-					SDL_Log("mouse: %i down - x: %i, y: %i", event.button.which,event.button.x,event.button.y);
-					break;
-				case SDL_FINGERMOTION:
-					if(sprite->startDrag){
-						int deltax ,deltay;
-						deltax = (int)event.tfinger.x - (int)sprite->startx;
-						deltay = (int)event.tfinger.y - (int)sprite->starty;
-						rotates(sprite,deltax,deltay);
-						sprite->startx = event.tfinger.x;
-						sprite->starty = event.tfinger.y;
-					}
-					SDL_Log("Finger: %i,x: %i, y: %i",event.tfinger.fingerId, event.tfinger.x,event.tfinger.y);
-					break;
-				case SDL_MOUSEBUTTONUP:
-					if(event.button.which==0){
-						sprite->startDrag = 0;
-					}
-					SDL_Log("end mouse: %i up - x: %i, y: %i", event.button.which,event.button.x,event.button.y);
-					break;
-				case SDL_FINGERUP:
-					//if(event.tfinger.fingerId==0)
-					{
-						sprite->startDrag = 0;
-					}
-					break;
-			}
-			SDLTest_CommonEvent(state, &event, &done);
-		}
-		if (!done) {
-			for (i = 0; i < state->num_windows; ++i) {
+		--done;
+		//SDL_Log("%d",done);
+		if (done) {
+			for (i = 0; i < 1; ++i) {
 				status = SDL_GL_MakeCurrent(state->windows[i], context[i]);
 				if (status) {
 					SDL_Log("SDL_GL_MakeCurrent(): %s\n", SDL_GetError());
@@ -973,7 +921,7 @@ int Init ( Sprite*sprite)
 #ifdef __ANDROID__
 	surface = SDL_LoadBMP("/sdcard/1.bmp");
 #else
-	surface = IMG_Load("1.bmp");
+	surface = SDL_LoadBMP("/home/libiao/sound/1.bmp");
 #endif
 	if(surface==NULL)printf("load bmp Error!\n");
 	sprite->numIndices = esGenSphere ( 20, 0.75f, &sprite->vertices, &sprite->normals, &sprite->texCoords, &sprite->indices );
@@ -982,11 +930,11 @@ int Init ( Sprite*sprite)
 	//sprite->textureId = CreateSimpleTextureCubemap(NULL);
 
 	/*
-	int texw;
-	int texh;
-	SDL_Texture * texture = SDL_CreateTextureFromSurface(renderer, surface);
-	sprite->textureId = SDL_GL_BindTexture(texture, &texw, &texh);
-	*/
+	   int texw;
+	   int texh;
+	   SDL_Texture * texture = SDL_CreateTextureFromSurface(renderer, surface);
+	   sprite->textureId = SDL_GL_BindTexture(texture, &texw, &texh);
+	   */
 	SDL_FreeSurface(surface);
 	gles2.glClearColor ( 0.0f, 0.0f, 0.0f, 0.0f );
 	return 1;

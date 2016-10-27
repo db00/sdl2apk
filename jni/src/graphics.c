@@ -81,7 +81,9 @@ static void Data3d_show(Sprite*sprite)
 			"}                            \n";
 
 		GLbyte fShaderStr[] =  
-			"precision mediump float;\n"\
+#ifndef HAVE_OPENGL
+			"precision mediump float;\n"
+#endif
 			"varying vec4 vcolor;    \n"
 			"void main()                                  \n"
 			"{                                            \n"

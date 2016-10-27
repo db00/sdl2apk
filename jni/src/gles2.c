@@ -1,6 +1,6 @@
 /*
    Copyright (r) 1997-2014 Sam Lantinga <slouken@libsdl.org>
-   gcc -Wall -lGLESv2 gles2.c -I"../SDL2/include/" -lSDL2  -lm  && ./a.out 
+   gcc -Wall gles2.c -I"../SDL2/include/" -lSDL2  -lm  && ./a.out 
    gcc -Wall gles2.c -I"../SDL2/include/" -lmingw32 -lSDL2main -lSDL2 -lopengl32 && a
    gcc -Wall gles2.c ../SDL2/src/test/SDL_test_common.c -I"../SDL2/include/" -lSDL2  -lm -lGLESv2 && ./a.out
    gcc -Wall gles2.c -I"../SDL2/include/" -lSDL2  -lm -lGLESv2 && ./a.out
@@ -18,7 +18,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#if defined(__IPHONEOS__) && defined(__ANDROID__) && defined(__EMSCRIPTEN__) && defined(__NACL__) //&& !linux
 #include "SDL_opengles2.h"
+#else
+#include "SDL_opengl.h"
+#endif
 #include "SDL.h"
 
 #ifdef __EMSCRIPTEN__
@@ -81,22 +85,6 @@ static int LoadContext(GLES2_Context * data)
 	return 0;
 }
 
-/* Call this instead of exit(), so we can clean up SDL: atexit() is evil. */
-static void quit(int rc)
-{
-	if (stage->context != NULL) {
-		if (stage->context) {
-			SDL_GL_DeleteContext(stage->context);
-		}
-
-		SDL_free(stage->context);
-	}
-
-	SDL_VideoQuit();
-	SDL_Quit();
-	exit(rc);
-}
-
 #define GL_CHECK(x) \
 	x; \
 { \
@@ -107,6 +95,21 @@ static void quit(int rc)
 	} \
 }
 
+
+/* Call this instead of exit(), so we can clean up SDL: atexit() is evil. */
+static void quit(int rc)
+{
+	if (stage->context != NULL) {
+		if (stage->context) {
+			SDL_GL_DeleteContext(stage->context);
+		}
+		//SDL_free(stage->context);
+	}
+
+	SDL_VideoQuit();
+	SDL_Quit();
+	exit(rc);
+}
 /* 
  * Simulates desktop's glRotatef. The matrix is returned in column-major 
  * order. 
@@ -360,7 +363,9 @@ const char* _shader_vert_src =
 " } ";
 
 const char* _shader_frag_src = 
+#if defined(__IPHONEOS__) && defined(__ANDROID__) && defined(__EMSCRIPTEN__) && defined(__NACL__) //&& !linux
 " precision lowp float; "
+#endif
 " varying vec3 vv3color; "
 " void main() { "
 "    gl_FragColor = vec4(vv3color, 1.0); "
@@ -397,12 +402,9 @@ static void Render(Sprite * sprite)
 	data->angle_y += 2;
 	data->angle_z += 1;
 
-	if(data->angle_x >= 360) data->angle_x -= 360;
-	if(data->angle_x < 0) data->angle_x += 360;
-	if(data->angle_y >= 360) data->angle_y -= 360;
-	if(data->angle_y < 0) data->angle_y += 360;
-	if(data->angle_z >= 360) data->angle_z -= 360;
-	if(data->angle_z < 0) data->angle_z += 360;
+	data->angle_x %= 360;
+	data->angle_y %= 360;
+	data->angle_z %= 360;
 
 	GL_CHECK(gles2.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
 	GL_CHECK(gles2.glDrawArrays(GL_TRIANGLES, 0, 36));
@@ -442,8 +444,10 @@ int main(int argc, char *argv[])
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 	//SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
-#ifdef linux
+#if defined(__IPHONEOS__) && defined(__ANDROID__) && defined(__EMSCRIPTEN__) && defined(__NACL__) //&& !linux
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+#else
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
 #endif
 
 	stage->w = 240;
@@ -453,8 +457,6 @@ int main(int argc, char *argv[])
 	LoadContext(&gles2);
 
 	SDL_GL_SetSwapInterval(1);
-
-
 
 
 	shader_data *data;
@@ -484,7 +486,10 @@ int main(int argc, char *argv[])
 #ifdef __EMSCRIPTEN__
 	emscripten_set_main_loop(loop, 0, 1);
 #else
-	while (1) {
+
+	int i =100;
+	while (i) {
+		--i;
 		loop();
 	}
 #endif
@@ -492,5 +497,6 @@ int main(int argc, char *argv[])
 #if !defined(__ANDROID__) && !defined(__NACL__)  
 	quit(0);
 #endif    
+	exit(0);
 	return 0;
 }

@@ -214,7 +214,7 @@ int main(int argc, char *argv[])
 		exit(2);
 		return 0;
 	}
-	SDL_GL_SetSwapInterval(0);  /* disable vsync. */
+	SDL_GL_SetSwapInterval(1);  /* disable vsync. */
 
 
 	ctx.glMatrixMode(GL_PROJECTION);//gl

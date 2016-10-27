@@ -1,7 +1,7 @@
 /**
  * @file sprite.c
- gcc -g -Wall -I"../SDL2/include/" array.c sprite.c matrix.c -lSDL2 -lm -Ddebug_sprite -lGL && ./a.out
- gcc -g -Wall -I"../SDL2/include/" -I"include" sprite.c ease.c tween.c mystring.c array.c files.c matrix.c libGLES.lib -lopengl32 -lmingw32 -lSDL2main -lSDL2 -Ddebug_sprite && a
+ gcc -g -Wall -I"../SDL2/include/" array.c sprite.c matrix.c -lSDL2 -lm -Ddebug_sprite && ./a.out
+ gcc -g -Wall -I"../SDL2/include/" sprite.c array.c matrix.c -lopengl32 -lmingw32 -lSDL2main -lSDL2 -Ddebug_sprite && a
  apt-get install -y libpcap-dev libsqlite3-dev sqlite3 libpcap0.8-dev libssl-dev build-essential iw tshark
  * @author db0@qq.com
  * @version 1.0.1

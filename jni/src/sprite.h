@@ -1,7 +1,7 @@
 /**
  * @file sprite.h
- gcc -Wall -I"../SDL2/include/" array.c sprite.c matrix.c -lSDL2 -lm -Ddebug_sprite -lGL && ./a.out
- gcc -Wall -I"../SDL2/include/" -I"../SDL2_ttf/" -I"../SDL2_image/"  sprite.c matrix.c -lSDL2_image -lSDL2_ttf -lmingw32 -lSDL2_test -lSDL2main -lSDL2 -Ddebug_sprite && a
+ gcc -Wall -I"../SDL2/include/" array.c sprite.c matrix.c -lSDL2 -lm -Ddebug_sprite && ./a.out
+ gcc -Wall -I"../SDL2/include/" sprite.c matrix.c array.c -lmingw32 -lSDL2main -lSDL2 -Ddebug_sprite && a
  *  
  * @author db0@qq.com
  * @version 1.0.1
@@ -9,10 +9,8 @@
  */
 #ifndef sprite_h
 #define sprite_h
-#include <stdio.h>
-#include <string.h>
-#include "SDL.h"
 
+#include "SDL.h"
 #include "matrix.h"
 #include "array.h"
 
@@ -57,11 +55,7 @@ typedef struct GLES2_Context
 	} \
 }
 
-
-
 int LoadContext(GLES2_Context * data);
-
-
 
 typedef struct SpriteEvent{
 	Uint32 type;
@@ -82,7 +76,6 @@ typedef struct Point3d{
 	int rotationY;
 	int rotationZ;
 }Point3d;
-
 
 typedef struct Data3d
 {//默认3d结构体

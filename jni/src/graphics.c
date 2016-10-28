@@ -1,6 +1,6 @@
 /**
  * @file graphics.c
- gcc -g -Wall -I"../SDL2/include/" graphics.c array.c  sprite.c matrix.c  -lm -lSDL2 -D debug_graphics && ./a.out
+ gcc -g -Wall -I"../SDL2/include/" graphics.c files.c mystring.c myregex.c array.c  sprite.c matrix.c  -lm -lSDL2 -D debug_graphics && ./a.out
  * sprite 3d graphics using sampler
  * @author db0@qq.com
  * @version 1.0.1
@@ -225,7 +225,7 @@ static void mouseMove(SpriteEvent*e)
 }/*}}}*/
 
 
-
+#include "files.h"
 int main(int argc, char *argv[])
 {/*{{{*/
 	Stage_init(1);
@@ -254,7 +254,7 @@ int main(int argc, char *argv[])
 		//container->w = stage->stage_w;
 		//container->h = stage->stage_h;
 		container->alpha = 0.8;
-		container->surface = SDL_LoadBMP("/home/libiao/sound/1.bmp");
+		container->surface = SDL_LoadBMP(decodePath("~/sound/1.bmp"));
 
 		Sprite_addEventListener(container,SDL_MOUSEMOTION,mouseMove);
 		//Sprite_addEventListener(sprite,SDL_MOUSEMOTION,mouseMove);

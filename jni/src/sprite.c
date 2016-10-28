@@ -1705,8 +1705,7 @@ Data3d* Data3D_init()
 			"void main()                                         \n"
 			"{                                                   \n"
 			"	vec4 vsampler = texture2D( s_texture, v_texCoord );\n"
-			"	float alpha = vsampler.a; 							\n"
-			"	if(alpha > u_alpha){alpha = u_alpha;}				\n"
+			"	float alpha = min(vsampler.a,u_alpha); \n"
 			"	gl_FragColor = vec4(vec3(vsampler),alpha);\n"
 			"}                                                   \n";
 
@@ -1930,7 +1929,7 @@ int main(int argc, char *argv[])
 {
 	Stage_init(1);
 	Sprite_addEventListener(stage->sprite,SDL_MOUSEBUTTONDOWN,mouseDown);
-	char * path = "/home/libiao/sound/1.bmp";
+	char * path = ("/home/libiao/sound/1.bmp");
 	if(stage->GLEScontext == NULL){
 		//return 0;
 	}else {

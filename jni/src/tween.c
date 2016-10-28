@@ -1,6 +1,6 @@
 /**
  * @file tween.c
- gcc -Wall -I"../SDL2/include/" array.c ease.c mystring.c tween.c matrix.c sprite.c -lSDL2 -Ddebug_tween -lm && ./a.out
+ gcc -Wall -I"../SDL2/include/" array.c files.c myregex.c ease.c mystring.c tween.c matrix.c sprite.c -lSDL2 -Ddebug_tween -lm && ./a.out
  gcc -Wall -I"../SDL2/include/" array.c ease.c mystring.c tween.c matrix.c sprite.c -lmingw32 -lSDL2main -lSDL2 -Ddebug_tween -lm && a
  gcc -Wall -I"../SDL2/include/" -I"../SDL2_ttf/" -I"../SDL2_image/"  tween.c matrix.c sprite.c -lSDL2_image -lSDL2_ttf -lmingw32 -lSDL2_test -lSDL2main -lSDL2 -Ddebug_tween && a
  *  
@@ -273,6 +273,7 @@ Tween * Tween_new(Sprite*sprite,int time,TweenObj*obj)
 }
 
 #ifdef debug_tween
+#include "files.h"
 int main(int argc, char *argv[])
 {
 	Stage_init(1);
@@ -283,7 +284,7 @@ int main(int argc, char *argv[])
 
 	Sprite*sprite = Sprite_new(NULL);
 	//sprite->surface = IMG_Load("1.bmp");
-	sprite->surface = SDL_LoadBMP("/home/libiao/sound/1.bmp");
+	sprite->surface = SDL_LoadBMP(decodePath("~/sound/1.bmp"));
 	//sprite->x =30;
 	//sprite->y =100;
 	sprite->h=50.0;

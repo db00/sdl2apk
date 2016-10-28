@@ -442,11 +442,7 @@ int main(int argc,char ** argv)
 	{
 		filename = argv[argc-1];
 	}else{
-		//filename = "/home/libiao/ExtractPDFText_src._zip";
-		//filename = "/home/libiao/unzip-5.52/testmake.zip";
-		//filename = "/home/libiao/test/as3_filemanager/bin/docx.docx";
-		//filename = "/run/media/libiao/back/os/璀璨华星人.air";
-		filename = "/home/db0/ios.zip";
+		filename = "z.swc";
 	}
 
 	FILE * _file = fopen(filename,"rb");

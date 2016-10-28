@@ -1,6 +1,6 @@
 /*
  *
- gcc earth.c -I"../SDL2/include/"  -L. -lSDL2_image -lm -lSDL2 && ./a.out
+ gcc earth.c mystring.c array.c myregex.c files.c -I"../SDL2/include/"  -L. -lSDL2_image -lm -lSDL2 && ./a.out
  gcc earth.c -I"../SDL2_image/" -I"../SDL2/include/"  -L. -lSDL2_image -lGLESv2 -lmingw32 -lSDL2_test -lSDL2main -lSDL2 && a 
  gcc earth.c  -lSDL2_test -lSDL2 -lm && ./a.out &&
  */
@@ -885,6 +885,9 @@ GLuint CreateSimpleTextureCubemap(SDL_Surface * surface)
 	gles2.glTexParameteri ( GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 	return textureId;
 }/*}}}*/
+
+
+#include "files.h"
 int Init ( Sprite*sprite)
 {
 	GLbyte vShaderStr[] =  
@@ -918,11 +921,7 @@ int Init ( Sprite*sprite)
 	sprite->samplerLoc = gles2.glGetUniformLocation ( sprite->programObject, "s_texture" );
 	SDL_Surface *surface = NULL;
 	// Load the texture
-#ifdef __ANDROID__
-	surface = SDL_LoadBMP("/sdcard/1.bmp");
-#else
-	surface = SDL_LoadBMP("/home/libiao/sound/1.bmp");
-#endif
+	surface = SDL_LoadBMP(decodePath("~/sound/1.bmp"));
 	if(surface==NULL)printf("load bmp Error!\n");
 	sprite->numIndices = esGenSphere ( 20, 0.75f, &sprite->vertices, &sprite->normals, &sprite->texCoords, &sprite->indices );
 	sprite->textureId = SDL_GL_LoadTexture(surface,NULL);

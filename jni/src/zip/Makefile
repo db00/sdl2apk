@@ -1,4 +1,5 @@
-# source /home/libiao/alchemy-ubuntu-v0.5a/alchemy-setup && alc-on
+# source $HOME/alchemy-ubuntu-v0.5a/alchemy-setup && alc-on
+#source $HOME/alchemy-ubuntu-v0.5a/alchemy-setup; export PRE_ALCHEMY_PATH=$PATH; export PATH=$ALCHEMY_HOME/achacks:$PATH
 ALCHEMY_HOME:=/home/libiao/alchemy-ubuntu-v0.5a
 FLEX_HOME:=/home/libiao/flex_sdk_4.5
 FLASHPLAYER:=$(FLEX_HOME)/bin/flashplayerdebugger

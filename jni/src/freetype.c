@@ -1,6 +1,6 @@
-/* example1.c                                                      */
 /**
-  gcc -g -D debug_ttf -Wall -I"../SDL2/include/" -I"/usr/include/freetype2/" -lfreetype -I"../SDL2_image" -I"../SDL2_ttf/" -lSDL2_ttf -lSDL2_image -lSDL2 textfield.c httpserver.c array.c filetypes.c urlcode.c utf8.c dict.c sqlite.c tween.c ease.c sprite.c matrix.c myregex.c freetype.c files.c httploader.c ipstring.c mystring.c base64.c -lssl -lsqlite3 -lpthread -ldl -lcrypto -lm && ./a.out DroidSansFallback.ttf 
+ *
+  gcc -g -D debug_ttf -Wall -I"../SDL2/include/" -I"/usr/include/freetype2/" -lfreetype -I"../SDL2_image" -I"../SDL2_ttf/" -lSDL2_ttf -lSDL2_image -lSDL2 textfield.c httpserver.c array.c filetypes.c urlcode.c utf8.c dict.c sqlite.c tween.c ease.c sprite.c matrix.c myregex.c freetype.c files.c httploader.c ipstring.c mystring.c base64.c -lssl -lsqlite3 -lpthread -ldl -lcrypto -lm && ./a.out
   gcc freetype.c -lfreetype -I"/usr/include/freetype2/" -lm && ./a.out DroidSansFallback.ttf 天
 https://www.freetype.org/freetype2/docs/tutorial/step1.html#section-4
 */
@@ -14,6 +14,7 @@ https://www.freetype.org/freetype2/docs/tutorial/step1.html#section-4
 #include <math.h>
 
 #include "sprite.h"
+#include "files.h"
 #include "SDL_image.h"
 
 #include <ft2build.h>
@@ -62,11 +63,9 @@ static void showBox(int x,int y,int w)
 	memset(sprite->name,0,sizeof(sname)+1);
 	strcpy(sprite->name,sname);
 	stage->is3D = 1;
-#ifdef __ANDROID__
-	sprite->surface = IMG_Load("/sdcard/1.bmp");
-#else
-	sprite->surface = IMG_Load("1.bmp");
-#endif
+	char * filepath = decodePath("~/sound/1.bmp");
+	sprite->surface = IMG_Load(filepath);
+
 	Data3d*_data3D = sprite->data3d;
 	if(_data3D==NULL){
 		_data3D = (Data3d*)malloc(sizeof(Data3d));
@@ -81,7 +80,6 @@ static void showBox(int x,int y,int w)
 			_data3D->samplerLoc = data2D->samplerLoc;
 			_data3D->alphaLoc = data2D->alphaLoc;
 			_data3D->mvpLoc = data2D->mvpLoc;
-			_data3D->filterLoc = data2D->filterLoc;
 		}
 		sprite->data3d = _data3D;
 		//_data3D->numIndices = esGenSphere ( 20, 0.5f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices);
@@ -241,12 +239,9 @@ int main( int argc, char**  argv )
 
 	if(argc>1)
 		filename      = argv[1];                           /* first argument     */
-	else
-#ifdef __ANDROID__
-		filename = "/sdcard/DroidSansFallback.ttf";
-#else
-	filename = "DroidSansFallback.ttf";
-#endif
+	else{
+		filename = decodePath("~/sound/DroidSansFallback.ttf");
+	}
 	if(argc>2)
 		text          = utf2u(argv[2],&outlen);                           /* second argument    */
 	else

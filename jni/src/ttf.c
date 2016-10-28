@@ -14,6 +14,7 @@
 #include "sprite.h"
 #include "SDL_image.h"
 
+#include "files.h"
 
 int getUtf8size(char * utf8)
 {
@@ -74,11 +75,7 @@ char * utf2u(char * utf,int * outlen)
 #ifndef _ICONV_H
 static short int getUtfQW(char * utf8,unsigned char * q,unsigned char *w)
 {
-#ifdef __ANDROID__
-	FILE * file = fopen("/sdcard/sound/qw.txt","rb");
-#else
-	FILE * file = fopen("/home/libiao/sound/qw.txt","rb");
-#endif
+	FILE * file = fopen(decodePath("~/sound/qw.txt"),"rb");
 	fseek(file,0,SEEK_END);
 	int flen = ftell(file);
 	rewind(file);
@@ -123,11 +120,7 @@ static void showBox(int x,int y,int w)
 	memset(sprite->name,0,sizeof(sname)+1);
 	strcpy(sprite->name,sname);
 	stage->is3D = 1;
-#ifdef __ANDROID__
-	sprite->surface = IMG_Load("/sdcard/sound/1.bmp");
-#else
-	sprite->surface = IMG_Load("/home/libiao/sound/1.bmp");
-#endif
+	sprite->surface = IMG_Load(decodePath("~/sound/1.bmp"));
 	Data3d*_data3D = sprite->data3d;
 	if(_data3D==NULL){
 		_data3D = (Data3d*)malloc(sizeof(Data3d));
@@ -142,7 +135,6 @@ static void showBox(int x,int y,int w)
 			_data3D->samplerLoc = data2D->samplerLoc;
 			_data3D->alphaLoc = data2D->alphaLoc;
 			_data3D->mvpLoc = data2D->mvpLoc;
-			_data3D->filterLoc = data2D->filterLoc;
 		}
 		sprite->data3d = _data3D;
 		//_data3D->numIndices = esGenSphere ( 20, 0.5f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices);
@@ -218,11 +210,7 @@ int main(int argc,char** argv)
 		unsigned char key[8] = {
 			0x80,0x40,0x20,0x10,0x08,0x04,0x02,0x01
 		};
-#ifdef __ANDROID__
-		fphzk = fopen("/sdcard/sound/hzk1216/HZK16", "rb");
-#else
-		fphzk = fopen("/home/libiao/sound/hzk1216/HZK16", "rb");
-#endif
+		fphzk = fopen(decodePath("~/sound/hzk1216/HZK16"), "rb");
 		if(fphzk == NULL){
 			fprintf(stderr, "error hzk16\n");
 			return 1;

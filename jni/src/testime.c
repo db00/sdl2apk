@@ -25,9 +25,9 @@ http://ozzmaker.com/2014/06/30/virtual-keyboard-for-the-raspberry-pi/
 #include "read_card.h"
 
 static enum STATS {
+    CARD,
     DICT,
     KODI,
-    CARD,
     END
 } stats;
 
@@ -40,11 +40,15 @@ void showCardTest(int b)
     }
 }
 
-void changeStats()
+void changeStats(int at)
 {
-    stats++;
-    if(stats==END)
-        stats=0;
+    int index = stats+at;
+    if(index>=END)
+        index=0;
+    else if(index<0)
+        index=END-1;
+    stats=index;
+    printf("stats:%d\n",stats);
 
     showSearchDict(0);
     Kodi_initBtns(0);
@@ -105,12 +109,12 @@ static void keyupEvent(SpriteEvent* e){
     const char * kname = SDL_GetKeyName(event->key.keysym.sym);
     if(!strcmp(kname,"Menu"))
     {
-        changeStats();
+        changeStats(1);
     }else{
         switch (event->key.keysym.sym)
         {
             case SDLK_MENU:
-                changeStats();
+                changeStats(1);
                 break;
             default:
                 break;
@@ -118,6 +122,31 @@ static void keyupEvent(SpriteEvent* e){
     }
     //Redraw(NULL);
 }
+
+
+
+static void slideEvent(SpriteEvent* e){
+    SDL_Event *event = e->e;
+    static int mouseX;
+    switch(e->type)
+    {
+        case SDL_MOUSEMOTION:
+            break;
+        case SDL_MOUSEBUTTONDOWN:
+            mouseX = event->button.x;
+            break;
+        case SDL_MOUSEBUTTONUP:
+            if(mouseX-event->button.x>stage->stage_w/2){
+                changeStats(1);
+            }else if(event->button.x-mouseX>stage->stage_w/2){
+                changeStats(-1);
+            }
+            break;
+
+    }
+    //Redraw(NULL);
+}
+
 
 
 #ifdef test_ime
@@ -142,6 +171,9 @@ int main(int argc, char *argv[]) {
 
     Sprite_addEventListener(stage->sprite,SDL_KEYUP,keyupEvent); 
     Sprite_addEventListener(stage->sprite,SDL_DROPFILE,droppedFile);
+    Sprite_addEventListener(stage->sprite,SDL_MOUSEMOTION,slideEvent);
+    Sprite_addEventListener(stage->sprite,SDL_MOUSEBUTTONDOWN,slideEvent);
+    Sprite_addEventListener(stage->sprite,SDL_MOUSEBUTTONUP,slideEvent);
     Stage_loopEvents();
     exit(0);
     return 0;

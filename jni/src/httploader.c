@@ -1,11 +1,11 @@
 /**
  *
- gcc -Wall -I"../SDL2_image/" -I"../SDL2_ttf" utf8.c mysurface.c myregex.c urlcode.c textfield.c files.c array.c matrix.c tween.c ease.c base64.c ipstring.c sprite.c httploader.c mystring.c  -lssl -lcrypto  -lSDL2_image -lSDL2_ttf -lSDL2 -I"../SDL2/include/" -lm -D debug_httploader &&./a.out
+ gcc -Wall -g urlcode.c array.c base64.c ipstring.c httploader.c mystring.c -lssl -lcrypto -lm -D debug_httploader &&./a.out
+ gcc -Wall -D SDL2 -I"../SDL2_image/" -I"../SDL2_ttf" textfield.c utf8.c mysurface.c myregex.c urlcode.c files.c array.c matrix.c base64.c ipstring.c sprite.c httploader.c mystring.c  -lssl -lcrypto  -lSDL2_image -lSDL2_ttf -lSDL2 -I"../SDL2/include/" -lm -D debug_httploader &&./a.out
  gcc -Wall -I"../SDL2_image/" -I"../SDL2_ttf" -I"include" mysurface.c myregex.c textfield.c files.c array.c matrix.c tween.c ease.c base64.c ipstring.c sprite.c httploader.c mystring.c -L"lib" -lssl -lcrypto -lwsock32 -lgdi32 -lSDL2_image -lSDL2_ttf -lmingw32 -lSDL2main -lSDL2 -I"../SDL2/include/" -lm -D debug_httploader && a
  > a.txt
  */
 #include "httploader.h"
-
 
 /**
  *
@@ -13,7 +13,7 @@
  * return a server repond
  * contentLength save number of bytes of the respond data 
  */
-char *ssls(int fd,char*sendStr,int*contentLength)
+char * ssls(int fd,char* sendStr,int* contentLength)
 {
 #ifdef HEADER_SSL_H 
 	int n,ret;
@@ -21,7 +21,7 @@ char *ssls(int fd,char*sendStr,int*contentLength)
 	SSL_CTX *contex;
 	SSL_load_error_strings();
 	SSL_library_init();
-	contex = SSL_CTX_new(SSLv23_client_method());
+	contex = SSL_CTX_new(SSLv3_client_method());
 	if ( contex == NULL ){
 		printf("init SSL contex failed:%s\n", ERR_reason_error_string(ERR_get_error()));
 	}
@@ -49,6 +49,7 @@ char *ssls(int fd,char*sendStr,int*contentLength)
 	char *data = malloc(1024);
 	memset(data,0,1024);
 	int received = 0;
+	// https socket read.
 	while((n = SSL_read(ssl, data+received, 1024-1)) > 0){
 		data[(received+n)] = '\0';
 		received += n;
@@ -58,13 +59,13 @@ char *ssls(int fd,char*sendStr,int*contentLength)
 	if(n != 0){
 		printf("SSL read failed:%s\n", ERR_reason_error_string(ERR_get_error()));
 	}
+
 	// close ssl tunnel.
 	ret = SSL_shutdown(ssl); 
 	if( ret != 1 ){
 		close(fd);
 		printf("SSL shutdown failed:%s\n", ERR_reason_error_string(ERR_get_error()));
 	}
-
 	// clear ssl resource.
 	SSL_free(ssl); 
 	SSL_CTX_free(contex);
@@ -258,13 +259,16 @@ URLRequest * URLRequest_new(char *_url)
 		}
 
 
-		if(p - url < strlen(_url))
+		//printf("%s\n",urlrequest->path);
+		if(p - url < strlen(_url) && p >url+strlen(s))
 		{
 			char * encodedPath = url_encode(p,strlen(p),NULL,1);
 			char * path = contact_str(urlrequest->path,encodedPath);
 			free(urlrequest->path);
 			free(encodedPath);
 			urlrequest->path = path;
+			//printf("%s,%s,%s\n",p,_url,s);
+			//printf("%s\n",urlrequest->path);
 		}
 
 		printf("urlrequest->host:%s\n",urlrequest->host);
@@ -360,11 +364,11 @@ URLRequest * Httploader_request(URLRequest *urlrequest)
 		printf("Connectted\n");
 	}
 
-	int received = 0;
+	int received_len = 0;
 	char *buffer = NULL;
 	if(urlrequest->isHttps)
 	{
-		buffer = ssls(sock,sendStr,&received);
+		buffer = ssls(sock,sendStr,&received_len);
 		if(buffer==NULL)
 			return urlrequest;
 	}else{
@@ -384,22 +388,22 @@ URLRequest * Httploader_request(URLRequest *urlrequest)
 
 		int bytes = 0;
 		while(1) {
-			while(received+_PAGE_SIZE+1 >= numPage*_PAGE_SIZE){
+			while(received_len+_PAGE_SIZE+1 >= numPage*_PAGE_SIZE){
 				++numPage;
 				//printf("numPage:%d\n",numPage);
 				buffer = (char*)realloc(buffer,numPage*_PAGE_SIZE);
 			}
 			bytes = 0;
-			if ((bytes = recv(sock, (char*)(buffer + received), numPage*_PAGE_SIZE - (received+1), 0)) <= 0) {
+			if ((bytes = recv(sock, (char*)(buffer + received_len), numPage*_PAGE_SIZE - (received_len+1), 0)) <= 0) {
 				printf("recv error:%d!!!!!!!!!!!\n",bytes);
-				//printf("Failed to receive bytes from server %d\n",received);
+				//printf("Failed to receive bytes from server %d\n",received_len);
 				//return urlrequest;
 				break;
 			}
-			received += bytes;
-			buffer[received] = '\0';
+			received_len += bytes;
+			buffer[received_len] = '\0';
 			//fprintf(stdout, buffer);
-			//fprintf(stdout, "received:%d\n",received);
+			//fprintf(stdout, "received:%d\n",received_len);
 		}
 	}
 	//printf("%s\n",buffer);fflush(stdout);
@@ -429,7 +433,7 @@ URLRequest * Httploader_request(URLRequest *urlrequest)
 			if(urlrequest->isHttps){
 				memcpy(urlrequest->data,headend+4,urlrequest->bytesOfData);
 			}else{
-				dataReceived = received-(headend-buffer)-4;
+				dataReceived = received_len-(headend-buffer)-4;
 				memcpy(urlrequest->data,headend+4,dataReceived);
 				while(dataReceived < urlrequest->respond->contentLength)
 				{
@@ -442,7 +446,7 @@ URLRequest * Httploader_request(URLRequest *urlrequest)
 				}
 			}
 		}else{
-			dataReceived = received-(headend-buffer)-4;
+			dataReceived = received_len-(headend-buffer)-4;
 			if(dataReceived > 0)
 			{
 				urlrequest->respond->contentLength = dataReceived;
@@ -515,15 +519,17 @@ char * loadUrl(char * url,size_t* len)
 
 
 #ifdef debug_httploader
+#ifdef SDL2
 #include "mysurface.h"
-//#include "sprite.h"
+#include "sprite.h"
+#endif
 int main(int argc, char *argv[]) 
 {
 
-	Stage_init(1);
 	URLRequest * urlrequest = NULL;
 	int statusCode;
-#if 1
+#ifdef SDL2
+	Stage_init(1);
 	Sprite * sprite = Sprite_new();
 	sprite->surface = Httploader_loadimg("http://res1.huaien.com/images/tx.jpg");
 	Sprite_addChild(stage->sprite,sprite);
@@ -556,20 +562,24 @@ int main(int argc, char *argv[])
 	//URLRequest *urlrequest = URLRequest_new("http://127.0.0.1:8080/jsonrpc?request={\"method\":\"Playlist.GetPlaylists\",\"params\":{},\"id\":1,\"jsonrpc\":\"2.0\"}");
 	//URLRequest_setAuthorization(urlrequest,"kodi","sbhame");
 	//URLRequest_setAuthorization(urlrequest,"test","test");
-	urlrequest = URLRequest_new("http://xh.5156edu.com/xhzdmp3abc/nü3.mp3");
+	//urlrequest = URLRequest_new("http://xh.5156edu.com/xhzdmp3abc/nü3.mp3");
+	//urlrequest = URLRequest_new("http://www.baidu.com/s?wd=hello");
+	urlrequest = URLRequest_new("https://www.baidu.com/s");
 	urlrequest = Httploader_request(urlrequest);
 	statusCode = urlrequest->statusCode;
 	if((statusCode >= 200 && statusCode<300) || statusCode==304){
 		if(urlrequest->respond->contentLength == strlen(urlrequest->data))
 		{
-			printf("repond data:\n%s\n",urlrequest->data);
-			printf("repond datalength:\n%d\n",urlrequest->respond->contentLength);
+			//printf("repond data:\n%s\n",urlrequest->data);
+			printf("repond datalength:%d\n",urlrequest->respond->contentLength);
 			fflush(stdout);
 		}
 	}
 	URLRequest_clear(urlrequest);
 	urlrequest = NULL;
+#ifdef SDL2
 	Stage_loopEvents();
+#endif
 	exit(0);
 	return 0;
 }

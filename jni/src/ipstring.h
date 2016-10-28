@@ -20,6 +20,7 @@
 //#include <Ws2tcpip.h>
 #endif
 #endif
+#include "mystring.h"
 
 int isIpString(char*host);
 char * domain2ipString(char * hostname);

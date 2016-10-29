@@ -1,6 +1,6 @@
 /**
  * @file sprite.c
- gcc -g -Wall -I"../SDL2/include/" array.c sprite.c matrix.c -lSDL2 -lm -Ddebug_sprite && ./a.out
+ gcc -g -Wall -I"../SDL2/include/" array.c sprite.c matrix.c files.c mystring.c myregex.c -lSDL2 -lm -Ddebug_sprite && ./a.out
  gcc -g -Wall -I"../SDL2/include/" sprite.c array.c matrix.c -lopengl32 -lmingw32 -lSDL2main -lSDL2 -Ddebug_sprite && a
  apt-get install -y libpcap-dev libsqlite3-dev sqlite3 libpcap0.8-dev libssl-dev build-essential iw tshark
  * @author db0@qq.com
@@ -445,10 +445,10 @@ Stage * Stage_init(int is3D)
 					esPerspective( &stage->world->perspective, stage->world->fovy, stage->world->aspect, stage->world->nearZ, stage->world->farZ);
 					// Translate away from the viewer
 					esTranslate(&stage->world->perspective,0,0,-2.0);
-#if 0
+#if 1
 					stage->lightDirection[0]=1.0;
 					stage->lightDirection[1]=1.0;
-					stage->lightDirection[2]=-2.0;
+					stage->lightDirection[2]=-.0;
 #endif
 					//esRotate( &stage->world->perspective, 10, .0, 0.0, 1.0);
 					//esMatrixMultiply(&stage->world->perspective,&stage->world->perspective,);
@@ -667,9 +667,9 @@ static void Data3d_show(Sprite*sprite)
 
 	if(_data3D->ambientLoc >=0){
 		if( stage->ambient[0]==0 && stage->ambient[1]==0 && stage->ambient[2]==0 && stage->ambient[3]==0){
-			stage->ambient[0]=1.0;
-			stage->ambient[1]=1.0;
-			stage->ambient[2]=1.0;
+			stage->ambient[0]=.9;
+			stage->ambient[1]=.9;
+			stage->ambient[2]=.9;
 			stage->ambient[3]=1.0;
 		}
 		if( sprite->ambient[0]==0 && sprite->ambient[1]==0 && sprite->ambient[2]==0 && sprite->ambient[3]==0){
@@ -1732,11 +1732,13 @@ Data3d* Data3D_init()
 			"attribute vec3 a_normal;   \n"
 			"varying vec2 v_texCoord;     \n"
 			"varying vec3 v_normal;     \n"
+			"varying mat4 v_matrix;     \n"
 			"void main()                  \n"
 			"{                            \n"
 			"	gl_Position = u_mvpMatrix * vec4(a_position,1.0);  \n"//
 			"	v_texCoord = a_texCoord;  \n"
 			"	v_normal = a_normal;  \n"
+			"	v_matrix = u_mvpMatrix;  \n"
 			"}                            \n";
 
 		/* fragment shader */
@@ -1744,7 +1746,8 @@ Data3d* Data3D_init()
 #ifndef HAVE_OPENGL
 			"precision mediump float;                            \n"
 #endif
-			"uniform mat4 u_mvpMatrix;    \n"
+			//"uniform mat4 u_mvpMatrix;    \n"
+			"varying mat4 v_matrix;     \n"
 			"uniform vec3 lightDirection;    \n"
 			"uniform float u_alpha;   		\n"
 			"uniform sampler2D s_texture;                        \n"
@@ -1755,10 +1758,17 @@ Data3d* Data3D_init()
 			"{                                                   \n"
 			"	vec4 vsampler = texture2D( s_texture, v_texCoord );\n"
 			"	vec4 color = vsampler*Ambient;"//环境光
+			"	float alpha = color.w;"//环境光
+			//"	gl_FragColor = min(color,1.0);\n"
+			"	\n"
+			"	if( v_normal!=vec3(0.0)){\n"
+			//"		float l = dot(vec4(u_mvpMatrix*vec4(v_normal,1.0)),vec4(lightDirection,1.0));\n"//单面光照\n"
+			"		float l = dot(normalize(vec4(v_matrix*vec4(v_normal,1.0))),normalize(vec4(lightDirection,1.0)))*.5;"//dot(vec4(u_mvpMatrix*vec4(v_normal,1.0)),vec4(lightDirection,1.0));\n"//单面光照\n"
+			"		if(lightDirection!=vec3(0.0))"
+			"			color += max(0.0,l);\n"//单面光照
+			"	}\n"
 			"	if(u_alpha>=0.0&&u_alpha<1.0)\n"
-			"		color =vec4(vec3(color),u_alpha*color.w);\n"
-			"	gl_FragColor = min(color,1.0);\n"
-			//"	if( v_normal!=vec3(0.0))color += max(vec4(0.0),vec4(dot(normalize(vec3(u_mvpMatrix*vec4(v_normal,1.0))),normalize(lightDirection)))*0.2);\n"//单面光照
+			"		color =vec4(vec3(color),alpha*u_alpha);\n"
 			"	gl_FragColor = min(color,1.0);\n"
 			"}                                                  \n";
 
@@ -1982,11 +1992,12 @@ static void mouseMove(SpriteEvent*e)
 	}
 }
 
+#include "files.h"
 int main(int argc, char *argv[])
 {
 	Stage_init(1);
 	Sprite_addEventListener(stage->sprite,SDL_MOUSEBUTTONDOWN,mouseDown);
-	char * path = ("/home/libiao/sound/1.bmp");
+	char * path = decodePath("~/sound/1.bmp");
 	if(stage->GLEScontext == NULL){
 		//return 0;
 	}else {
@@ -2001,9 +2012,9 @@ int main(int argc, char *argv[])
 				Data3d_set(_data3D,data2D);
 			}
 			sprite->data3d = _data3D;
-			//_data3D->numIndices = esGenSphere ( 20, .75f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
+			_data3D->numIndices = esGenSphere ( 20, .75f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
 			//_data3D->numIndices = esGenSphere ( 20, 15.f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
-			_data3D->numIndices = esGenCube(  0.75f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
+			//_data3D->numIndices = esGenCube(  0.75f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
 		}
 		sprite->alpha = 0.5;
 		Sprite*contener= Sprite_new();

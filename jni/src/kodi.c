@@ -327,17 +327,11 @@ static void showEearth()
 
 		if(_data3D->programObject==0){
 			Data3d *data2D = Data3D_init();
-			_data3D->programObject = data2D->programObject;
-			_data3D->positionLoc = data2D->positionLoc;
-			_data3D->normalLoc = data2D->normalLoc;
-			_data3D->texCoordLoc = data2D->texCoordLoc;
-			_data3D->samplerLoc = data2D->samplerLoc;
-			_data3D->alphaLoc = data2D->alphaLoc;
-			_data3D->mvpLoc = data2D->mvpLoc;
+			Data3d_set(_data3D,data2D);
 		}
 		sprite->data3d = _data3D;
-		//_data3D->numIndices = esGenSphere ( 20, 0.5f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices);
-		_data3D->numIndices = esGenSphere ( 20, 0.5f, &_data3D->vertices, NULL, &_data3D->texCoords, &_data3D->indices);
+		_data3D->numIndices = esGenSphere ( 20, 0.5f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices);
+		//_data3D->numIndices = esGenSphere ( 20, 0.5f, &_data3D->vertices, NULL, &_data3D->texCoords, &_data3D->indices);
 		//_data3D->numIndices = esGenCube( 0.75f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices);
 	}
 	//sprite->filter = 1;

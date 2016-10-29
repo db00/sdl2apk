@@ -47,7 +47,7 @@ void main(void)
 	{
 		qm=hzstring[i]-0xa0;
 		wm=hzstring[i+1]-0xa0;
-		showHanzi("DroidSansFallback.ttf",qm,wm);
+		showHanzi("/home/libiao/sound/DroidSansFallback.ttf",qm,wm);
 		X0+=xRange-8;a++;
 		if(a==7) {xRange=yRange=140;X0=0;Y0+=150;}
 		if(a==13) {xRange=yRange=288;X0=150;Y0+=150;}

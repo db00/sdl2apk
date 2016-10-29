@@ -14,18 +14,16 @@
 #include "matrix.h"
 #include "array.h"
 
-#ifdef __MACOS__
-#define HAVE_OPENGL
-#else
-#if !defined(__IPHONEOS__) && !defined(__ANDROID__) && !defined(__EMSCRIPTEN__) && !defined(__NACL__) //&& !linux
+#if defined(__MACOS__) || ( !defined(__IPHONEOS__) && !defined(__ANDROID__) && !defined(__EMSCRIPTEN__) && !defined(__NACL__)) && !linux 
+#ifndef HAVE_OPENGL
 #define HAVE_OPENGL
 #endif
 #endif
 
-#ifdef HAVE_OPENGL
-#include "SDL_opengl.h"
-#else
+#ifndef HAVE_OPENGL
 #include "SDL_opengles2.h"
+#else
+#include "SDL_opengl.h"
 #endif
 
 #ifdef __EMSCRIPTEN__
@@ -36,10 +34,10 @@
 typedef struct GLES2_Context
 {
 #define SDL_PROC(ret,func,params) ret (APIENTRY *func) params;
-#ifdef HAVE_OPENGL
-#include "SDL_glfuncs.h"
-#else
+#ifndef HAVE_OPENGL
 #include "SDL_gles2funcs.h"
+#else
+#include "SDL_glfuncs.h"
 #endif
 #undef SDL_PROC
 } GLES2_Context;
@@ -81,6 +79,8 @@ typedef struct Data3d
 {//默认3d结构体
 	GLuint programObject;
 	GLint  positionLoc;
+	GLint  ambientLoc;//光照强度
+	GLint  lightDirection;//光照position
 	GLint  normalLoc;
 	GLint  texCoordLoc;
 	GLint  samplerLoc;
@@ -126,6 +126,7 @@ typedef struct Sprite{
 	void *data3d;//默认是 Data3d 结构体
 	void (*showFunc)(struct Sprite*);// 其他3d显示
 	void (*destroyFunc)(struct Sprite*);// 其他3d销毁
+	GLfloat ambient[4];//光照强度
 
 	int filter;
 
@@ -169,12 +170,16 @@ typedef struct Stage{
 	unsigned int numsprite;//
 	World3d *world;
 	void * sound;
+	GLfloat ambient[4];//光照强度
+	GLfloat lightDirection[3];//光照方向
 }Stage;
 
 typedef void (*EventFunc)(SpriteEvent*); 
 
 Data3d * Data3D_init();
 Data3d * Data3D_new();
+void Data3d_reset(Data3d * data3D);
+void Data3d_set(Data3d * data3D,Data3d * _data3D);
 
 
 extern Stage *stage;

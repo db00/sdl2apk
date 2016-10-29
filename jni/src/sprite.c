@@ -445,7 +445,11 @@ Stage * Stage_init(int is3D)
 					esPerspective( &stage->world->perspective, stage->world->fovy, stage->world->aspect, stage->world->nearZ, stage->world->farZ);
 					// Translate away from the viewer
 					esTranslate(&stage->world->perspective,0,0,-2.0);
-
+#if 1
+					stage->lightDirection[0]=1.0;
+					stage->lightDirection[1]=1.0;
+					stage->lightDirection[2]=-2.0;
+#endif
 					//esRotate( &stage->world->perspective, 10, .0, 0.0, 1.0);
 					//esMatrixMultiply(&stage->world->perspective,&stage->world->perspective,);
 
@@ -536,13 +540,7 @@ static void Data3d_show(Sprite*sprite)
 		_data3D = Data3D_new();
 		if(_data3D->programObject == 0){
 			Data3d * data2D = Data3D_init();
-			_data3D->programObject = data2D->programObject;
-			_data3D->positionLoc = data2D->positionLoc;
-			_data3D->normalLoc = data2D->normalLoc;
-			_data3D->texCoordLoc = data2D->texCoordLoc;
-			_data3D->samplerLoc = data2D->samplerLoc;
-			_data3D->alphaLoc = data2D->alphaLoc;
-			_data3D->mvpLoc = data2D->mvpLoc;
+			Data3d_set(_data3D,data2D);
 		}
 		sprite->data3d = _data3D;
 	}
@@ -666,6 +664,25 @@ static void Data3d_show(Sprite*sprite)
 
 	if(_data3D->alphaLoc>=0)
 		GL_CHECK(gles2.glUniform1f( _data3D->alphaLoc, Sprite_getAlpha(sprite)));
+
+	if(_data3D->ambientLoc >=0){
+		if( stage->ambient[0]==0 && stage->ambient[1]==0 && stage->ambient[2]==0 && stage->ambient[3]==0){
+			stage->ambient[0]=1.0;
+			stage->ambient[1]=1.0;
+			stage->ambient[2]=1.0;
+			stage->ambient[3]=1.0;
+		}
+		if( sprite->ambient[0]==0 && sprite->ambient[1]==0 && sprite->ambient[2]==0 && sprite->ambient[3]==0){
+			sprite->ambient[0]=stage->ambient[0];
+			sprite->ambient[1]=stage->ambient[1];
+			sprite->ambient[2]=stage->ambient[2];
+			sprite->ambient[3]=stage->ambient[3];
+		}
+		GL_CHECK(gles2.glUniform4f( _data3D->ambientLoc, sprite->ambient[0], sprite->ambient[1], sprite->ambient[2], sprite->ambient[3]));
+	}
+	if(_data3D->lightDirection>=0){
+		GL_CHECK(gles2.glUniform3f(_data3D->lightDirection, stage->lightDirection[0], stage->lightDirection[1], stage->lightDirection[2]));
+	}
 
 
 	if(_data3D->mvpLoc>=0){
@@ -1666,16 +1683,41 @@ GLuint esLoadProgram ( GLbyte *vertShaderSrc, GLbyte *fragShaderSrc )
 	return programObject;
 }
 
+void Data3d_reset(Data3d * data3D)
+{
+	if(data3D)
+	{
+		data3D->alphaLoc = -1;
+		data3D->ambientLoc= -1;
+		data3D->lightDirection = -1;
+		data3D->mvpLoc= -1;
+		data3D->normalLoc = -1;
+		data3D->positionLoc = -1;
+		data3D->samplerLoc = -1;
+		data3D->texCoordLoc = -1;
+	}
+}
+void Data3d_set(Data3d * data3D,Data3d * _data3D)
+{
+	if(data3D)
+	{
+		data3D->programObject = _data3D->programObject;
+
+		data3D->alphaLoc = _data3D->alphaLoc;
+		data3D->ambientLoc = _data3D->ambientLoc;
+		data3D->lightDirection = _data3D->lightDirection;
+		data3D->mvpLoc= _data3D->mvpLoc;
+		data3D->normalLoc = _data3D->normalLoc;
+		data3D->positionLoc = _data3D->positionLoc;
+		data3D->samplerLoc = _data3D->samplerLoc;
+		data3D->texCoordLoc = _data3D->texCoordLoc;
+	}
+}
 Data3d* Data3D_new()
 {
 	Data3d * data3D = (Data3d*)malloc(sizeof(Data3d));
 	memset(data3D,0,sizeof(Data3d));
-	data3D->positionLoc = -1;
-	data3D->normalLoc = -1;
-	data3D->texCoordLoc = -1;
-	data3D->samplerLoc = -1;
-	data3D->alphaLoc = -1;
-	data3D->mvpLoc= -1;
+	Data3d_reset(data3D);
 	return data3D;
 }
 
@@ -1687,11 +1729,14 @@ Data3d* Data3D_init()
 			"uniform mat4 u_mvpMatrix;    \n"
 			"attribute vec2 a_texCoord;   \n"
 			"attribute vec3 a_position;   \n"
+			"attribute vec3 a_normal;   \n"
 			"varying vec2 v_texCoord;     \n"
+			"varying vec3 v_normal;     \n"
 			"void main()                  \n"
 			"{                            \n"
 			"	gl_Position = u_mvpMatrix * vec4(a_position,1.0);  \n"//
 			"	v_texCoord = a_texCoord;  \n"
+			"	v_normal = a_normal;  \n"
 			"}                            \n";
 
 		/* fragment shader */
@@ -1699,21 +1744,28 @@ Data3d* Data3D_init()
 #ifndef HAVE_OPENGL
 			"precision mediump float;                            \n"
 #endif
+			"uniform mat4 u_mvpMatrix;    \n"
+			"uniform vec3 lightDirection;    \n"
 			"uniform float u_alpha;   		\n"
 			"uniform sampler2D s_texture;                        \n"
+			"uniform vec4 Ambient;" // sets lighting level, same across many vertices
 			"varying vec2 v_texCoord;                            \n"
+			"varying vec3 v_normal;     \n"
 			"void main()                                         \n"
 			"{                                                   \n"
 			"	vec4 vsampler = texture2D( s_texture, v_texCoord );\n"
-			"	float alpha = min(vsampler.a,u_alpha); \n"
-			"	gl_FragColor = vec4(vec3(vsampler),alpha);\n"
-			"}                                                   \n";
+			"	vec4 color = vsampler*Ambient;"//环境光
+			"	if(u_alpha>=0.0&&u_alpha<1.0)\n"
+			"		color =vec4(vec3(color),u_alpha*color.w);\n"
+			"	if(v_normal!=vec3(0.0))color += max(vec4(0.0),vec4(dot(normalize(vec3(u_mvpMatrix*vec4(v_normal,1.0))),normalize(lightDirection)))*0.2);\n"//单面光照
+			"	gl_FragColor = min(color,1.0);\n"
+			"}                                                  \n";
 
 		data2D->programObject = esLoadProgram ( vShaderStr, fShaderStr );
 		//SDL_Log("programObject:%d\n",data2D->programObject);
 
 		if(data2D->programObject){
-			data2D->normalLoc= GL_CHECK(gles2.glGetAttribLocation( data2D->programObject, "anormal"));
+			data2D->normalLoc= GL_CHECK(gles2.glGetAttribLocation( data2D->programObject, "a_normal"));
 			//SDL_Log("normalLoc:%d\n",data2D->normalLoc);
 			data2D->texCoordLoc = GL_CHECK(gles2.glGetAttribLocation ( data2D->programObject, "a_texCoord" ));
 			//SDL_Log("texCoordLoc:%d\n",data2D->texCoordLoc);
@@ -1725,6 +1777,10 @@ Data3d* Data3D_init()
 			//SDL_Log("mvpLoc:%d\n",data2D->mvpLoc);
 			data2D->positionLoc = GL_CHECK(gles2.glGetAttribLocation ( data2D->programObject, "a_position" ));
 			//SDL_Log("positionLoc:%d\n",data2D->positionLoc);
+			data2D->ambientLoc = GL_CHECK(gles2.glGetUniformLocation ( data2D->programObject, "Ambient" ));
+			//SDL_Log("ambientLoc:%d\n",data2D->ambientLoc);
+			data2D->lightDirection= GL_CHECK(gles2.glGetUniformLocation( data2D->programObject, "lightDirection"));
+			//SDL_Log("lightDirection:%d\n",data2D->lightDirection);
 		}
 	}
 	return data2D;
@@ -1941,20 +1997,14 @@ int main(int argc, char *argv[])
 			_data3D = Data3D_new();
 			if(_data3D->programObject==0){
 				Data3D_init();
-				_data3D->programObject = data2D->programObject;
-				_data3D->positionLoc = data2D->positionLoc;
-				_data3D->normalLoc = data2D->normalLoc;
-				_data3D->texCoordLoc = data2D->texCoordLoc;
-				_data3D->samplerLoc = data2D->samplerLoc;
-				_data3D->mvpLoc= data2D->mvpLoc;
-				_data3D->alphaLoc = data2D->alphaLoc;
+				Data3d_set(_data3D,data2D);
 			}
 			sprite->data3d = _data3D;
 			_data3D->numIndices = esGenSphere ( 20, .75f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
 			//_data3D->numIndices = esGenSphere ( 20, 15.f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
 			//_data3D->numIndices = esGenCube(  0.75f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
 		}
-		sprite->alpha = 0.3;
+		sprite->alpha = 0.5;
 		Sprite*contener= Sprite_new();
 		Sprite_addChild(stage->sprite,contener);
 		Sprite_addChild(contener,sprite);

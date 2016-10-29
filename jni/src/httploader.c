@@ -16,6 +16,7 @@
 char * ssls(int fd,char* sendStr,int* contentLength)
 {
 #ifdef HEADER_SSL_H 
+// Use  -Wno-error=deprecated-declarations while compile in mac os x
 	int n,ret;
 	SSL *ssl;
 	SSL_CTX *contex;

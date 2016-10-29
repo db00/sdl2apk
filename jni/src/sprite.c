@@ -445,7 +445,7 @@ Stage * Stage_init(int is3D)
 					esPerspective( &stage->world->perspective, stage->world->fovy, stage->world->aspect, stage->world->nearZ, stage->world->farZ);
 					// Translate away from the viewer
 					esTranslate(&stage->world->perspective,0,0,-2.0);
-#if 1
+#if 0
 					stage->lightDirection[0]=1.0;
 					stage->lightDirection[1]=1.0;
 					stage->lightDirection[2]=-2.0;
@@ -624,7 +624,7 @@ static void Data3d_show(Sprite*sprite)
 		GL_CHECK(gles2.glEnableVertexAttribArray ( _data3D->positionLoc ));
 	}
 	// Load the vertex normals 
-	if(_data3D->normalLoc>=0 && _data3D->normalLoc>=0){
+	if(_data3D->normalLoc>=0){
 		if(_data3D->normals==NULL){
 			GLfloat normals[] = {
 				0.0f,0.0f,0.0f,	// Position 0	//top left
@@ -1757,7 +1757,8 @@ Data3d* Data3D_init()
 			"	vec4 color = vsampler*Ambient;"//环境光
 			"	if(u_alpha>=0.0&&u_alpha<1.0)\n"
 			"		color =vec4(vec3(color),u_alpha*color.w);\n"
-			"	if(v_normal!=vec3(0.0))color += max(vec4(0.0),vec4(dot(normalize(vec3(u_mvpMatrix*vec4(v_normal,1.0))),normalize(lightDirection)))*0.2);\n"//单面光照
+			"	gl_FragColor = min(color,1.0);\n"
+			//"	if( v_normal!=vec3(0.0))color += max(vec4(0.0),vec4(dot(normalize(vec3(u_mvpMatrix*vec4(v_normal,1.0))),normalize(lightDirection)))*0.2);\n"//单面光照
 			"	gl_FragColor = min(color,1.0);\n"
 			"}                                                  \n";
 
@@ -2000,9 +2001,9 @@ int main(int argc, char *argv[])
 				Data3d_set(_data3D,data2D);
 			}
 			sprite->data3d = _data3D;
-			_data3D->numIndices = esGenSphere ( 20, .75f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
+			//_data3D->numIndices = esGenSphere ( 20, .75f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
 			//_data3D->numIndices = esGenSphere ( 20, 15.f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
-			//_data3D->numIndices = esGenCube(  0.75f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
+			_data3D->numIndices = esGenCube(  0.75f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
 		}
 		sprite->alpha = 0.5;
 		Sprite*contener= Sprite_new();

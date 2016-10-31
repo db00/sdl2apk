@@ -1,5 +1,11 @@
+/**
+ *
+ gcc -g files.c myregex.c mystring.c array.c -lm  -D debug_files -lSDL2_image && ./a.out
+ gcc files.c  -D debug_files && a
+ */
 #ifndef _files_h
 #define _files_h
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,19 +16,17 @@
 #ifdef _WIN32
 #include <direct.h>
 #include <io.h>
-#elif linux 
+#else
 #include <stdarg.h>
 #include <sys/stat.h>
 #endif
+
 #include "mystring.h"
 #include "myregex.h"
 
 #ifdef _WIN32
 #define ACCESS _access
 #define MKDIR(a) _mkdir((a))
-#elif linux
-#define ACCESS access
-#define MKDIR(a) mkdir((a),0755)
 #else
 #define ACCESS access
 #define MKDIR(a) mkdir((a),0755)

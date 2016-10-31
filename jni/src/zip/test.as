@@ -20,7 +20,6 @@ package {
 			{
 				var loader:CLibInit = new CLibInit;
 				var lib:Object = loader.init();
-				//var bytes:ByteArray= lib.zipList(ByteArray(e.target.data),"notes");
 				//var bytes:ByteArray= lib.zipList(ByteArray(e.target.data),"");
 				var bytes:ByteArray = lib.zipList(ByteArray(e.target.data),"catalog.xml");
 				text.text = String(bytes);

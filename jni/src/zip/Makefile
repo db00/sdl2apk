@@ -1,6 +1,8 @@
 # source $HOME/alchemy-ubuntu-v0.5a/alchemy-setup && alc-on
-#source $HOME/alchemy-ubuntu-v0.5a/alchemy-setup; export PRE_ALCHEMY_PATH=$PATH; export PATH=$ALCHEMY_HOME/achacks:$PATH
 ALCHEMY_HOME:=$(HOME)/alchemy-ubuntu-v0.5a
+ASC:=$(ALCHEMY_HOME)/bin/asc.jar 
+PATH:=$(ALCHEMY_HOME)/achacks:$(ALCHEMY_HOME)/bin:$(PATH)
+#SWFBRIDGE:=$(ALCHEMY_HOME)/bin/swfbridge
 FLEX_HOME:=$(HOME)/flex_sdk_4.5
 FLASHPLAYER:=$(FLEX_HOME)/bin/flashplayerdebugger
 MXMLC:=$(FLEX_HOME)/bin/mxmlc
@@ -8,18 +10,20 @@ SWF:=test.swf
 AS3_PATH:=.
 AS3:=$(AS3_PATH)/test.as
 SWC:=z.swc
-OBJS:=zip.o bytearray.o inflate.o crc32.o uncompr.o adler32.o inffast.o inftrees.o zutil.o
+SRC:=zip.c bytearray.c inflate.c crc32.c uncompr.c adler32.c inffast.c inftrees.c zutil.c
+OBJS:= $(patsubst %.c,%.o,$(SRC))
 CFLAGS:=-D as_api -O3 -Wall
 CC:=$(ALCHEMY_HOME)/achacks/gcc
 
 all: $(SWF)
+#	echo $(shell ls /)
 	$(FLASHPLAYER) $(SWF)
 $(SWF): $(SWC) $(AS3)
 	$(MXMLC) -source-path=$(AS3_PATH) -library-path+=$(SWC) $(AS3) -o $(SWF)
 $(SWC): $(OBJS)
-	$(CC) $(OBJS) $(CFLAGS) -swc -o $(SWC)
+	ALCHEMY_HOME=$(ALCHEMY_HOME) ASC=$(ASC) $(CC) $(OBJS) $(CFLAGS) -swc -o $(SWC)
 .c.o:
-	$(CC) $(CFLAGS) -c $<
+	ALCHEMY_HOME=$(ALCHEMY_HOME) $(CC) $(CFLAGS) -c $<
 
 clean:
-	rm *.swc *.o *.swf a.out
+	rm *.swc *.o *.swf *.achacks.* a.out

@@ -17,3 +17,7 @@ ssh -T git@github.com
 
 
 git config --global push.default simple
+git config --global user.name "db0"
+git config --global user.email db0@qq.com
+
+

@@ -23,3 +23,7 @@ git config --global user.email db0@qq.com
 git push --set-upstream origin master
 
 
+#push an existing repository
+git remote add huaien https://github.com/db00/sdl2apk.git
+git push -u huaien master
+git remote -v

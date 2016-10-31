@@ -3,11 +3,8 @@ git add .
 git commit 
 
 git remote -v
+git remote add origin https://github.com/db00/sdl2apk.git
 git push -u origin master
-
-ssh-keygen -t rsa -C "db0@qq.com"
-#cp ~/.ssh/id_rsa.pub to github(Settings/SSH Keys)
-ssh -T git@github.com
 
 
 #push an existing repository
@@ -26,4 +23,8 @@ git config --global user.name "db0"
 git config --global user.email db0@qq.com
 git push --set-upstream origin master
 
+
+ssh-keygen -t rsa -C "db0@qq.com"
+#cp ~/.ssh/id_rsa.pub to github(Settings/SSH Keys)
+ssh -T git@github.com
 

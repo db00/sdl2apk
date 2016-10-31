@@ -24,6 +24,7 @@ git push --set-upstream origin master
 
 
 #push an existing repository
-git remote add huaien https://github.com/db00/sdl2apk.git
+git remote add huaien pi@rpi:~/sdl2apk
 git push -u huaien master
 git remote -v
+git pull huaien

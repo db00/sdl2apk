@@ -14,3 +14,6 @@ git remote rm test
 
 ssh-keygen -t rsa -C "db0@qq.com"
 ssh -T git@github.com
+
+
+git config --global push.default simple

@@ -3,7 +3,7 @@ git add .
 git commit 
 
 git remote -v
-
+git push -u origin master
 
 ssh-keygen -t rsa -C "db0@qq.com"
 #cp ~/.ssh/id_rsa.pub to github(Settings/SSH Keys)

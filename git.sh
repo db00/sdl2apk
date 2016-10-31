@@ -13,7 +13,7 @@ git remote -v
 git pull pi
 
 
-git remote rm huaien
+git remote rm pi
 
 
 git config --global push.default simple

@@ -8,10 +8,10 @@ git push -u origin master
 
 
 #push an existing repository
-git remote add huaien pi@rpi:~/sdl2apk
-git push -u huaien master
+git remote add pi pi@rpi:~/sdl2apk
+git push -u pi master
 git remote -v
-git pull huaien
+git pull pi
 
 
 git remote rm huaien

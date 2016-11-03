@@ -54,7 +54,10 @@ static int plays(char *url,char * fileName)
 	size_t data_length = 0;
 	char * data = loadUrl(url,&data_length);
 	if(data==NULL || data_length==0)
+	{
+		SDL_Log("unable to get data from the web!");
 		return 1;
+	}
 	SDL_Log("plays:%s,%s",url,fileName);
 	if(fileName){
 		if(writefile(fileName,data,data_length)==0) {

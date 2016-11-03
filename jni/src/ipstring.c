@@ -28,8 +28,9 @@ int isIpString(char*host)
 
 char * domain2ipString(char * hostname)
 {
-	if(isIpString(hostname))
+	if(hostname && isIpString(hostname))
 		return hostname;
+	//return NULL;
 
 #ifdef __WIN32__
 	WORD wVersion;
@@ -43,24 +44,34 @@ char * domain2ipString(char * hostname)
 	struct sockaddr_in *addr;
 
 	memset(&hints, 0, sizeof(struct addrinfo));
-	hints.ai_family = AF_INET;     /* Allow IPv4 */
-	hints.ai_flags = AI_PASSIVE;/* For wildcard IP address */
-	hints.ai_protocol = 0;         /* Any protocol */
+	hints.ai_family   = PF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_protocol = IPPROTO_TCP;
+	hints.ai_flags    = AI_PASSIVE;
 
 	ret = getaddrinfo(hostname, NULL,&hints,&res);
-
-	if (ret == -1) {
-		perror("getaddrinfo");
-		exit(1);
+	if (ret){
+		fprintf(stderr,"getaddrinfo:%s --> %s\n", hostname,gai_strerror(ret));
+		return NULL;
 	}
 	for (cur = res; cur != NULL; cur = cur->ai_next) {
-		char ipbuf[16];
+		char ipbuf[32];
+		memset(ipbuf,0,sizeof(ipbuf));
 		addr = (struct sockaddr_in *)cur->ai_addr;
-		printf("%s\n", inet_ntop(AF_INET, &addr->sin_addr, ipbuf, 16));
-		if(isIpString(ipbuf))
-		{
-			freeaddrinfo(res);
+		if(res->ai_family == AF_INET){//IPv4
+			inet_ntop(AF_INET, &addr->sin_addr, ipbuf, 16);
+			if(isIpString(ipbuf))
+			{
+				printf("SDL get %s ip %s\n",hostname ,ipbuf);
+				freeaddrinfo(res);
+				return contact_str(ipbuf,"");
+			}
+		}if(res->ai_family == AF_INET6){
+			// Found IPv6 address
+			inet_ntop(AF_INET6,
+					&(((struct sockaddr_in *)addr)->sin_addr),
+					ipbuf, 32);
+			printf("IPv6: %s\n", ipbuf);
 			return contact_str(ipbuf,"");
 		}
 	}

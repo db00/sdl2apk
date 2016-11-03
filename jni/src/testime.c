@@ -25,8 +25,8 @@ http://ozzmaker.com/2014/06/30/virtual-keyboard-for-the-raspberry-pi/
 #include "read_card.h"
 
 static enum STATS {
-    CARD,
     DICT,
+    CARD,
     KODI,
     END
 } stats;
@@ -166,8 +166,8 @@ int main(int argc, char *argv[]) {
     }
 
     SDL_SetWindowTitle(stage->window, "card");
-    showCardTest(1);
-    //showSearchDict(1);
+    //showCardTest(1);
+    showSearchDict(1);
 
     Sprite_addEventListener(stage->sprite,SDL_KEYUP,keyupEvent); 
     Sprite_addEventListener(stage->sprite,SDL_DROPFILE,droppedFile);

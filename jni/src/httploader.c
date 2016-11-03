@@ -16,7 +16,7 @@
 char * ssls(int fd,char* sendStr,int* contentLength)
 {
 #ifdef HEADER_SSL_H 
-// Use  -Wno-error=deprecated-declarations while compile in mac os x
+	// Use  -Wno-error=deprecated-declarations while compile in mac os x
 	int n,ret;
 	SSL *ssl;
 	SSL_CTX *contex;
@@ -24,15 +24,15 @@ char * ssls(int fd,char* sendStr,int* contentLength)
 	SSL_library_init();
 	contex = SSL_CTX_new(SSLv3_client_method());
 	if ( contex == NULL ){
-		printf("init SSL contex failed:%s\n", ERR_reason_error_string(ERR_get_error()));
+		printf("SDL init SSL contex failed:%s\n", ERR_reason_error_string(ERR_get_error()));
 	}
 	ssl = SSL_new(contex);
 	if ( ssl == NULL ){
-		printf("new SSL with created contex failed:%s\n", ERR_reason_error_string(ERR_get_error()));
+		printf("SDL new SSL with created contex failed:%s\n", ERR_reason_error_string(ERR_get_error()));
 	}
 	ret = SSL_set_fd(ssl, fd);
 	if ( ret == 0 ){
-		printf("add SSL to tcp socket failed:%s\n", ERR_reason_error_string(ERR_get_error()));
+		printf("SDL add SSL to tcp socket failed:%s\n", ERR_reason_error_string(ERR_get_error()));
 	}
 	/* PRNG */
 	RAND_poll();
@@ -43,7 +43,7 @@ char * ssls(int fd,char* sendStr,int* contentLength)
 	/* SSL Connect */
 	ret = SSL_connect(ssl);
 	if( ret != 1 ){
-		printf("SSL connection failed:%s\n", ERR_reason_error_string(ERR_get_error()));
+		printf("SDL SSL connection failed:%s\n", ERR_reason_error_string(ERR_get_error()));
 	}
 	// https socket write.
 	SSL_write(ssl, sendStr, strlen(sendStr));
@@ -58,14 +58,14 @@ char * ssls(int fd,char* sendStr,int* contentLength)
 	}
 	if(contentLength)*contentLength = received;
 	if(n != 0){
-		printf("SSL read failed:%s\n", ERR_reason_error_string(ERR_get_error()));
+		printf("SDL SSL read failed:%s\n", ERR_reason_error_string(ERR_get_error()));
 	}
 
 	// close ssl tunnel.
 	ret = SSL_shutdown(ssl); 
 	if( ret != 1 ){
 		close(fd);
-		printf("SSL shutdown failed:%s\n", ERR_reason_error_string(ERR_get_error()));
+		printf("SDL SSL shutdown failed:%s\n", ERR_reason_error_string(ERR_get_error()));
 	}
 	// clear ssl resource.
 	SSL_free(ssl); 
@@ -79,11 +79,11 @@ char * ssls(int fd,char* sendStr,int* contentLength)
 void RequestData_parseLine(RequestData*header,char * line)
 {
 	if(line==NULL)return;
-	//printf("%s\n",line);
+	//printf("SDL %s\n",line);
 	char * s = "Content-Type: ";
 	if(strncasecmp(line,s,strlen(s))==0)
 	{
-		printf("%s---->%s\n",s,line+strlen(s));
+		printf("SDL %s---->%s\n",s,line+strlen(s));
 		header->contentType = line + strlen(s);
 		return;
 	}
@@ -91,27 +91,27 @@ void RequestData_parseLine(RequestData*header,char * line)
 	if(strncasecmp(line,s,strlen(s))==0)
 	{
 		header->statusCode = atoi(line + strlen(s)+2);
-		printf("\n%s---->%d\n",s,header->statusCode);
+		printf("SDL \n%s---->%d\n",s,header->statusCode);
 		return;
 	}
 	s = "Content-Length: ";
 	if(strncasecmp(line,s,strlen(s))==0)
 	{
-		printf("%s---->%s\n",s,line+strlen(s));
+		printf("SDL %s---->%s\n",s,line+strlen(s));
 		header->contentLength= atoi(line + strlen(s));
 		return;
 	}
 	s = "Date: ";
 	if(strncasecmp(line,s,strlen(s))==0)
 	{
-		//printf("%s---->%s\n",s,line+strlen(s));
+		//printf("SDL %s---->%s\n",s,line+strlen(s));
 		header->date= (line + strlen(s));
 		return;
 	}
 	s = "Authorization: ";
 	if(strncasecmp(line,s,strlen(s))==0)
 	{
-		printf("%s---->%s\n",s,line+strlen(s));
+		printf("SDL %s---->%s\n",s,line+strlen(s));
 		header->Authorization = (line + strlen(s));
 		return;
 	}
@@ -172,7 +172,7 @@ void URLRequest_clear(URLRequest* urlrequest)
 
 URLRequest * URLRequest_new(char *_url)
 {
-	printf("%s\n",_url);
+	printf("SDL: %s\n",_url);
 	URLRequest *urlrequest = malloc(sizeof(URLRequest));
 	memset(urlrequest,0,sizeof(URLRequest));
 	urlrequest->url = _url;
@@ -207,7 +207,7 @@ URLRequest * URLRequest_new(char *_url)
 			if(urlrequest->host && isIpString(urlrequest->host)==0){
 				urlrequest->ip = domain2ipString(urlrequest->host);
 				if(urlrequest->ip == NULL){
-					printf("network ERROR! XXXXXXXXXXXXXXXXX\n");
+					printf("SDL network ERROR! XXXXXXXXXXXXXXXXX\n");
 					urlrequest->port = 0;
 					return urlrequest;
 				}
@@ -216,7 +216,7 @@ URLRequest * URLRequest_new(char *_url)
 				memset(urlrequest->ip,0,strlen(urlrequest->host)+1);
 				memcpy(urlrequest->ip,urlrequest->host,strlen(urlrequest->host));
 			}else{
-				printf("not found host!\n");
+				printf("SDL: not found host!\n");
 			}
 		}else{
 			s = "https://";
@@ -243,7 +243,7 @@ URLRequest * URLRequest_new(char *_url)
 				if(urlrequest->host && isIpString(urlrequest->host)==0){
 					urlrequest->ip = domain2ipString(urlrequest->host);
 					if(urlrequest->ip == NULL){
-						printf("network ERROR! XXXXXXXXXXXXXXXXX\n");
+						printf("SDL: network ERROR! XXXXXXXXXXXXXXXXX\n");
 						urlrequest->port = 0;
 						return urlrequest;
 					}
@@ -252,15 +252,15 @@ URLRequest * URLRequest_new(char *_url)
 					memset(urlrequest->ip,0,strlen(urlrequest->host)+1);
 					memcpy(urlrequest->ip,urlrequest->host,strlen(urlrequest->host));
 				}else{
-					printf("not found host!\n");
+					printf("SDL: not found host!\n");
 				}
 			}else{
-				printf("protocal not support!\n");
+				printf("SDL: protocal not support!\n");
 			}
 		}
 
 
-		//printf("%s\n",urlrequest->path);
+		//printf("SDL: %s\n",urlrequest->path);
 		if(p - url < strlen(_url) && p >url+strlen(s))
 		{
 			char * encodedPath = url_encode(p,strlen(p),NULL,1);
@@ -268,14 +268,14 @@ URLRequest * URLRequest_new(char *_url)
 			free(urlrequest->path);
 			free(encodedPath);
 			urlrequest->path = path;
-			//printf("%s,%s,%s\n",p,_url,s);
-			//printf("%s\n",urlrequest->path);
+			//printf("SDL: %s,%s,%s\n",p,_url,s);
+			//printf("SDL: %s\n",urlrequest->path);
 		}
 
-		printf("urlrequest->host:%s\n",urlrequest->host);
-		printf("urlrequest->port:%d\n",urlrequest->port);
-		printf("urlrequest->path:%s\n",urlrequest->path);
-		printf("urlrequest->ip:%s\n",urlrequest->ip);
+		printf("SDL: urlrequest->host:%s\n",urlrequest->host);
+		printf("SDL: urlrequest->port:%d\n",urlrequest->port);
+		printf("SDL: urlrequest->path:%s\n",urlrequest->path);
+		printf("SDL: urlrequest->ip:%s\n",urlrequest->ip);
 	}
 	if(urlrequest->ip == NULL)
 		urlrequest->port = 0;
@@ -291,7 +291,7 @@ URLRequest * Httploader_request(URLRequest *urlrequest)
 	int ret=WSAStartup(wVersionRequested, &wsaData);
 	if(ret!=0)
 	{
-		printf("WSAStartup() failed!\n");
+		printf("SDL: WSAStartup() failed!\n");
 		return urlrequest;
 	}
 #endif
@@ -299,7 +299,7 @@ URLRequest * Httploader_request(URLRequest *urlrequest)
 	if(urlrequest==NULL)
 		return NULL;
 	if(urlrequest->ip==NULL || urlrequest->path==NULL || urlrequest->port==0){
-		printf("get ip or port failed!\n");
+		printf("SDL: get ip or port failed!\n");
 		return urlrequest;
 	}
 
@@ -326,7 +326,7 @@ URLRequest * Httploader_request(URLRequest *urlrequest)
 
 	if(urlrequest->request){
 		if( urlrequest->request->Authorization){
-			printf("Authorization:\r\n%s\r\n", urlrequest->request->Authorization);fflush(stdout);
+			printf("SDL: Authorization:\r\n%s\r\n", urlrequest->request->Authorization);fflush(stdout);
 			// Authorization: Basic a29kaTpzYmhhbWU=\r\n",
 			sendStr = append_str(sendStr ,"Authorization: %s\r\n",
 					urlrequest->request->Authorization
@@ -334,7 +334,7 @@ URLRequest * Httploader_request(URLRequest *urlrequest)
 		}
 
 		if(urlrequest->request->data && urlrequest->request->contentLength>0){
-			printf("contentLength:%d\r\n",urlrequest->request->contentLength);
+			printf("SDL: contentLength:%d\r\n",urlrequest->request->contentLength);
 			sendStr = append_str(sendStr,"Content-Length: %d\r\n",urlrequest->request->contentLength);
 		}
 	}
@@ -343,14 +343,14 @@ URLRequest * Httploader_request(URLRequest *urlrequest)
 		sendStr = append_str(sendStr,"%s\r\n\r\n",urlrequest->request->data);
 	}
 
-	printf("send:\r\n%s",sendStr);fflush(stdout);
+	printf("SDL send:\r\n%s",sendStr);fflush(stdout);
 
 	int sock;
 	struct sockaddr_in echoserver;
 	unsigned int echolen;
 
 	if ((sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
-		printf("Failed to create socket");
+		printf("SDL: Failed to create socket");
 		return urlrequest;
 	}
 
@@ -359,10 +359,10 @@ URLRequest * Httploader_request(URLRequest *urlrequest)
 	echoserver.sin_addr.s_addr = inet_addr(urlrequest->ip);  /* IP address */
 	echoserver.sin_port = htons(urlrequest->port);       /* server port */
 	if (connect(sock, (struct sockaddr *) &echoserver, sizeof(echoserver)) < 0) {
-		printf("Failed to connect with server\n");
+		printf("SDL: Failed to connect with server\n");
 		return urlrequest;
 	}else{
-		printf("Connectted\n");
+		printf("SDL: Connectted\n");
 	}
 
 	int received_len = 0;
@@ -375,10 +375,10 @@ URLRequest * Httploader_request(URLRequest *urlrequest)
 	}else{
 		echolen = strlen(sendStr);
 		if (send(sock, sendStr, echolen, 0) != echolen) {
-			printf("Mismatch in number of sent bytes");
+			printf("SDL: Mismatch in number of sent bytes");
 			return urlrequest;
 		}else{
-			//printf("sent =====>\n%s---------------\n",sendStr);
+			//printf("SDL: sent =====>\n%s---------------\n",sendStr);
 		}
 
 		const int _PAGE_SIZE = 64;//
@@ -391,13 +391,13 @@ URLRequest * Httploader_request(URLRequest *urlrequest)
 		while(1) {
 			while(received_len+_PAGE_SIZE+1 >= numPage*_PAGE_SIZE){
 				++numPage;
-				//printf("numPage:%d\n",numPage);
+				//printf("SDL: numPage:%d\n",numPage);
 				buffer = (char*)realloc(buffer,numPage*_PAGE_SIZE);
 			}
 			bytes = 0;
 			if ((bytes = recv(sock, (char*)(buffer + received_len), numPage*_PAGE_SIZE - (received_len+1), 0)) <= 0) {
-				printf("recv error:%d!!!!!!!!!!!\n",bytes);
-				//printf("Failed to receive bytes from server %d\n",received_len);
+				printf("SDL: recv error:%d!!!!!!!!!!!\n",bytes);
+				//printf("SDL: Failed to receive bytes from server %d\n",received_len);
 				//return urlrequest;
 				break;
 			}
@@ -407,10 +407,10 @@ URLRequest * Httploader_request(URLRequest *urlrequest)
 			//fprintf(stdout, "received:%d\n",received_len);
 		}
 	}
-	//printf("%s\n",buffer);fflush(stdout);
+	//printf("SDL: %s\n",buffer);fflush(stdout);
 
 	char * headend = strstr(buffer,"\r\n\r\n");
-	if(headend){ printf("header recv success!"); }
+	if(headend){ printf("SDL: header recv success!"); }
 	//printf("=================================headend:%s\n",headend);
 	//char * headend = memstr(buffer,numPage*_PAGE_SIZE,"\r\n\r\n");
 
@@ -440,7 +440,7 @@ URLRequest * Httploader_request(URLRequest *urlrequest)
 				{
 					int bytes = 0;
 					if ((bytes = recv(sock, urlrequest->data + dataReceived, urlrequest->respond->contentLength - dataReceived, 0)) < 1) {
-						printf("recv data error!!!!!!!!!!!\n");
+						printf("SDL: recv data error!!!!!!!!!!!\n");
 						break;
 					}
 					dataReceived += bytes;
@@ -494,14 +494,17 @@ URLRequest*URLRequest_setAuthorization(URLRequest*urlrequest,char*userName,char*
 
 char * loadUrl(char * url,size_t* len)
 {
-	int statusCode;
+	int statusCode=0;
 	URLRequest * urlrequest = NULL;
 	char * data = NULL;
 
+	printf("SDL: URLRequest_new url:%s\n",url);
 	urlrequest = URLRequest_new(url);
+	if(urlrequest==NULL || urlrequest->host==NULL)
+		return NULL;
 	urlrequest = Httploader_request(urlrequest);
 	statusCode = urlrequest->statusCode;
-	printf("statusCode:%d\n",statusCode);
+	printf("SDL: statusCode:%d\n",statusCode);
 	if((statusCode >= 200 && statusCode<300) || statusCode==304){
 		//if(urlrequest->respond->contentLength == strlen(urlrequest->data))
 		{
@@ -512,6 +515,9 @@ char * loadUrl(char * url,size_t* len)
 			if(urlrequest->data)
 				memcpy(data,urlrequest->data,urlrequest->respond->contentLength+1);
 		}
+	}else{
+		if(len)
+			*len = 0;
 	}
 	URLRequest_clear(urlrequest);
 	return data;
@@ -526,6 +532,8 @@ char * loadUrl(char * url,size_t* len)
 #endif
 int main(int argc, char *argv[]) 
 {
+	loadUrl("http://fanyi.baidu.com/gettts?lan=uk&spd=2&source=alading&text=masquerade",NULL);
+	return 0;
 
 	URLRequest * urlrequest = NULL;
 	int statusCode;
@@ -542,8 +550,8 @@ int main(int argc, char *argv[])
 	if((statusCode >= 200 && statusCode<300) || statusCode==304){
 		if(urlrequest->respond->contentLength == strlen(urlrequest->data))
 		{
-			printf("repond data:\n%s\n",urlrequest->data);
-			printf("repond data:\n%d\n",urlrequest->respond->contentLength);
+			printf("SDL: repond data:\n%s\n",urlrequest->data);
+			printf("SDL: repond data:\n%d\n",urlrequest->respond->contentLength);
 			fflush(stdout);
 		}
 	}
@@ -572,7 +580,7 @@ int main(int argc, char *argv[])
 		if(urlrequest->respond->contentLength == strlen(urlrequest->data))
 		{
 			//printf("repond data:\n%s\n",urlrequest->data);
-			printf("repond datalength:%d\n",urlrequest->respond->contentLength);
+			printf("SDL: repond datalength:%d\n",urlrequest->respond->contentLength);
 			fflush(stdout);
 		}
 	}

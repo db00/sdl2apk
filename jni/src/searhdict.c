@@ -226,7 +226,7 @@ void stopInput(SpriteEvent* e){
 }
 
 static void keyupEvent(SpriteEvent* e){
-	if(dictContainer==NULL && dictContainer->visible==0)
+	if(dictContainer==NULL || dictContainer->visible==0)
 		return;
 	SDL_Event *event = e->e;
 	const char * kname = SDL_GetKeyName(event->key.keysym.sym);

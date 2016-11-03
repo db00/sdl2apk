@@ -66,7 +66,7 @@ typedef int socklen_t;
 #include "mystring.h"
 
 //https://github.com/guardianproject/openssl-android.git
-#if !defined(__IPHONEOS__) && !defined(__ANDROID__) && !defined(__MACOS__)
+#if !defined(__IPHONEOS__) && !defined(__MACOS__)
 //openssl is not supported by apple from mac os 10.7
 // or Use  -Wno-error=deprecated-declarations while compile
 #include <openssl/crypto.h>

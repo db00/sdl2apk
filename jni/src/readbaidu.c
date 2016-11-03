@@ -53,25 +53,25 @@ static int plays(char *url,char * fileName)
 	SDL_Log("plays:%s,%s",url,fileName);
 	size_t data_length = 0;
 	char * data = loadUrl(url,&data_length);
+	if(data==NULL || data_length==0)
+		return 1;
+	SDL_Log("plays:%s,%s",url,fileName);
 	if(fileName){
-		if(data && data_length>0)
-			if(writefile(fileName,data,data_length)==0) {
-				if(strcmp(fileName+strlen(fileName)-4,".mp3")==0)
-				{
-					if(stage->sound==NULL){
-						stage->sound=Sound_new(16000);
-						//stage->sound=Sound_new(44100);
-					}
-					if(Sound_playFile(stage->sound,fileName))
-						stage->sound = NULL;
-					free(data);
-					return 0;
+		if(writefile(fileName,data,data_length)==0) {
+			if(strcmp(fileName+strlen(fileName)-4,".mp3")==0)
+			{
+				if(stage->sound==NULL){
+					stage->sound=Sound_new(16000);
+					//stage->sound=Sound_new(44100);
 				}
-				SDL_Log("writefile successfully!\n");
+				if(Sound_playFile(stage->sound,fileName))
+					stage->sound = NULL;
+				free(data);
+				return 0;
 			}
-	}
-	if(data)
-	{
+			SDL_Log("writefile successfully!\n");
+		}
+	}else{
 		if(stage->sound==NULL){
 			stage->sound=Sound_new(16000);
 			//stage->sound=Sound_new(44100);

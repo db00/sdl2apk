@@ -6,19 +6,17 @@ git remote -v
 git remote add origin https://github.com/db00/sdl2apk.git
 git push -u origin master
 
-#push an existing repository
 git config receive.denyCurrentBranch ignore
 git reset --hard
 
+#push an existing repository
 git remote add rpi pi@rpi:~/sdl2apk
 git push rpi master
 git push -u rpi master
 git remote -v
 git pull rpi
 
-
 git remote rm rpi
-
 
 git config --global push.default simple
 git config --global user.name "db0"

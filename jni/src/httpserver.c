@@ -384,7 +384,6 @@ int send_dir(Server*server,Client *client)
 		if(reletivepath==NULL)
 			continue;
 
-#ifdef linux
 		//send_str(client->fd, "<a href=\"http://%s/%s\">%s",client->host,reletivepath,dirent->d_name);
 		char*encoded_url = url_encode(reletivepath,strlen(reletivepath),NULL,1);
 		send_str(client->fd, "<a href=\"http://%s/%s\">%s",client->host,encoded_url,dirent->d_name);
@@ -392,14 +391,7 @@ int send_dir(Server*server,Client *client)
 			free(encoded_url);
 			encoded_url = NULL;
 		}
-#else
-		char*encoded_url = url_encode(reletivepath,strlen(reletivepath),NULL,1);
-		send_str(client->fd, "<a href=\"http://%s/%s\">%s",client->host,encoded_url,dirent->d_name);
-		if(encoded_url){
-			free(encoded_url);
-			encoded_url = NULL;
-		}
-#endif
+
 		real_path = web2realpath(server,reletivepath);
 		//printf("\n host:%s , reletivepath: %s, real_path:%s\n",client->host,reletivepath,real_path);
 		if(reletivepath){

@@ -4,8 +4,13 @@ ifneq ($(OS),Windows_NT)
 OS:=$(shell uname)
 endif
 #JAVA_HOME:=/usr/lib/jvm/java-8-openjdk-i386/jre
+ifeq ($(OS),Darwin)
+NDK_HOME:= $(HOME)/android-ndk-r9c
+SDK_HOME:= $(HOME)/android-sdk_r24-macosx/tools
+else
 NDK_HOME:= $(HOME)/android-ndk-r10
 SDK_HOME:= $(HOME)/android-sdk-linux/tools
+endif
 APK_DIR:= $(PROJ_PATH)/bin
 APP_NAME=test
 PACKAGE:=my.test
@@ -16,8 +21,6 @@ SRC_DIR:=.
 ifeq ($(OS),Darwin)
 INCLUDE_ROOT=/usr/local/include
 INCLUDE:=-I"$(INCLUDE_ROOT)/SDL2/" -I"$(INCLUDE_ROOT)/SDL2_ttf/" -I"$(INCLUDE_ROOT)/SDL2_image/" -I"$(INCLUDE_ROOT)/SDL2_mixer/" 
-#xcodebuild -project Xcode/SDL/SDL.xcodeproj/ -target Framework
-#~/SDL2-x.x.x/Xcode/SDL/build/Debug/SDL2.framework
 else
 INCLUDE_ROOT=..
 INCLUDE:=-I"$(INCLUDE_ROOT)/SDL2/include/" -I"$(INCLUDE_ROOT)/SDL2_ttf/" -I"$(INCLUDE_ROOT)/SDL2_image/" -I"$(INCLUDE_ROOT)/SDL2_mixer/" 
@@ -26,25 +29,24 @@ endif
 DEFINES:= -DSTDC_HEADERS
 # -D debug_sprite
 KEY:=$(PROJ_PATH)/my.keystore
-ifeq ($(OS),Windows_NT)
-	TARGET:= a.exe
-	LIB:=-L"." -L"lib"  -lssl -lcrypto -lwsock32 -lgdi32 -lSDL2_mixer -lSDL2_image -lSDL2_ttf -liconv -lpthread -D test_ime -lavformat -lavcodec -lavutil -lswscale -lopengl32 -lmingw32 -lSDL2main -lSDL2
-	SRC:=\
-		sprite.c matrix.c myregex.c kodi.c jsonrpc.c files.c httploader.c ipstring.c mystring.c cJSON.c \
-		dict.c \
-		readbaidu.c update.c testime.c textfield.c \
-		tween.c ease.c \
-		urlcode.c filetypes.c httpserver.c array.c base64.c mysurface.c regex.c lib/libssl.a lib/libcrypto.a lib/libeay32.dll.a lib/libssl32.dll.a# sprite.c sqlite3.c 
-else
-	TARGET:= ./a.out
-	LIB:=-L"/usr/local/lib/" -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lm -lSDL2 -ldl -lssl -lcrypto -lpthread -D test_ime # -lavformat -lavcodec -lavutil -lswscale 
-#-framework OpenGL -framework GLUT -framework SDL2 -framework SDL2_mixer -framework SDL2_ttf -framework SDL2_image -framework Foundation
-	SRC:=\
+SRC:=\
 		sprite.c matrix.c input.c myregex.c kodi.c utf8.c jsonrpc.c files.c httploader.c ipstring.c mystring.c cJSON.c \
 		dict.c \
 		readbaidu.c update.c testime.c textfield.c read_card.c pinyin.c music.c searhdict.c\
 		tween.c ease.c \
 		urlcode.c filetypes.c httpserver.c array.c base64.c mysurface.c
+
+LIB:=-L"/usr/local/lib/" -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lm -lSDL2 -ldl -lssl -lcrypto -lpthread -D test_ime # -lavformat -lavcodec -lavutil -lswscale 
+ifeq ($(OS),Windows_NT)
+	TARGET:= a.exe
+	LIB:=$(LIB) -L"." -L"lib"  -lwsock32 -lgdi32 -liconv  -lopengl32 -lmingw32 -lSDL2main # lib/libssl.a lib/libcrypto.a lib/libeay32.dll.a lib/libssl32.dll.a#  -lavformat -lavcodec -lavutil -lswscale
+	SRC:= $(SRC) regex.c
+else
+	TARGET:= ./a.out
+ifeq ($(OS),Darwin)
+#-framework OpenGL -framework GLUT -framework SDL2 -framework SDL2_mixer -framework SDL2_ttf -framework SDL2_image -framework Foundation
+	LIB:=$(LIB) -liconv
+endif
 endif
 #SRC:= $(foreach x,${SRC_DIR}, $(wildcard $(addprefix ${x}/*,.c)))
 OBJS:= $(patsubst %.c,%.o,$(SRC))

@@ -156,11 +156,7 @@ int rmDir(char *p)
 	char*cmd= malloc(strlen(path)+16);
 	memset(cmd,0,cmdlen);
 	//printf("cmd",cmd);
-#ifdef linux
 	sprintf(cmd,"rm -rf \"%s\"",path);
-#else
-	sprintf(cmd,"rm -rf \"%s\"",path);
-#endif
 	int r = system(cmd);
 	free(cmd);
 	free(path);

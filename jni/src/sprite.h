@@ -1,6 +1,6 @@
 /**
  * @file sprite.h
- gcc -Wall -I"../SDL2/include/" array.c sprite.c matrix.c -lSDL2 -lm -Ddebug_sprite && ./a.out
+ gcc -Wall -I"../SDL2/include/" array.c sprite.c matrix.c files.c mystring.c myregex.c -lSDL2 -lm -Ddebug_sprite && ./a.out
  gcc -Wall -I"../SDL2/include/" sprite.c matrix.c array.c -lmingw32 -lSDL2main -lSDL2 -Ddebug_sprite && a
  *  
  * @author db0@qq.com
@@ -11,10 +11,11 @@
 #define sprite_h
 
 #include "SDL.h"
+#include "SDL_platform.h"
 #include "matrix.h"
 #include "array.h"
 
-#if defined(__MACOS__) || ( !defined(__IPHONEOS__) && !defined(__ANDROID__) && !defined(__EMSCRIPTEN__) && !defined(__NACL__)) && !linux 
+#if defined(__MACOS__) || ( !defined(__IPHONEOS__) && !defined(__ANDROID__) && !defined(__EMSCRIPTEN__) && !defined(__NACL__)) && !defined(linux)
 #ifndef HAVE_OPENGL
 #define HAVE_OPENGL
 #endif

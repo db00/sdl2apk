@@ -8,6 +8,7 @@ git push -u origin master
 
 #push an existing repository
 git remote add rpi pi@rpi:~/sdl2apk
+git push rpi master
 git push -u rpi master
 git remote -v
 git pull rpi

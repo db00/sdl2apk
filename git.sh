@@ -25,6 +25,6 @@ git push origin master
 git push --set-upstream origin master
 
 ssh-keygen -t rsa -C "db0@qq.com"
-#cp ~/.ssh/id_rsa.pub to github(Settings/SSH Keys)
+#cp ~/.ssh/id_rsa.pub to github(Settings/SSH Keys)  server .ssh/authorized_kesys
 ssh -T git@github.com
 

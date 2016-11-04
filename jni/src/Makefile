@@ -13,8 +13,9 @@ SDK_HOME:= $(HOME)/android-sdk-linux/tools
 endif
 APK_DIR:= $(PROJ_PATH)/bin
 APP_NAME=test
-PACKAGE:=my.test
-CLASS_NAME:=Test
+PACKAGE:=my.app
+PACKAGE2:=$(subst .,_,$(PACKAGE))#将"."替换成"_"
+CLASS_NAME:=New
 APK:= $(APK_DIR)/$(APP_NAME)-debug.apk
 CC:=gcc
 SRC_DIR:=.
@@ -88,11 +89,9 @@ endif
 $(TARGET):$(OBJS)
 	$(CC) -o $@ $^ $(CFLAGS)
 
-#$(TARGET):$(foreach x,${SRC_DIR}, $(wildcard $(addprefix ${x}/*,.h))) $(foreach x,${SRC_DIR}, $(wildcard $(addprefix ${x}/*,.c))) Makefile
-#	$(CC) $(SRC) -o $(TARGET) $(CFLAGS)
-#	$(TARGET) || gdb $(TARGET)
-
 update:
+	sed -e 's/org_libsdl_app/$(PACKAGE2)/' -e 's/SDLActivity/$(CLASS_NAME)/g' $(PROJ_PATH)/jni/SDL2/src/main/android/SDL_android_main.c > tmp; cat tmp > $(PROJ_PATH)/jni/SDL2/src/main/android/SDL_android_main.c
+	sed -e 's/org_libsdl_app/$(PACKAGE2)/' -e 's/SDLActivity/$(CLASS_NAME)/g' $(PROJ_PATH)/jni/SDL2/src/core/android/SDL_android.c > tmp; cat tmp > $(PROJ_PATH)/jni/SDL2/src/core/android/SDL_android.c ; rm tmp
 	rm -rf $(PROJ_PATH)/bin
 	$(SDK_HOME)/android --clear-cache update project --name $(APP_NAME) --path $(PROJ_PATH) --target "android-14"  --subprojects
 

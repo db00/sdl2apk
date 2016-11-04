@@ -15,6 +15,7 @@
 #include "matrix.h"
 #include "array.h"
 
+#define HAVE_OPENGL
 #if defined(__MACOS__) || ( !defined(__IPHONEOS__) && !defined(__ANDROID__) && !defined(__EMSCRIPTEN__) && !defined(__NACL__)) && !defined(linux)
 #ifndef HAVE_OPENGL
 #define HAVE_OPENGL

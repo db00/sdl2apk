@@ -46,8 +46,7 @@ ifeq ($(OS),Windows_NT)
 else
 	TARGET:= ./a.out
 ifeq ($(OS),Darwin)
-#-framework OpenGL -framework GLUT -framework SDL2 -framework SDL2_mixer -framework SDL2_ttf -framework SDL2_image -framework Foundation
-	LIB:=$(LIB) -liconv
+	LIB:=$(LIB) -liconv # -framework OpenGL -framework GLUT -framework SDL2 -framework SDL2_mixer -framework SDL2_ttf -framework SDL2_image -framework Foundation
 endif
 endif
 #SRC:= $(foreach x,${SRC_DIR}, $(wildcard $(addprefix ${x}/*,.c)))
@@ -60,7 +59,7 @@ all:$(TARGET)
 ifeq ($(OS),Windows_NT)
 #	@echo $(shell set)
 else	
-ifeq ($(OS),Darwin)
+ifeq ($(OS),Darwin0)
 	xcode-select -switch /Applications/Xcode.app/Contents/Developer
 	#进入项目文件（xxx.xcodeproj）所在的文件夹
 #编译

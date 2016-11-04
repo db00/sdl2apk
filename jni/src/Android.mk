@@ -15,10 +15,10 @@ LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)/$(SDL2image_PATH) \
 	$(LOCAL_PATH)/$(SDL2ttf_PATH) \
 	$(LOCAL_PATH)/$(SDL2mixer_PATH) \
-	$(ANDROID_NDK)/sources/ffmpeg\
 	$(LOCAL_PATH)/include \
 	#	$(LOCAL_PATH)/$(libxml_PATH)/include \
 	$(LOCAL_PATH)/$(libiconv_PATH)/include \
+#	$(ANDROID_NDK)/sources/ffmpeg\
 
 
 # Add your application source files here...
@@ -108,6 +108,6 @@ LOCAL_CFLAGS += -D test_ime
 LOCAL_CFLAGS += -D test_video
 #LOCAL_CFLAGS += -D debug_sprite
 
-include $(BUILD_SHARED_LIBRARY)
+#include $(BUILD_SHARED_LIBRARY)
 #include $(BUILD_STATIC_LIBRARY)
-$(call import-module,ffmpeg/android/arm)
+#$(call import-module,ffmpeg/android/arm)

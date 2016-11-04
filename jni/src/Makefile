@@ -19,10 +19,13 @@ CLASS_NAME:=New
 APK:= $(APK_DIR)/$(APP_NAME)-debug.apk
 CC:=gcc
 SRC_DIR:=.
+INCLUDE_ROOT:=..
 ifeq ($(OS),Darwin)
 INCLUDE_ROOT:=/usr/local/include
 else
+ifeq ($(OS),Linux)
 INCLUDE_ROOT:=/usr/include
+endif
 endif
 INCLUDE:=-I"$(INCLUDE_ROOT)/SDL2/"
 # -I"$(ANDROID_NDK_HOME)/sources/ffmpeg/android/arm/include/"

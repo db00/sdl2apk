@@ -1047,6 +1047,14 @@ Sprite*Sprite_addChild(Sprite*parent,Sprite*sprite)
 	return Sprite_addChildAt(parent,sprite,parent->children->length);
 }
 
+#if !SDL_VERSION_ATLEAST(2,0,4)
+SDL_bool SDL_PointInRect(const SDL_Point *p, const SDL_Rect *r)
+{
+    return ( (p->x >= r->x) && (p->x < (r->x + r->w)) &&
+             (p->y >= r->y) && (p->y < (r->y + r->h)) ) ? SDL_TRUE : SDL_FALSE;
+}
+#endif
+
 //is the point in the sprite
 int isPointInSprite(Sprite * sprite,SDL_Point * p)
 {

@@ -19,12 +19,12 @@ CLASS_NAME:=New
 APK:= $(APK_DIR)/$(APP_NAME)-debug.apk
 CC:=gcc
 SRC_DIR:=.
-ifeq ($(OS),Darwin)
 INCLUDE_ROOT=/usr/local/include
+ifeq ($(OS),Darwin)
 INCLUDE:=-I"$(INCLUDE_ROOT)/SDL2/" -I"$(INCLUDE_ROOT)/SDL2_ttf/" -I"$(INCLUDE_ROOT)/SDL2_image/" -I"$(INCLUDE_ROOT)/SDL2_mixer/" 
 else
-INCLUDE_ROOT=..
-INCLUDE:=-I"$(INCLUDE_ROOT)/SDL2/include/" -I"$(INCLUDE_ROOT)/SDL2_ttf/" -I"$(INCLUDE_ROOT)/SDL2_image/" -I"$(INCLUDE_ROOT)/SDL2_mixer/" 
+#INCLUDE_ROOT=..
+INCLUDE:=-I"$(INCLUDE_ROOT)/SDL2/"
 endif
 # -I"$(ANDROID_NDK_HOME)/sources/ffmpeg/android/arm/include/"
 DEFINES:= -D STDC_HEADERS -D test_ime

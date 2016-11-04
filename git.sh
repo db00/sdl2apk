@@ -7,13 +7,13 @@ git remote add origin https://github.com/db00/sdl2apk.git
 git push -u origin master
 
 #push an existing repository
-git remote add pi pi@rpi:~/sdl2apk
-git push -u pi master
+git remote add rpi pi@rpi:~/sdl2apk
+git push -u rpi master
 git remote -v
-git pull pi
+git pull rpi
 
 
-git remote rm pi
+git remote rm rpi
 
 
 git config --global push.default simple

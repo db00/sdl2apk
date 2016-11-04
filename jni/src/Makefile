@@ -31,10 +31,8 @@ DEFINES:= -DSTDC_HEADERS
 KEY:=$(PROJ_PATH)/my.keystore
 SRC:=\
 		sprite.c matrix.c input.c myregex.c kodi.c utf8.c jsonrpc.c files.c httploader.c ipstring.c mystring.c cJSON.c \
-		dict.c \
-		readbaidu.c update.c testime.c textfield.c read_card.c pinyin.c music.c searhdict.c\
-		tween.c ease.c \
-		urlcode.c filetypes.c httpserver.c array.c base64.c mysurface.c
+		dict.c readbaidu.c update.c testime.c textfield.c read_card.c pinyin.c music.c searhdict.c\
+		tween.c ease.c urlcode.c filetypes.c httpserver.c array.c base64.c mysurface.c
 
 LIB:=-L"/usr/local/lib/" -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lm -lSDL2 -ldl -lssl -lcrypto -lpthread -D test_ime # -lavformat -lavcodec -lavutil -lswscale 
 ifeq ($(OS),Windows_NT)

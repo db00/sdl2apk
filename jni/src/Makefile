@@ -6,16 +6,17 @@ endif
 #JAVA_HOME:=/usr/lib/jvm/java-8-openjdk-i386/jre
 ifeq ($(OS),Darwin)
 NDK_HOME:= $(HOME)/android-ndk-r9c
-SDK_HOME:= $(HOME)/android-sdk_r24-macosx/tools
+SDK_HOME:= $(HOME)/android-sdk-macosx/tools
 else
 NDK_HOME:= $(HOME)/android-ndk-r10
 SDK_HOME:= $(HOME)/android-sdk-linux/tools
 endif
 APK_DIR:= $(PROJ_PATH)/bin
 APP_NAME=test
-PACKAGE:=my.app
+PACKAGE:=my.test
 PACKAGE2:=$(subst .,_,$(PACKAGE))#将"."替换成"_"
-CLASS_NAME:=New
+PACKAGE3:=$(subst .,/,$(PACKAGE))#将"."替换成"_"
+CLASS_NAME:=Test
 APK:= $(APK_DIR)/$(APP_NAME)-debug.apk
 CC:=gcc
 SRC_DIR:=.
@@ -52,7 +53,8 @@ endif
 #SRC:= $(foreach x,${SRC_DIR}, $(wildcard $(addprefix ${x}/*,.c)))
 OBJS:= $(patsubst %.c,%.o,$(SRC))
 
-CFLAGS =  -g $(INCLUDE) $(DEFINES) $(LIB)
+CFLAGS :=  -g $(INCLUDE) $(DEFINES) $(LIB)
+#SDL_PATH:=$(HOME)/SDL2-2.0.5/
 
 all:$(TARGET)
 ifeq ($(OS),Windows_NT)
@@ -92,8 +94,14 @@ $(TARGET):$(OBJS)
 	$(CC) -o $@ $^ $(CFLAGS)
 
 update:
-	sed -e 's/org_libsdl_app/$(PACKAGE2)/' -e 's/SDLActivity/$(CLASS_NAME)/g' $(PROJ_PATH)/jni/SDL2/src/main/android/SDL_android_main.c > tmp; cat tmp > $(PROJ_PATH)/jni/SDL2/src/main/android/SDL_android_main.c
-	sed -e 's/org_libsdl_app/$(PACKAGE2)/' -e 's/SDLActivity/$(CLASS_NAME)/g' $(PROJ_PATH)/jni/SDL2/src/core/android/SDL_android.c > tmp; cat tmp > $(PROJ_PATH)/jni/SDL2/src/core/android/SDL_android.c ; rm tmp
+ifdef SDL_PATH
+	rm -rf $(PROJ_PATH)/jni/SDL2/* ; cp -r $(SDL_PATH)/src $(PROJ_PATH)/jni/SDL2/src ; cp -r $(SDL_PATH)/include $(PROJ_PATH)/jni/SDL2/include ; cp -r $(SDL_PATH)/Android.mk $(PROJ_PATH)/jni/SDL2/Androi.mk ;
+	sed -e 's/org.libsdl.app/$(PACKAGE)/' -e 's/SDLActivity/$(CLASS_NAME)/g' $(SDL_PATH)/android-project/src/org/libsdl/app/SDLActivity.java > tmp ; cat tmp > $(PROJ_PATH)/src/$(PACKAGE3)/$(CLASS_NAME).java
+	sed -e 's/org_libsdl_app/$(PACKAGE2)/' -e 's/SDLActivity/$(CLASS_NAME)/g' $(SDL_PATH)/src/main/android/SDL_android_main.c > $(PROJ_PATH)/jni/SDL2/src/main/android/SDL_android_main.c
+	sed -e 's/org_libsdl_app/$(PACKAGE2)/' -e 's/SDLActivity/$(CLASS_NAME)/g' $(SDL_PATH)/src/core/android/SDL_android.c > $(PROJ_PATH)/jni/SDL2/src/core/android/SDL_android.c ; rm tmp
+	sed -e 's/org_libsdl_app/$(PACKAGE2)/' -e 's/SDLActivity/$(CLASS_NAME)/' Android.mk > tmp ; cat tmp >  Android.mk
+	sed -e 's/SDLActivity/$(CLASS_NAME)/g' -e 's/org.libsdl.app/$(PACKAGE)/' -e 's/<application /$(permission)<application /' $(PROJ_PATH)/AndroidManifest.xml > tmp ; cat tmp > $(PROJ_PATH)/AndroidManifest.xml 
+endif
 	rm -rf $(PROJ_PATH)/bin
 	$(SDK_HOME)/android --clear-cache update project --name $(APP_NAME) --path $(PROJ_PATH) --target "android-14"  --subprojects
 

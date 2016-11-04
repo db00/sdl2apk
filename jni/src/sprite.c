@@ -1,6 +1,7 @@
 /**
  * @file sprite.c
  gcc -g -Wall -I"../SDL2/include/" array.c sprite.c matrix.c files.c mystring.c myregex.c -lSDL2 -lm -Ddebug_sprite && ./a.out
+ gcc -g -Wall -I"/usr/include/SDL2" array.c sprite.c matrix.c files.c mystring.c myregex.c -lSDL2 -lm -Ddebug_sprite && ./a.out
  gcc -g -Wall -I"../SDL2/include/" sprite.c array.c matrix.c -lopengl32 -lmingw32 -lSDL2main -lSDL2 -Ddebug_sprite && a
  apt-get install -y libpcap-dev libsqlite3-dev sqlite3 libpcap0.8-dev libssl-dev build-essential iw tshark
  * @author db0@qq.com
@@ -1050,8 +1051,8 @@ Sprite*Sprite_addChild(Sprite*parent,Sprite*sprite)
 #if !SDL_VERSION_ATLEAST(2,0,4)
 SDL_bool SDL_PointInRect(const SDL_Point *p, const SDL_Rect *r)
 {
-    return ( (p->x >= r->x) && (p->x < (r->x + r->w)) &&
-             (p->y >= r->y) && (p->y < (r->y + r->h)) ) ? SDL_TRUE : SDL_FALSE;
+	return ( (p->x >= r->x) && (p->x < (r->x + r->w)) &&
+			(p->y >= r->y) && (p->y < (r->y + r->h)) ) ? SDL_TRUE : SDL_FALSE;
 }
 #endif
 
@@ -2004,6 +2005,10 @@ static void mouseMove(SpriteEvent*e)
 int main(int argc, char *argv[])
 {
 	Stage_init(1);
+#if SDL_VERSION_ATLEAST(2,0,5)
+	printf("set opacity\n");
+	//SDL_SetWindowOpacity(stage->window,.5);
+#endif
 	Sprite_addEventListener(stage->sprite,SDL_MOUSEBUTTONDOWN,mouseDown);
 	char * path = decodePath("~/sound/1.bmp");
 	if(stage->GLEScontext == NULL){

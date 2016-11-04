@@ -26,7 +26,7 @@ INCLUDE_ROOT=..
 INCLUDE:=-I"$(INCLUDE_ROOT)/SDL2/include/" -I"$(INCLUDE_ROOT)/SDL2_ttf/" -I"$(INCLUDE_ROOT)/SDL2_image/" -I"$(INCLUDE_ROOT)/SDL2_mixer/" 
 endif
 # -I"$(ANDROID_NDK_HOME)/sources/ffmpeg/android/arm/include/"
-DEFINES:= -DSTDC_HEADERS
+DEFINES:= -D STDC_HEADERS -D test_ime
 # -D debug_sprite
 KEY:=$(PROJ_PATH)/my.keystore
 SRC:=\
@@ -34,7 +34,7 @@ SRC:=\
 		dict.c readbaidu.c update.c testime.c textfield.c read_card.c pinyin.c music.c searhdict.c\
 		tween.c ease.c urlcode.c filetypes.c httpserver.c array.c base64.c mysurface.c
 
-LIB:=-L"/usr/local/lib/" -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lm -lSDL2 -ldl -lssl -lcrypto -lpthread -D test_ime # -lavformat -lavcodec -lavutil -lswscale 
+LIB:=-L"/usr/local/lib/" -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lm -lSDL2 -ldl -lssl -lcrypto -lpthread # -lavformat -lavcodec -lavutil -lswscale 
 ifeq ($(OS),Windows_NT)
 	TARGET:= a.exe
 	LIB:=$(LIB) -L"." -L"lib"  -lwsock32 -lgdi32 -liconv  -lopengl32 -lmingw32 -lSDL2main # lib/libssl.a lib/libcrypto.a lib/libeay32.dll.a lib/libssl32.dll.a#  -lavformat -lavcodec -lavutil -lswscale

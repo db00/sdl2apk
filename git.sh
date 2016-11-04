@@ -8,6 +8,7 @@ git push -u origin master
 
 #push an existing repository
 git config receive.denyCurrentBranch ignore
+git reset --hard
 
 git remote add rpi pi@rpi:~/sdl2apk
 git push rpi master

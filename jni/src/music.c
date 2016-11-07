@@ -189,7 +189,11 @@ int Sound_playFile(Sound*sound,char * file)
 
 int Sound_playData(Sound*sound,char * data,size_t data_length)
 {
+#ifdef __x86_64__
 	SDL_Log("Sound_playData:0x%llx,%d",(unsigned long long int)data,(int)data_length);
+#elif __i386__
+	SDL_Log("Sound_playData:0x%llx,%d",(unsigned int)data,(int)data_length);
+#endif
 	if(data==NULL || data_length==0)
 		return 1;
 	if(sound==NULL)

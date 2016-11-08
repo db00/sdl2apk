@@ -152,10 +152,10 @@ FILE * Dict_open(Dict *dict)
 			char *idxfilesize = "idxfilesize=";
 			if(strncasecmp(curpara,wordcount,strlen(wordcount))==0) {
 				dict->wordcount=atoi(curpara+strlen(wordcount));
-				//printf("dict->wordcount:%d,",dict->wordcount);
+				printf("dict->wordcount:%d,",dict->wordcount);
 			}else if(strncasecmp(curpara,idxfilesize,strlen(idxfilesize))==0) {
 				dict->idxfilesize=atoi(curpara+strlen(idxfilesize));
-				//printf("dict->idxfilesize:%d,",dict->idxfilesize);
+				printf("dict->idxfilesize:%d,",dict->idxfilesize);
 			}
 			curpara = strtok(NULL,"\r\n");
 		}

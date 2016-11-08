@@ -35,9 +35,30 @@ static int regex_compile(regex_t * re ,const char *regString)
 		while(*flags){
 			switch(*flags)
 			{
+				/**
+				  REG_EXTENDED 以功能更加强大的扩展正则表达式的方式进行匹配。
+				  REG_ICASE 匹配字母时忽略大小写。
+				  REG_NOSUB 不用存储匹配后的结果。
+				  REG_NEWLINE 识别换行符，这样'$'就可以从行尾开始匹配，'^'就可以从行的开头开始匹配。
+				  */
 				case 'i':
 					flag |= REG_ICASE;
+					printf("REG_ICASE,");
 					break;
+					/*
+					   case 'm':
+					   printf("REG_NEWLINE,");
+					   flag |= REG_NEWLINE;
+					   break;
+					   case 'e':
+					   printf("REG_EXTENDED,");
+					   flag |= REG_EXTENDED;
+					   break;
+					   case 'n':
+					   printf("REG_NOSUB,");
+					   flag |= REG_NOSUB;
+					   break;
+					   */
 			}
 			++flags;
 		}

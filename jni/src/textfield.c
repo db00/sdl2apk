@@ -83,8 +83,8 @@ Array * Font_getlist()
 	ttfDir ="/system/fonts";	
 #elif defined(linux)
 	ttfDir ="/usr/share/fonts";	
-#else
-	ttfDir ="/usr/share/fonts";	
+#elif defined(__MACOSX__)
+	ttfDir ="/Library/Fonts";	
 #endif
 	int fontSize = 12;
 	if(fontFileList == NULL){
@@ -341,11 +341,8 @@ void setLineTexture(TextField*textfield,TextLine*line)
 		}
 		else
 		{
-#ifdef linux
+			//surface= TTF_RenderUTF8_Blended(textfield->format->font, line->text, *(textfield->textColor));
 			surface= TTF_RenderUTF8_Solid(textfield->format->font, line->text, *(textfield->textColor));
-#else
-			surface= TTF_RenderUTF8_Blended(textfield->format->font, line->text, *(textfield->textColor));
-#endif
 		}
 
 		if(surface){
@@ -657,7 +654,7 @@ TextField *TextField_appendText(TextField*textfield,char*s)
 		dealedlen = strlen(textfield->text);
 	}
 
-	textfield->text = append_str(textfield->text,s);
+	textfield->text = contact_str(textfield->text,s);
 	//printf("textfield:%s\n",textfield->text);fflush(stdout);
 	//return textfield;
 
@@ -840,7 +837,7 @@ TextField * TextField_setText(TextField*textfield,char *s)
 		if(textfield->posSprite)
 			textfield->posSprite->visible = 0;
 
-		textfield->text = append_str(textfield->text,s);
+		textfield->text = contact_str(textfield->text,s);
 		//printf("textfield->text = %s\n",textfield->text); fflush(stdout);
 		TextField_appendText(textfield,textfield->text);
 	}
@@ -856,13 +853,16 @@ int main(int argc, char *argv[])
 	TextField* txt = TextField_new();//txt = TextField_setText(txt,getLinkedVersionString());
 	//txt->x = stage->stage_w/4;
 	//txt->y = stage->stage_h/4;
-	txt->format->font = getFontByPath("DroidSansFallback.ttf",24);
+	//txt->format->font = getFontByPath("DroidSansFallback.ttf",24);
+	txt->format->font = getDefaultFont(24);
 	txt->w = stage->stage_w;
 	txt->h = stage->stage_h;
 	txt->sprite->canDrag = 1;
 
 
 	//char *s =NULL;
+	txt = TextField_setText(txt,SDL_GetBasePath());
+	txt=TextField_appendText(txt,"\n");
 	txt = TextField_appendText(txt,SDL_GetBasePath());
 	//SDL_Log("basepath:%s\n",s);
 	//TextField_setText(txt,"");

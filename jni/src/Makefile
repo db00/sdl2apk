@@ -86,7 +86,8 @@ endif
 
 endif
 	echo $(OS)
-	gdb $(TARGET)
+#	gdb $(TARGET)
+	$(TARGET)
 	@echo "all ok"
 
 $(TARGET):$(OBJS)

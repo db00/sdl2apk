@@ -1,6 +1,6 @@
 /**
  * @file myttf.h
- gcc -Wall -g -I"/usr/include/SDL2/" utf8.c array.c tween.c ease.c textfield.c matrix.c sprite.c sdlstring.c mystring.c files.c -lSDL2_ttf -lSDL2 -lm -D debugtext && ./a.out
+ gcc -Wall -g -I"/usr/include/SDL2/" utf8.c array.c tween.c ease.c textfield.c matrix.c sprite.c sdlstring.c mystring.c myregex.c files.c -lSDL2_ttf -lSDL2 -lm -D debugtext && ./a.out
  gcc -Wall -g -I"../SDL2/include/" -I"../SDL2_image/" -I"../SDL2_ttf/" array.c tween.c ease.c textfield.c matrix.c sprite.c sdlstring.c mystring.c files.c -lSDL2_ttf -lmingw32 -lSDL2main -lSDL2 -D debugtext && a
  gcc -Wall -I"../SDL2/include/" -I"../SDL2_image/" -I"../SDL2_ttf/" array.c tween.c ease.c httploader.c ipstring.c base64.c sdlstring.c textfield.c matrix.c sprite.c mystring.c files.c -lSDL2_image -lSDL2_ttf -lm -lSDL2 -D debugtext -lssl -lcrypto && ./a.out
  *  
@@ -11,6 +11,7 @@
 #ifndef _MY_TTF_H
 #define _MY_TTF_H
 
+#include "SDL_platform.h"
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>

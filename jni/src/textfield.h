@@ -11,11 +11,9 @@
 #ifndef _MY_TTF_H
 #define _MY_TTF_H
 
-#include "SDL_platform.h"
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
-#include "SDL_ttf.h"
 #include "sprite.h"
 #include "files.h"
 #include "utf8.h"

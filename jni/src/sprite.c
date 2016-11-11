@@ -404,6 +404,7 @@ Stage * Stage_init(int is3D)
 					(is3D?SDL_WINDOW_OPENGL:0)|SDL_WINDOW_RESIZABLE);
 			if(stage->window){
 				SDL_ShowWindow(stage->window);
+				SDL_GetWindowSize(stage->window, &stage->stage_w, &stage->stage_h);
 			}else{
 				quit(1);
 				return NULL;

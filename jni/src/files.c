@@ -12,14 +12,16 @@ char * decodePath(char * path)
 	char * p = path;
 	if(*p=='~'){
 		char * home = NULL;
-#ifndef __ANDROID__
+#if defined(__ANDROID__)
+		home = contact_str("","/sdcard");
+#elif defined(__IPHONEOS__)
+		home = contact_str("",".");
+#else
 		char * _home = mysystem("echo $HOME",NULL);
 		if(_home==NULL)
 			return contact_str("",path);
 		home = regex_replace_all(_home,"/[\r\n]/g","");
 		free(_home);
-#else
-		home = contact_str("","/sdcard");
 #endif
 		p = contact_str(home,path+1);
 		free(home);

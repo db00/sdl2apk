@@ -4,6 +4,7 @@
  gcc files.c  -D debug_files && a
  */
 #include "files.h"
+#include "SDL_platform.h"
 
 char * decodePath(char * path)
 {

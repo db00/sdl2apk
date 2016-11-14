@@ -85,6 +85,8 @@ Array * Font_getlist()
 	ttfDir ="/usr/share/fonts";	
 #elif defined(__MACOSX__)
 	ttfDir ="/Library/Fonts";	
+#elif defined(__IPHONEOS__)
+	ttfDir ="/System/Library/Fonts/Cache";	
 #endif
 	int fontSize = 12;
 	if(fontFileList == NULL){

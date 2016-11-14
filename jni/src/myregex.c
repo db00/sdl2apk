@@ -252,6 +252,8 @@ char *regex_replace2(char * src,Array* array)
  */
 char *regex_replace(char * s, const char * regString , const char * replace_str,int *dealed_len)
 {
+	if(s==NULL)
+		return NULL;
 	size_t       len;
 	regex_t *re = malloc(sizeof(regex_t));            
 	regmatch_t    subs [SUBSLEN];

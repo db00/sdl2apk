@@ -15,7 +15,7 @@ char * decodePath(char * path)
 #if defined(__ANDROID__)
 		home = contact_str("","/sdcard");
 #elif defined(__IPHONEOS__)
-		home = contact_str("",".");
+		//home = contact_str("",".");
 #else
 		char * _home = mysystem("echo $HOME",NULL);
 		if(_home==NULL)
@@ -23,8 +23,12 @@ char * decodePath(char * path)
 		home = regex_replace_all(_home,"/[\r\n]/g","");
 		free(_home);
 #endif
-		p = contact_str(home,path+1);
-		free(home);
+		if(home){
+			p = contact_str(home,path+1);
+			free(home);
+		}else{
+			p+=2;
+		}
 	}
 	path = regex_replace_all(p,"/[\\\\/]+/g","/");
 	return path;

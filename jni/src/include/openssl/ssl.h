@@ -143,28 +143,28 @@
 #ifndef HEADER_SSL_H 
 #define HEADER_SSL_H 
 
-#include <openssl/e_os2.h>
+#include "openssl/e_os2.h"
 
 #ifndef OPENSSL_NO_COMP
-#include <openssl/comp.h>
+#include "openssl/comp.h"
 #endif
 #ifndef OPENSSL_NO_BIO
-#include <openssl/bio.h>
+#include "openssl/bio.h"
 #endif
 #ifndef OPENSSL_NO_DEPRECATED
 #ifndef OPENSSL_NO_X509
-#include <openssl/x509.h>
+#include "openssl/x509.h"
 #endif
-#include <openssl/crypto.h>
-#include <openssl/lhash.h>
-#include <openssl/buffer.h>
+#include "openssl/crypto.h"
+#include "openssl/lhash.h"
+#include "openssl/buffer.h"
 #endif
-#include <openssl/pem.h>
-#include <openssl/hmac.h>
+#include "openssl/pem.h"
+#include "openssl/hmac.h"
 
-#include <openssl/kssl.h>
-#include <openssl/safestack.h>
-#include <openssl/symhacks.h>
+#include "openssl/kssl.h"
+#include "openssl/safestack.h"
+#include "openssl/symhacks.h"
 
 #ifdef  __cplusplus
 extern "C" {
@@ -1197,11 +1197,11 @@ struct ssl_st
 }
 #endif
 
-#include <openssl/ssl2.h>
-#include <openssl/ssl3.h>
-#include <openssl/tls1.h> /* This is mostly sslv3 with a few tweaks */
-#include <openssl/dtls1.h> /* Datagram TLS */
-#include <openssl/ssl23.h>
+#include "openssl/ssl2.h"
+#include "openssl/ssl3.h"
+#include "openssl/tls1.h" /* This is mostly sslv3 with a few tweaks */
+#include "openssl/dtls1.h" /* Datagram TLS */
+#include "openssl/ssl23.h"
 
 #ifdef  __cplusplus
 extern "C" {

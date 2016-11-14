@@ -63,7 +63,7 @@
 /*
 #include <krb5.h>
 */
-#include <openssl/safestack.h>
+#include "openssl/safestack.h"
 
 #ifdef  __cplusplus
 extern "C" {

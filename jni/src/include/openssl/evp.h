@@ -67,12 +67,12 @@
 # undef OPENSSL_ALGORITHM_DEFINES
 #endif
 
-#include <openssl/ossl_typ.h>
+#include "openssl/ossl_typ.h"
 
-#include <openssl/symhacks.h>
+#include "openssl/symhacks.h"
 
 #ifndef OPENSSL_NO_BIO
-#include <openssl/bio.h>
+#include "openssl/bio.h"
 #endif
 
 /*
@@ -91,7 +91,7 @@
 /* Default PKCS#5 iteration count */
 #define PKCS5_DEFAULT_ITER		2048
 
-#include <openssl/objects.h>
+#include "openssl/objects.h"
 
 #define EVP_PK_RSA	0x0001
 #define EVP_PK_DSA	0x0002

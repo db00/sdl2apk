@@ -18,7 +18,7 @@
 #include "files.h"
 #include "utf8.h"
 #include "mystring.h"
-#include "SDL.h"
+#include "SDL_platform.h"
 #include "SDL_ttf.h"
 
 #ifndef max

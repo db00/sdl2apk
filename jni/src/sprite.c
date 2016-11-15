@@ -114,6 +114,16 @@ SDL_Surface * RGBA_surface(SDL_Surface * surface)
 	//return image;
 }
 
+//#ifdef __IPHONEOS__
+SDL_Surface * Surface_size3D(SDL_Surface * surface)
+{
+	SDL_Surface * image = Surface_new(256,256);
+	SDL_BlitScaled(surface, NULL, image, NULL);
+	SDL_FreeSurface(surface);
+	return image;
+}
+//#endif
+
 GLuint SDL_GL_LoadTexture(SDL_Surface * surface, GLfloat * texcoord)
 {
 	GLuint texture;
@@ -123,9 +133,9 @@ GLuint SDL_GL_LoadTexture(SDL_Surface * surface, GLfloat * texcoord)
 
 	/* Use the surface width and height expanded to powers of 2 */
 	int w, h;
-	w = power_of_two(surface->w);
-	h = power_of_two(surface->h);
 	if(texcoord){
+		w = power_of_two(surface->w);
+		h = power_of_two(surface->h);
 		texcoord[0] = 0.0f;         /* Min X */
 		texcoord[1] = 0.0f;         /* Min Y */
 		texcoord[2] = (GLfloat) surface->w / w;     /* Max X */
@@ -561,7 +571,7 @@ static void Data3d_show(Sprite*sprite)
 				if(sprite->is3D){
 					free(sprite->texCoords);
 					sprite->texCoords = NULL;
-
+					sprite->surface = Surface_size3D(sprite->surface);
 				}
 			}else if(!sprite->is3D){
 				sprite->texCoords = malloc(4*sizeof(GLfloat));
@@ -2036,7 +2046,8 @@ int main(int argc, char *argv[])
 	}else {
 		Sprite*sprite = Sprite_new();
 		sprite->is3D = 1;
-		sprite->surface = SDL_LoadBMP(path);
+		sprite->surface = (SDL_LoadBMP(path));
+		SDL_Log("surface size:%dx%d",sprite->surface->w,sprite->surface->h);
 		Data3d*_data3D = sprite->data3d;
 		if(_data3D==NULL){
 			_data3D = Data3D_new();
@@ -2085,7 +2096,7 @@ int main(int argc, char *argv[])
 		*/
 	}
 	Sprite*sprite3 = Sprite_new();
-	sprite3->surface = SDL_LoadBMP(path);
+	sprite3->surface = (SDL_LoadBMP(path));
 	sprite3->filter= 3;
 	sprite3->y = 0;
 	sprite3->x = 0;

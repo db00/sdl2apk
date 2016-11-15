@@ -91,7 +91,7 @@ Array * listDir2(const char *path,Array*suffixs)
 			char *fileSuffix = strrchr(curFile,'.');
 			char *suffix = Array_getByIndex(suffixs,i);
 			while(suffix){
-				if(strlen(suffix) && strcasecmp(fileSuffix,suffix)==0) {//suffix matched
+				if(strlen(suffix) && regex_match(fileSuffix,suffix)) {//suffix matched
 					willPush = 1;
 					break;
 				}

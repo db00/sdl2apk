@@ -129,6 +129,9 @@ typedef struct Sprite{
 	void (*showFunc)(struct Sprite*);// 其他3d显示
 	void (*destroyFunc)(struct Sprite*);// 其他3d销毁
 	GLfloat ambient[4];//光照强度
+#ifdef __IPHONEOS__
+	GLfloat *texCoords;//
+#endif
 
 	int filter;
 

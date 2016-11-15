@@ -125,13 +125,13 @@ GLuint SDL_GL_LoadTexture(SDL_Surface * surface, GLfloat * texcoord)
 	int w, h;
 	w = power_of_two(surface->w);
 	h = power_of_two(surface->h);
-	w = surface->w; h = surface->h;
-	//h = w;
 	if(texcoord){
 		texcoord[0] = 0.0f;         /* Min X */
 		texcoord[1] = 0.0f;         /* Min Y */
 		texcoord[2] = (GLfloat) surface->w / w;     /* Max X */
 		texcoord[3] = (GLfloat) surface->h / h;     /* Max Y */
+	}else{
+		w = surface->w; h = surface->h;
 	}
 
 	image = Surface_new(w,h);
@@ -556,8 +556,20 @@ static void Data3d_show(Sprite*sprite)
 			//SDL_Log("has surface!\n");
 		}
 		if(sprite->surface ) {
-			GLfloat texcoords[4];
-			sprite->textureId = SDL_GL_LoadTexture(sprite->surface, texcoords);
+#ifdef __IPHONEOS__
+			if(sprite->texCoords){
+				if(sprite->is3D){
+					free(sprite->texCoords);
+					sprite->texCoords = NULL;
+
+				}
+			}else if(!sprite->is3D){
+				sprite->texCoords = malloc(4*sizeof(GLfloat));
+			}
+			sprite->textureId = SDL_GL_LoadTexture(sprite->surface, sprite->texCoords);
+#else
+			sprite->textureId = SDL_GL_LoadTexture(sprite->surface, NULL);
+#endif
 			if(sprite->textureId==0)
 				//return _data3D;
 				return ;
@@ -643,11 +655,18 @@ static void Data3d_show(Sprite*sprite)
 	// Load the texture coordinate
 	if(_data3D->texCoordLoc>=0){
 		if(_data3D->texCoords==NULL ){
+#ifdef __IPHONEOS__
+			GLfloat _w = sprite->texCoords[2];
+			GLfloat _h = sprite->texCoords[3];
+#else
+			GLfloat _w = 1.0f;
+			GLfloat _h = 1.0f;
+#endif
 			GLfloat texCoords[] = {
 				0.0f,  0.0f,        // TexCoord 0 
-				0.0f,  1.0f,        // TexCoord 1
-				1.0f,  1.0f,        // TexCoord 2
-				1.0f,  0.0f         // TexCoord 3
+				0.0f, _h,        // TexCoord 1
+				_w,  _h,        // TexCoord 2
+				_w,  0.0f         // TexCoord 3
 			};
 			_data3D->texCoords = (GLfloat*)malloc(sizeof(texCoords));
 			memcpy(_data3D->texCoords,texCoords,sizeof(texCoords));

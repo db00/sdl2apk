@@ -276,8 +276,7 @@ power_of_two(int input)
     return value;
 }
 
-GLuint
-SDL_GL_LoadTexture(SDL_Surface * surface, GLfloat * texcoord)
+GLuint SDL_GL_LoadTexture(SDL_Surface * surface, GLfloat * texcoord)
 {
     GLuint texture;
     int w, h;

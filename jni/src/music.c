@@ -23,7 +23,11 @@ Sound * Sound_new(int audio_rate)
 	Sound * sound = malloc(sizeof(Sound));
 	memset(sound,0,sizeof(Sound));
 	sound->volume = SDL_MIX_MAXVOLUME;
+#ifdef __ANDROID__
 	sound->audio_rate = audio_rate;
+#else
+	sound->audio_rate = 44100;
+#endif
 
 	//sound->initted=Mix_Init(0);
 	//SDL_Log("Before Mix_Init SDL_mixer supported: ");
@@ -141,8 +145,9 @@ int Sound_playFile(Sound*sound,char * file)
 
 	Sound * _sound = sound;
 
-	if(sound==NULL)
+	if(sound==NULL){
 		sound = Sound_new(16000);
+	}
 	if(sound==NULL)
 		return 2;
 

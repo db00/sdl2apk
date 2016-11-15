@@ -136,14 +136,14 @@ GLuint SDL_GL_LoadTexture(SDL_Surface * surface, GLfloat * texcoord)
 
 	/* Use the surface width and height expanded to powers of 2 */
 	int w, h;
-	if(texcoord){
+	if(texcoord){//change size
 		w = power_of_two(surface->w);
 		h = power_of_two(surface->h);
 		texcoord[0] = 0.0f;         /* Min X */
 		texcoord[1] = 0.0f;         /* Min Y */
 		texcoord[2] = (GLfloat) surface->w / w;     /* Max X */
 		texcoord[3] = (GLfloat) surface->h / h;     /* Max Y */
-	}else{
+	}else{//size not changed
 		w = surface->w; h = surface->h;
 	}
 

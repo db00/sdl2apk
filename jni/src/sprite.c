@@ -567,13 +567,13 @@ static void Data3d_show(Sprite*sprite)
 		}
 		if(sprite->surface ) {
 #ifdef __IPHONEOS__
-			if(sprite->texCoords){
-				if(sprite->is3D){
+			if(sprite->is3D){
+				if(sprite->texCoords){
 					free(sprite->texCoords);
 					sprite->texCoords = NULL;
-					sprite->surface = Surface_size3D(sprite->surface);
 				}
-			}else if(!sprite->is3D){
+				sprite->surface = Surface_size3D(sprite->surface);
+			}else{
 				sprite->texCoords = malloc(4*sizeof(GLfloat));
 			}
 			sprite->textureId = SDL_GL_LoadTexture(sprite->surface, sprite->texCoords);

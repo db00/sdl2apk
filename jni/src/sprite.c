@@ -114,7 +114,7 @@ SDL_Surface * RGBA_surface(SDL_Surface * surface)
 	//return image;
 }
 
-//#ifdef __IPHONEOS__
+#ifdef __IPHONEOS__
 SDL_Surface * Surface_size3D(SDL_Surface * surface)
 {
 	int w, h;
@@ -125,7 +125,7 @@ SDL_Surface * Surface_size3D(SDL_Surface * surface)
 	SDL_FreeSurface(surface);
 	return image;
 }
-//#endif
+#endif
 
 GLuint SDL_GL_LoadTexture(SDL_Surface * surface, GLfloat * texcoord)
 {
@@ -144,7 +144,8 @@ GLuint SDL_GL_LoadTexture(SDL_Surface * surface, GLfloat * texcoord)
 		texcoord[2] = (GLfloat) surface->w / w;     /* Max X */
 		texcoord[3] = (GLfloat) surface->h / h;     /* Max Y */
 	}else{//size not changed
-		w = surface->w; h = surface->h;
+		w = surface->w;
+		h = surface->h;
 	}
 
 	image = Surface_new(w,h);
@@ -1235,6 +1236,11 @@ int Sprite_destroy(Sprite*sprite)
 	Sprite_destroySurface(sprite);
 	Sprite_destroyTexture(sprite);
 
+#ifdef __IPHONEOS__
+	if(sprite->texCoords){
+		free(sprite->texCoords);
+	}
+#endif
 	if(sprite->Bounds){
 		free(sprite->Bounds);
 	}

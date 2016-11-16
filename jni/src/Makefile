@@ -59,28 +59,6 @@ all:$(TARGET)
 ifeq ($(OS),Windows_NT)
 #	@echo $(shell set)
 else	
-ifeq ($(OS),Darwin)
-#	xcode-select -switch /Applications/Xcode.app/Contents/Developer
-	#进入项目文件（xxx.xcodeproj）所在的文件夹
-#编译
-#	xcodebuild clean -workspace ___PROJECTNAME___.xcodeproj/ -scheme $targetName -configuration Release
-#编译静态库文件
-#	xcodebuild -workspace xxx.xcworkspace -scheme $libraryproject -configuration Release
-#编译静态库资源文件
-#	xcodebuild -workspace xxx.xcworkspace -scheme $resourceproject -configuration Release
-#编译主题target文件
-#	xcodebuild -workspace xxx.xcworkspace -scheme $targetName -configuration Release
-
-   #编译普通项目：
-#    xcodebuild -configuration "Release" -arch "armv7 armv7s" -target "Diaoser" -sdk iphoneos CODE_SIGN_IDENTITY="iPhone Distribution: Diao Ser" GCC_VERSION="com.apple.compilers.llvm.clang.1_0" -project Diaoser.xcodeproj
-    #编译包含子项目的项目：
-#    xcodebuild -workspace Diaoser.xcodeproj/project.xcworkspace -scheme Diaoser  -configuration "Release" -arch "armv7 armv7s" -sdk iphoneos CODE_SIGN_IDENTITY="iPhone Distribution: Diao Ser" CONFIGURATION_BUILD_DIR='OUTPUT_DIRECTORY'
-	
-
-#	xcodebuild clean
-#	xcodebuild -target $(APP_NAME) -configuration Release # CODE_SIGN_IDENTITY="iPhone Distribution:XXXXXX"
-#	xcrun -sdk iphoneos PackageApplication -v ~/$(APP_NAME)/build/Release-iphoneos/$(APP_NAME).app -o ~/Desktop/$(APP_NAME).ipa # --sign "iPhone Distribution:XXXXXX"
-endif
 #	@echo $(shell export)
 #	@echo $(shell set)
 
@@ -147,7 +125,38 @@ sign: $(KEY) $(PROJ_PATH)/bin/$(APP_NAME)-release-unsigned.apk
 #%.o:%.c
 #	$(CC) -c -o $@ $< $(CFLAGS)
 
+ipa:
+ifeq ($(OS),Darwin)
+#	xcode-select -switch /Applications/Xcode.app/Contents/Developer
+	#进入项目文件（xxx.xcodeproj）所在的文件夹
+#编译
+#	xcodebuild clean -workspace ___PROJECTNAME___.xcodeproj/ -scheme $targetName -configuration Release
+#编译静态库文件
+#	xcodebuild -workspace xxx.xcworkspace -scheme $libraryproject -configuration Release
+#编译静态库资源文件
+#	xcodebuild -workspace xxx.xcworkspace -scheme $resourceproject -configuration Release
+#编译主题target文件
+#	xcodebuild -workspace xxx.xcworkspace -scheme $targetName -configuration Release
+
+   #编译普通项目：
+#    xcodebuild -configuration "Release" -arch "armv7 armv7s" -target "Diaoser" -sdk iphoneos CODE_SIGN_IDENTITY="iPhone Distribution: Diao Ser" GCC_VERSION="com.apple.compilers.llvm.clang.1_0" -project Diaoser.xcodeproj
+    #编译包含子项目的项目：
+#    xcodebuild -workspace Diaoser.xcodeproj/project.xcworkspace -scheme Diaoser  -configuration "Release" -arch "armv7 armv7s" -sdk iphoneos CODE_SIGN_IDENTITY="iPhone Distribution: Diao Ser" CONFIGURATION_BUILD_DIR='OUTPUT_DIRECTORY'
+
+#export CODESIGN_ALLOCATE=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/codesign_allocate
+#if [ "${PLATFORM_NAME}" == "iphoneos" ] || [ "${PLATFORM_NAME}" == "ipados" ]; then
+#/Applications/Xcode.app/Contents/Developer/iphoneentitlements/gen_entitlements.py "my.company.${PROJECT_NAME}" "${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/${PROJECT_NAME}.xcent";
+#codesign -f -s "iPhone Developer" --entitlements "${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/${PROJECT_NAME}.xcent" "${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/"
+#fi
+
+	xcodebuild #-target ___PROJECTNAME___ -configuration Release # CODE_SIGN_IDENTITY="iPhone Distribution:XXXXXX"
+	xcrun -sdk iphoneos PackageApplication -v build/Release-iphoneos/___PROJECTNAME___.app -o ~/Desktop/$(APP_NAME).ipa # --sign "iPhone Distribution:XXXXXX"
+endif
+
 .PHONY : clean
 clean:
+ifeq ($(OS),Darwin)
+	xcodebuild clean
+endif
 	$(RM) $(TARGET) *.o
 	$(NDK_HOME)/ndk-build clean -C $(PROJ_PATH) && ant clean -f $(PROJ_PATH)/build.xml && rm -rf $(PROJ_PATH)/libs $(PROJ_PATH)/obj

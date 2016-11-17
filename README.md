@@ -13,6 +13,6 @@ can run on Linux MacOSX iphoneos Android Raspbian
 * ` open jni/src/___PROJECTNAME___.xcodeproj/ `
 
 ## Android:
-`adb pull /system/lib/libssl.so $ANDROID_NDK/platforms/android-9/arch-arm/usr/lib/ `
-`adb pull /system/lib/libcrypto.so $ANDROID_NDK/platforms/android-9/arch-arm/usr/lib/ `
-`cd jni/src/ ; make apk `
+* `adb pull /system/lib/libssl.so $ANDROID_NDK/platforms/android-9/arch-arm/usr/lib/ `
+* `adb pull /system/lib/libcrypto.so $ANDROID_NDK/platforms/android-9/arch-arm/usr/lib/ `
+* `cd jni/src/ ; make apk `

@@ -14,3 +14,4 @@ AVFoundation.framework AudioToolbox.framework CoreAudio.framework CoreGraphics.f
 android:
 adb pull /system/lib/libssl.so $ANDROID_NDK/platforms/android-9/arch-arm/usr/lib/
 adb pull /system/lib/libcrypto.so $ANDROID_NDK/platforms/android-9/arch-arm/usr/lib/
+cd jni/src/ ; make apk

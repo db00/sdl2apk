@@ -28,7 +28,7 @@ ifeq ($(OS),Linux)
 INCLUDE_ROOT:=/usr/include
 endif
 endif
-INCLUDE:=-I"$(INCLUDE_ROOT)/SDL2/"
+INCLUDE:=-I"$(INCLUDE_ROOT)/SDL2/" -I"include"
 # -I"$(ANDROID_NDK_HOME)/sources/ffmpeg/android/arm/include/"
 DEFINES:= -D STDC_HEADERS -D test_ime
 # -D debug_sprite

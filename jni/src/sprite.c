@@ -2050,9 +2050,7 @@ int main(int argc, char *argv[])
 #endif
 	Sprite_addEventListener(stage->sprite,SDL_MOUSEBUTTONDOWN,mouseDown);
 	char * path = decodePath("~/sound/1.bmp");
-	if(stage->GLEScontext == NULL){
-		//return 0;
-	}else {
+	if(stage->GLEScontext){
 		Sprite*sprite = Sprite_new();
 		sprite->is3D = 1;
 		sprite->surface = (SDL_LoadBMP(path));

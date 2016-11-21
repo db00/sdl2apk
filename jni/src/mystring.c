@@ -174,16 +174,16 @@ String * String_printf(String * string,const char*fmt, ...)
 		return NULL;
 	}
 	while (1) {
-		/* ³¢ÊÔÔÚÉêÇëµÄ¿Õ¼äÖĞ½øĞĞ´òÓ¡²Ù×÷ */
+		/* å°è¯•åœ¨ç”³è¯·çš„ç©ºé—´ä¸­è¿›è¡Œæ‰“å°æ“ä½œ */
 		va_start(ap, fmt);
 		n = vsnprintf (tmp, size-1, fmt, ap);
 		va_end(ap);
-		/* Èç¹ûvsnprintfµ÷ÓÃ³É¹¦£¬·µ»Ø¸Ã×Ö·û´® */
+		/* å¦‚æœvsnprintfè°ƒç”¨æˆåŠŸï¼Œè¿”å›è¯¥å­—ç¬¦ä¸² */
 		if (n >= 0 && n < size-1){
 			break;
 		}
-		/* vsnprintfµ÷ÓÃÊ§°Ü(n<0)£¬»òÕßtmpµÄ¿Õ¼ä²»×ã¹»ÈİÄÉsize´óĞ¡µÄ×Ö·û´®(n>=size)£¬³¢ÊÔÉêÇë¸ü´óµÄ¿Õ¼ä*/
-		size += getpagesize(); /* ÔÙÉêÇëÒ»¸öÄÚ´æÒ³ */
+		/* vsnprintfè°ƒç”¨å¤±è´¥(n<0)ï¼Œæˆ–è€…tmpçš„ç©ºé—´ä¸è¶³å¤Ÿå®¹çº³sizeå¤§å°çš„å­—ç¬¦ä¸²(n>=size)ï¼Œå°è¯•ç”³è¯·æ›´å¤§çš„ç©ºé—´*/
+		size += getpagesize(); /* å†ç”³è¯·ä¸€ä¸ªå†…å­˜é¡µ */
 		if ((tmp = (char *)realloc(tmp, size)) == NULL)
 		{
 			String_clear(string);
@@ -241,16 +241,16 @@ char * append_str(char*old,const char*fmt, ...)
 	if ((tmp = (char *) malloc(size)) == NULL)
 		return NULL;
 	while (1) {
-		/* ³¢ÊÔÔÚÉêÇëµÄ¿Õ¼äÖĞ½øĞĞ´òÓ¡²Ù×÷ */
+		/* å°è¯•åœ¨ç”³è¯·çš„ç©ºé—´ä¸­è¿›è¡Œæ‰“å°æ“ä½œ */
 		va_start(ap, fmt);
 		n = vsnprintf (tmp, size-1, fmt, ap);
 		va_end(ap);
-		/* Èç¹ûvsnprintfµ÷ÓÃ³É¹¦£¬·µ»Ø¸Ã×Ö·û´® */
+		/* å¦‚æœvsnprintfè°ƒç”¨æˆåŠŸï¼Œè¿”å›è¯¥å­—ç¬¦ä¸² */
 		if (n >= 0 && n < size-1){
 			break;
 		}
-		/* vsnprintfµ÷ÓÃÊ§°Ü(n<0)£¬»òÕßtmpµÄ¿Õ¼ä²»×ã¹»ÈİÄÉsize´óĞ¡µÄ×Ö·û´®(n>=size)£¬³¢ÊÔÉêÇë¸ü´óµÄ¿Õ¼ä*/
-		size += getpagesize(); /* ÔÙÉêÇëÒ»¸öÄÚ´æÒ³ */
+		/* vsnprintfè°ƒç”¨å¤±è´¥(n<0)ï¼Œæˆ–è€…tmpçš„ç©ºé—´ä¸è¶³å¤Ÿå®¹çº³sizeå¤§å°çš„å­—ç¬¦ä¸²(n>=size)ï¼Œå°è¯•ç”³è¯·æ›´å¤§çš„ç©ºé—´*/
+		size += getpagesize(); /* å†ç”³è¯·ä¸€ä¸ªå†…å­˜é¡µ */
 		if ((tmp = (char *)realloc(tmp, size)) == NULL)
 			return NULL;
 	}
@@ -299,9 +299,9 @@ char* memstr(char* full_data, int full_data_len, char* substr)
 }
 
 /**
- * µ÷ÓÃÏµÍ³ÃüÁî£¬²¢»ñÈ¡Êä³ö£¨Ïàµ±ÓÚÊ¹ÓÃsystem£©
+ * è°ƒç”¨ç³»ç»Ÿå‘½ä»¤ï¼Œå¹¶è·å–è¾“å‡ºï¼ˆç›¸å½“äºä½¿ç”¨systemï¼‰
  *
- * @param cmdÒªµ÷ÓÃµÄÏµÍ³ÃüÁî  
+ * @param cmdè¦è°ƒç”¨çš„ç³»ç»Ÿå‘½ä»¤  
  *
  * @return  
  */
@@ -317,12 +317,12 @@ char * mysystem(char *cmd,int * retlen)
 	char *output = malloc(size);
 	int len = 0;
 	memset(output, 0, size);
-	//´´½¨¹ÜµÀ£¬²¢½«cmdÀïµÄÄÚÈİĞ´Èë¹ÜµÀ  
+	//åˆ›å»ºç®¡é“ï¼Œå¹¶å°†cmdé‡Œçš„å†…å®¹å†™å…¥ç®¡é“  
 	f = popen(cmd, "r");  
 	if(f==NULL){
 		return NULL;
 	}
-	//´Ó¹ÜÀíÖĞ¶Á³öÊı¾İ£¬²¢Ğ´ÈëoutputÊı×é  
+	//ä»ç®¡ç†ä¸­è¯»å‡ºæ•°æ®ï¼Œå¹¶å†™å…¥outputæ•°ç»„  
 	len = fread(output, 1, size, f);  
 	while(len==size)
 	{
@@ -427,11 +427,11 @@ int freeArr(char**arr,int *len)
 
 void * sortAndsearch(void*arr,size_t arr_len,size_t element_size,int (*cmpf)(const void *,const void *),const void*key)
 {
-	//char arr[][10]={"bac","bca","abc","acb","cba","cab"}; /* ¶¨Òå¶şÎ¬×Ö·ûÊı×é*/
-	//char *key="bca";/* Òª²éÕÒµÄ×Ö·û´®*/
-	/* Ê¹ÓÃqsort¶Ô×Ö·ûÊı×éÅÅĞò*/
+	//char arr[][10]={"bac","bca","abc","acb","cba","cab"}; /* å®šä¹‰äºŒç»´å­—ç¬¦æ•°ç»„*/
+	//char *key="bca";/* è¦æŸ¥æ‰¾çš„å­—ç¬¦ä¸²*/
+	/* ä½¿ç”¨qsortå¯¹å­—ç¬¦æ•°ç»„æ’åº*/
 	qsort((void *)arr,arr_len,element_size,(int (*)(const void *,const void *))cmpf);
-	/* ²ÉÓÃ¶ş·Ö²éÕÒ²éÕÒÖ¸¶¨×Ö·û*/
+	/* é‡‡ç”¨äºŒåˆ†æŸ¥æ‰¾æŸ¥æ‰¾æŒ‡å®šå­—ç¬¦*/
 	return (char *)bsearch(key,arr,arr_len,element_size,(int (*)(const void *,const void *))cmpf);
 }
 
@@ -472,4 +472,5 @@ int main(int argc, char *argv[])
 
 	return 0;
 }
+
 #endif

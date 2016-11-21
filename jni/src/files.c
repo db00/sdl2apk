@@ -17,7 +17,7 @@ char * decodePath(char * path)
 		home = contact_str("","/sdcard");
 #elif defined(__IPHONEOS__)
 		//home = contact_str("",".");
-#elif defined(linux) || defined(__WIN32__)
+#elif defined(linux) || defined(__MACOSX__) || defined(__WIN32__)
 		char * _home = mysystem("echo $HOME",NULL);
 		if(_home==NULL)
 			return contact_str("",path);

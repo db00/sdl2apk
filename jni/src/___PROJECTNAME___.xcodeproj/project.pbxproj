@@ -49,6 +49,8 @@
 		16722EEB1DD4449000BC9224 /* libstdc++.6.0.9.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 16722EEA1DD4449000BC9224 /* libstdc++.6.0.9.dylib */; };
 		16722EEC1DD444FD00BC9224 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
 		16723F8B1DD452E500BC9224 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 16723F861DD4529B00BC9224 /* libSDL2.a */; };
+		1673E5E31DE2C34A00967E8B /* openssl in Frameworks */ = {isa = PBXBuildFile; fileRef = 1673E5E21DE2C34A00967E8B /* openssl */; };
+		1673E5E51DE2C3A900967E8B /* sound in Resources */ = {isa = PBXBuildFile; fileRef = 1673E5E41DE2C3A900967E8B /* sound */; };
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		28FD15000DC6FC520079059D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD14FF0DC6FC520079059D /* OpenGLES.framework */; };
 		28FD15080DC6FC5B0079059D /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD15070DC6FC5B0079059D /* QuartzCore.framework */; };
@@ -167,6 +169,8 @@
 		16722EE01DD43B6F00BC9224 /* GameKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameKit.framework; path = System/Library/Frameworks/GameKit.framework; sourceTree = SDKROOT; };
 		16722EEA1DD4449000BC9224 /* libstdc++.6.0.9.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libstdc++.6.0.9.dylib"; path = "usr/lib/libstdc++.6.0.9.dylib"; sourceTree = SDKROOT; };
 		16723F7F1DD4529B00BC9224 /* SDL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SDL.xcodeproj; path = "../SDL2/Xcode-iOS/SDL/SDL.xcodeproj"; sourceTree = "<group>"; };
+		1673E5E21DE2C34A00967E8B /* openssl */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = openssl; path = include/openssl.framework/Versions/A/openssl; sourceTree = "<group>"; };
+		1673E5E41DE2C3A900967E8B /* sound */ = {isa = PBXFileReference; lastKnownFileType = folder; name = sound; path = ../../../sound; sourceTree = "<group>"; };
 		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1D6058910D05DD3D006BFB54 /* ___PROJECTNAME___.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "___PROJECTNAME___.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
@@ -184,6 +188,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1673E5E31DE2C34A00967E8B /* openssl in Frameworks */,
 				16723F8B1DD452E500BC9224 /* libSDL2.a in Frameworks */,
 				16722EEC1DD444FD00BC9224 /* UIKit.framework in Frameworks */,
 				16722EEB1DD4449000BC9224 /* libstdc++.6.0.9.dylib in Frameworks */,
@@ -302,6 +307,7 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				1673E5E41DE2C3A900967E8B /* sound */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -309,6 +315,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				1673E5E21DE2C34A00967E8B /* openssl */,
 				16722EEA1DD4449000BC9224 /* libstdc++.6.0.9.dylib */,
 				16722EE01DD43B6F00BC9224 /* GameKit.framework */,
 				16722EDE1DD4308D00BC9224 /* CoreMIDI.framework */,
@@ -458,6 +465,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1673E5E51DE2C3A900967E8B /* sound in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -531,8 +539,9 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = (
+					include,
 					"$(inherited)",
-					"/Users/libiao/Desktop/OpenSSL-for-iPhone",
+					"$(PROJECT_DIR)/include",
 				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -547,9 +556,10 @@
 					"$(PROJECT_DIR)/bin/iPhoneOS7.1-armv7.sdk/lib",
 					"$(PROJECT_DIR)/bin/iPhoneSimulator7.1-i386.sdk/lib",
 					"$(PROJECT_DIR)/bin/iPhoneOS7.1-armv7s.sdk/lib",
+					"$(PROJECT_DIR)/include/openssl.framework/Versions/A",
 				);
 				PRODUCT_NAME = "___PROJECTNAME___";
-				USER_HEADER_SEARCH_PATHS = "../SDL2/include ../SDL2_image ../SDL2_mixer ../SDL2_ttf ./bin/iPhoneSimulator7.1-x86_64.sdk/include";
+				USER_HEADER_SEARCH_PATHS = "../SDL2/include ../SDL2_image ../SDL2_mixer ../SDL2_ttf ./bin/iPhoneSimulator7.1-x86_64.sdk/include ./include";
 			};
 			name = Debug;
 		};
@@ -559,8 +569,9 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = YES;
 				FRAMEWORK_SEARCH_PATHS = (
+					include,
 					"$(inherited)",
-					"/Users/libiao/Desktop/OpenSSL-for-iPhone",
+					"$(PROJECT_DIR)/include",
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "";
@@ -573,9 +584,10 @@
 					"$(PROJECT_DIR)/bin/iPhoneOS7.1-armv7.sdk/lib",
 					"$(PROJECT_DIR)/bin/iPhoneSimulator7.1-i386.sdk/lib",
 					"$(PROJECT_DIR)/bin/iPhoneOS7.1-armv7s.sdk/lib",
+					"$(PROJECT_DIR)/include/openssl.framework/Versions/A",
 				);
 				PRODUCT_NAME = "___PROJECTNAME___";
-				USER_HEADER_SEARCH_PATHS = "../SDL2/include ../SDL2_image ../SDL2_mixer ../SDL2_ttf ./bin/iPhoneSimulator7.1-x86_64.sdk/include";
+				USER_HEADER_SEARCH_PATHS = "../SDL2/include ../SDL2_image ../SDL2_mixer ../SDL2_ttf ./bin/iPhoneSimulator7.1-x86_64.sdk/include ./include";
 			};
 			name = Release;
 		};

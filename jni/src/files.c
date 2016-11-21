@@ -4,7 +4,7 @@
  gcc files.c  -D debug_files && a
  */
 #include "files.h"
-#include "SDL_platform.h"
+//#include "SDL_platform.h"
 
 char * decodePath(char * path)
 {
@@ -17,7 +17,7 @@ char * decodePath(char * path)
 		home = contact_str("","/sdcard");
 #elif defined(__IPHONEOS__)
 		//home = contact_str("",".");
-#else
+#elif defined(linux) || defined(__WIN32__)
 		char * _home = mysystem("echo $HOME",NULL);
 		if(_home==NULL)
 			return contact_str("",path);

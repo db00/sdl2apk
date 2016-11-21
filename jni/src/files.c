@@ -1,6 +1,6 @@
 /**
  *
- gcc -g files.c myregex.c mystring.c array.c -lm  -D debug_files -lSDL2_image && ./a.out
+ gcc -g -I"../SDL2/include/" files.c myregex.c mystring.c array.c -lm  -D debug_files -lSDL2_image && ./a.out
  gcc files.c  -D debug_files && a
  */
 #include "files.h"

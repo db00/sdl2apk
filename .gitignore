@@ -1,4 +1,5 @@
 *.swp
+*.exe
 *.keystore
 *.so
 *.a

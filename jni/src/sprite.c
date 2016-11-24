@@ -1,7 +1,7 @@
 /**
  * @file sprite.c
-e:\Documents\wxDevCppP7\App\DevCpp\MinGW32\bin\gcc -Wall -I"." files.c mystring.c myregex.c -I"../SDL2/include/" sprite.c matrix.c array.c regex.c -lopengl32 -lmingw32 -lSDL2main -lSDL2 -Ddebug_sprite && a
- gcc -g -Wall -I"../SDL2/include/" array.c sprite.c matrix.c files.c mystring.c myregex.c -lSDL2 -lm -Ddebug_sprite && ./a.out
+ gcc -g -Wall -I"../SDL2/include/"  sprite.c matrix.c array.c -lSDL2 -lm -Ddebug_sprite && ./a.out
+ gcc -g -Wall -I"../SDL2/include/" -I"." -D GLchar=char sprite.c array.c matrix.c -lGLESv2 -lmingw32 -lSDL2main -lSDL2 -Ddebug_sprite && a
  gcc -g -Wall -I"/usr/include/SDL2" array.c sprite.c matrix.c files.c mystring.c myregex.c -lSDL2 -lm -Ddebug_sprite && ./a.out
  apt-get install -y libpcap-dev libsqlite3-dev sqlite3 libpcap0.8-dev libssl-dev build-essential iw tshark
  * @author db0@qq.com
@@ -32,6 +32,7 @@ int LoadContext(GLES2_Context * data)
 	do { \
 		data->func = SDL_GL_GetProcAddress(#func); \
 		if ( ! data->func ) { \
+			SDL_Log("Couldn't load GLES2 function %s: %s\n", #func, SDL_GetError()); \
 			return SDL_SetError("Couldn't load GLES2 function %s: %s\n", #func, SDL_GetError()); \
 		} \
 	} while ( 0 );
@@ -218,9 +219,12 @@ void Sprite_matrix(Sprite *sprite)
 
 	esScale(&modelview,p->scaleX/sprite->scaleX,p->scaleY/sprite->scaleY,p->scaleZ/sprite->scaleZ);
 	// Rotate 
-	esRotate( &modelview, -p->rotationX+sprite->rotationX, 1.0, 0.0, 0.0 );
-	esRotate( &modelview, -p->rotationY+sprite->rotationY, 0.0, 1.0, 0.0 );
-	esRotate( &modelview, -p->rotationZ+sprite->rotationZ, 0.0, 0.0, 1.0 );
+	if(-p->rotationX)
+		esRotate( &modelview, -p->rotationX+sprite->rotationX, 1.0, 0.0, 0.0 );
+	if(-p->rotationY)
+		esRotate( &modelview, -p->rotationY+sprite->rotationY, 0.0, 1.0, 0.0 );
+	if(-p->rotationZ)
+		esRotate( &modelview, -p->rotationZ+sprite->rotationZ, 0.0, 0.0, 1.0 );
 
 	esTranslate(&modelview, xto3d(p->x-sprite->x), yto3d(p->y-sprite->y), zto3d(p->z-sprite->z));
 
@@ -2049,7 +2053,8 @@ int main(int argc, char *argv[])
 	//SDL_SetWindowOpacity(stage->window,.5);
 #endif
 	Sprite_addEventListener(stage->sprite,SDL_MOUSEBUTTONDOWN,mouseDown);
-	char * path = decodePath("~/sound/1.bmp");
+	//char * path = decodePath("~/sound/1.bmp");
+	char * path = ("1.bmp");
 	if(stage->GLEScontext){
 		Sprite*sprite = Sprite_new();
 		sprite->is3D = 1;

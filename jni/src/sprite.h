@@ -1,5 +1,6 @@
 /**
  * @file sprite.h
+e:\Documents\wxDevCppP7\App\DevCpp\MinGW32\bin\gcc -Wall -I"." files.c mystring.c myregex.c -I"../SDL2/include/" -D GLchar=char sprite.c matrix.c array.c regex.c -lGLESv2 -lmingw32 -lSDL2main -lSDL2 -Ddebug_sprite && a
 e:\Documents\wxDevCppP7\App\DevCpp\MinGW32\bin\gcc -Wall -I"." files.c mystring.c myregex.c -I"../SDL2/include/" sprite.c matrix.c array.c regex.c -lopengl32 -lmingw32 -lSDL2main -lSDL2 -Ddebug_sprite && a
  gcc -Wall -I"../SDL2/include/" array.c sprite.c matrix.c files.c mystring.c myregex.c -lSDL2 -lm -Ddebug_sprite && ./a.out
  *  
@@ -16,7 +17,7 @@ e:\Documents\wxDevCppP7\App\DevCpp\MinGW32\bin\gcc -Wall -I"." files.c mystring.
 #include "array.h"
 
 //#define HAVE_OPENGL
-#if defined(__MACOS__) || ( !defined(__IPHONEOS__) && !defined(__ANDROID__) && !defined(__EMSCRIPTEN__) && !defined(__NACL__)) && !defined(linux)// && !defined(__WIN32__)
+#if defined(__MACOS__) || ( !defined(__IPHONEOS__) && !defined(__ANDROID__) && !defined(__EMSCRIPTEN__) && !defined(__NACL__)) && !defined(linux) && !defined(__WIN32__)
 #ifndef HAVE_OPENGL
 #define HAVE_OPENGL
 #endif

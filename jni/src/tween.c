@@ -273,7 +273,7 @@ Tween * Tween_new(Sprite*sprite,int time,TweenObj*obj)
 }
 
 #ifdef debug_tween
-#include "files.h"
+//#include "files.h"
 int main(int argc, char *argv[])
 {
 	Stage_init(1);
@@ -283,8 +283,8 @@ int main(int argc, char *argv[])
 	m1->y = stage->stage_h/2;
 
 	Sprite*sprite = Sprite_new(NULL);
-	//sprite->surface = IMG_Load("1.bmp");
-	sprite->surface = SDL_LoadBMP(decodePath("~/sound/1.bmp"));
+	sprite->surface = SDL_LoadBMP("1.bmp");
+	//sprite->surface = SDL_LoadBMP(decodePath("~/sound/1.bmp"));
 	//sprite->x =30;
 	//sprite->y =100;
 	sprite->h=50.0;

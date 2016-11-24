@@ -219,12 +219,9 @@ void Sprite_matrix(Sprite *sprite)
 
 	esScale(&modelview,p->scaleX/sprite->scaleX,p->scaleY/sprite->scaleY,p->scaleZ/sprite->scaleZ);
 	// Rotate 
-	if(-p->rotationX)
-		esRotate( &modelview, -p->rotationX+sprite->rotationX, 1.0, 0.0, 0.0 );
-	if(-p->rotationY)
-		esRotate( &modelview, -p->rotationY+sprite->rotationY, 0.0, 1.0, 0.0 );
-	if(-p->rotationZ)
-		esRotate( &modelview, -p->rotationZ+sprite->rotationZ, 0.0, 0.0, 1.0 );
+	esRotate( &modelview, -p->rotationX+sprite->rotationX, 1.0, 0.0, 0.0 );
+	esRotate( &modelview, -p->rotationY+sprite->rotationY, 0.0, 1.0, 0.0 );
+	esRotate( &modelview, -p->rotationZ+sprite->rotationZ, 0.0, 0.0, 1.0 );
 
 	esTranslate(&modelview, xto3d(p->x-sprite->x), yto3d(p->y-sprite->y), zto3d(p->z-sprite->z));
 

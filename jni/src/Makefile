@@ -1,6 +1,5 @@
 PROJ_PATH=../..
 ifneq ($(OS),Windows_NT)
-#Linux Darwin Windows_NT
 OS:=$(shell uname)
 endif
 #JAVA_HOME:=/usr/lib/jvm/java-8-openjdk-i386/jre
@@ -20,35 +19,26 @@ CLASS_NAME:=Test
 APK:= $(APK_DIR)/$(APP_NAME)-debug.apk
 CC:=gcc
 SRC_DIR:=.
-INCLUDE_ROOT:=..
-ifeq ($(OS),Darwin)
-INCLUDE_ROOT:=/usr/local/include
-else
-ifeq ($(OS),Linux)
-INCLUDE_ROOT:=/usr/include
-endif
-endif
-INCLUDE:=-I"$(INCLUDE_ROOT)/SDL2/" -I"include"
-# -I"$(ANDROID_NDK_HOME)/sources/ffmpeg/android/arm/include/"
-DEFINES:= -D STDC_HEADERS -D test_ime
-# -D debug_sprite
-KEY:=$(PROJ_PATH)/my.keystore
-SRC:=\
-		sprite.c matrix.c input.c myregex.c kodi.c utf8.c jsonrpc.c files.c httploader.c ipstring.c mystring.c cJSON.c \
+LIB:= -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lm -lSDL2 -lssl -lcrypto -lpthread
+SRC:= sprite.c matrix.c input.c myregex.c kodi.c utf8.c jsonrpc.c files.c httploader.c ipstring.c mystring.c cJSON.c \
 		dict.c readbaidu.c update.c testime.c textfield.c read_card.c pinyin.c music.c searhdict.c\
 		tween.c ease.c urlcode.c filetypes.c httpserver.c array.c base64.c mysurface.c
-
-LIB:=-L"/usr/local/lib/" -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lm -lSDL2 -ldl -lssl -lcrypto -lpthread # -lavformat -lavcodec -lavutil -lswscale 
-ifeq ($(OS),Windows_NT)
-	TARGET:= a.exe
-	LIB:=$(LIB) -L"." -L"lib"  -lwsock32 -lgdi32 -liconv  -lopengl32 -lmingw32 -lSDL2main # lib/libssl.a lib/libcrypto.a lib/libeay32.dll.a lib/libssl32.dll.a#  -lavformat -lavcodec -lavutil -lswscale
-	SRC:= $(SRC) regex.c
-else
-	TARGET:= ./a.out
+DEFINES:= -D STDC_HEADERS -D test_ime
+TARGET:= ./a.out
 ifeq ($(OS),Darwin)
-	LIB:=$(LIB) -liconv # -framework OpenGL -framework GLUT -framework SDL2 -framework SDL2_mixer -framework SDL2_ttf -framework SDL2_image -framework Foundation
+INCLUDE:=-I"/usr/local/include/SDL2/" -I"include"
+LIB:=$(LIB) -L"/usr/local/lib/" -ldl -liconv
+else ifeq ($(OS),Linux)
+INCLUDE:=-I"/usr/include/SDL2/" -I"include"
+else ifeq ($(OS),Windows_NT)
+DEFINES:= $(DEFINES) -D main=SDL_main
+TARGET:= a.exe
+LIB:=-lmingw32 -lSDL2main $(LIB)  -mwindows  -Wl,--no-undefined -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -luuid -static-libgcc -liconv -lws2_32 -lGLESv2 -lopengl32 -lwsock32 # lib/libssl.a lib/libcrypto.a lib/libeay32.dll.a lib/libssl32.dll.a#  -lavformat -lavcodec -lavutil -lswscale -lwsock32
+INCLUDE:=-I"../SDL2/include/" -I"." -I"../SDL2_image/" -I"../SDL2_mixer/" -I"../SDL2_ttf/" -I"include"
+SRC:= $(SRC) regex.c
 endif
-endif
+# -D debug_sprite
+KEY:=$(PROJ_PATH)/my.keystore
 #SRC:= $(foreach x,${SRC_DIR}, $(wildcard $(addprefix ${x}/*,.c)))
 OBJS:= $(patsubst %.c,%.o,$(SRC))
 
@@ -56,14 +46,13 @@ CFLAGS :=  -g $(INCLUDE) $(DEFINES) $(LIB)
 #SDL_PATH:=$(HOME)/SDL2-2.0.5/
 
 all:$(TARGET)
+	echo $(OS)
 ifeq ($(OS),Windows_NT)
 #	@echo $(shell set)
 else	
 #	@echo $(shell export)
 #	@echo $(shell set)
-
 endif
-	echo $(OS)
 #	gdb $(TARGET)
 	$(TARGET)
 	@echo "all ok"
@@ -85,7 +74,6 @@ endif
 
 upload: $(APK)
 	scp $(APK) p@p:/sdcard/
-
 
 install:
 	adb shell pm uninstall $(PACKAGE)
@@ -110,7 +98,6 @@ push:
 debug:
 	adb shell am start -a android.intenon.MAIN -n $(PACKAGE)/.$(CLASS_NAME) && \
 		adb shell logcat SDL:V *:I
-
 
 key:
 	keytool -v -genkey -alias my -keyalg RSA -validity 40000 -keystore $(KEY) -storepass 123456  -dname "CN=db0@qq.com, OU=biao, O=biao, L=hengyang, ST=hunane, C=cn"

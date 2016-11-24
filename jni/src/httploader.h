@@ -18,10 +18,11 @@
 
 /* Include system network headers */
 #if defined(__WIN32__) || defined(WIN32)
+#include <ws2tcpip.h>
 #define __USE_W32_SOCKETS
 #ifdef _WIN64
 #include <winsock2.h>
-#include <ws2tcpip.h>
+//#include <ws2tcpip.h>
 #else
 #include <winsock.h>
 /* NOTE: windows socklen_t is signed

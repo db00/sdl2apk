@@ -1,8 +1,8 @@
 /**
  * @file sprite.c
+e:\Documents\wxDevCppP7\App\DevCpp\MinGW32\bin\gcc -Wall -I"." files.c mystring.c myregex.c -I"../SDL2/include/" sprite.c matrix.c array.c regex.c -lopengl32 -lmingw32 -lSDL2main -lSDL2 -Ddebug_sprite && a
  gcc -g -Wall -I"../SDL2/include/" array.c sprite.c matrix.c files.c mystring.c myregex.c -lSDL2 -lm -Ddebug_sprite && ./a.out
  gcc -g -Wall -I"/usr/include/SDL2" array.c sprite.c matrix.c files.c mystring.c myregex.c -lSDL2 -lm -Ddebug_sprite && ./a.out
- gcc -g -Wall -I"../SDL2/include/" sprite.c array.c matrix.c -lopengl32 -lmingw32 -lSDL2main -lSDL2 -Ddebug_sprite && a
  apt-get install -y libpcap-dev libsqlite3-dev sqlite3 libpcap0.8-dev libssl-dev build-essential iw tshark
  * @author db0@qq.com
  * @version 1.0.1

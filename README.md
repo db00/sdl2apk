@@ -22,5 +22,7 @@ adb pull /system/lib/libcrypto.so $ANDROID_NDK/platforms/android-9/arch-arm/usr/
 ```
 `cd jni/src/ ; make apk `
 
+MOLY.WR8.W1315.MD.WG.MP.V34 mt6582
+MT6582_S00_MOLY_WR8_W1315_MD_WG_MP_V34_1_2g_n
 http://www.romzhijia.net/feedbackdetail/80181
 http://www.needrom.com/download/mt6582-moly-wr8-w1315-md-wg-mp-v10-p2/

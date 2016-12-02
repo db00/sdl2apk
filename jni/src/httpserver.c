@@ -1,9 +1,11 @@
 /**
  *
- gcc -g -Wall -I"." httpserver.c array.c myregex.c regex.c filetypes.c dict.c files.c mystring.c urlcode.c base64.c -lpthread -lwsock32 -lm -DSTDC_HEADERS -D DEBUG -D debug_httpserver && a
  gcc -g -Wall -lpthread httpserver.c array.c myregex.c filetypes.c dict.c files.c mystring.c  urlcode.c base64.c -ldl -lm -D DEBUG -D debug_httpserver -o ~/a && ~/a
+ gcc -g -Wall -I"." httpserver.c array.c myregex.c regex.c filetypes.c dict.c files.c mystring.c urlcode.c base64.c -lpthread -lwsock32 -lm -DSTDC_HEADERS -D DEBUG -D debug_httpserver && a
  gdb ~/a
  gcc -g -Wall -lpthread httpserver.c filetypes.c mystring.c urlcode.c base64.c -ldl -lm -D debug_httpserver -o ~/a && ~/a
+
+ndk_home=~/android-ndk-r10 ; GCC=$ndk_home/toolchains/arm-linux-androideabi-4.8/prebuilt/linux-x86/bin/arm-linux-androideabi-gcc ; sysroot=$ndk_home/platforms/android-9/arch-arm/usr ; $GCC --sysroot=$sysroot -I"$sysroot/include"  -g -Wall  httpserver.c array.c myregex.c filetypes.c dict.c files.c mystring.c  urlcode.c base64.c -ldl -lm -D DEBUG -D debug_httpserver && adb push a.out /sdcard/a.out && adb shell /sdcard/a.out
 
  curl -F Filedata=@localfilename -F Filename=localfilename localhost:8809 -u test:test
 

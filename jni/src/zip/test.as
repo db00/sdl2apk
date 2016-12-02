@@ -6,6 +6,8 @@ package {
 	import flash.net.URLLoaderDataFormat;
 
 	import cmodule.z.CLibInit;
+	import cmodule.md5.CLibInit;
+
 	public class test extends Sprite
 	{
 		private var text:TextField = new TextField();
@@ -18,11 +20,14 @@ package {
 		{
 			if(e.type == Event.COMPLETE)
 			{
-				var loader:CLibInit = new CLibInit;
-				var lib:Object = loader.init();
+				var lib:Object = new cmodule.z.CLibInit().init();
 				//var bytes:ByteArray= lib.zipList(ByteArray(e.target.data),"");
 				var bytes:ByteArray = lib.zipList(ByteArray(e.target.data),"catalog.xml");
-				text.text = String(bytes);
+
+				var md5:String = "";
+				md5 = new cmodule.md5.CLibInit().init().md5("123456");
+				md5 = new cmodule.md5.CLibInit().init().md5("9jlexznnpsoo");
+				text.text = md5 + String(bytes);
 				trace(text.text);
 				addChild(text);
 				text.width = stage.stageWidth;

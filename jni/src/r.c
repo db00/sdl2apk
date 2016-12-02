@@ -1,9 +1,11 @@
 /**
  *
+ndk_home=~/android-ndk-r10 ; GCC=$ndk_home/toolchains/arm-linux-androideabi-4.8/prebuilt/linux-x86/bin/arm-linux-androideabi-gcc ; sysroot=$ndk_home/platforms/android-9/arch-arm/usr ; $GCC --sysroot=$sysroot -I"$sysroot/include" r.c && adb push a.out /storage/sdcard1/a.out && adb shell /storage/sdcard1/a.out | grep adb shell mount -o remount,rw -t yaffs2 /dev/block/mtdblock3 /system /
+adb shell mount -o remount,rw,exec -t yaffs2 /storage/sdcard1
 gcc r.c -lpthread -o ~/r && ~/r | grep '^\[.*\]$' 
 > /home/libiao/test.txt
 gcc r.c -lwsock32 -lws2_32 -lpthread -o r.exe && rm -rf log.txt && r.exe 
-d:/arm/bin/gcc -Ld:/arm/lib/ -Id:/arm/include/ raw.c && adb push raw.c /sdcard/raw.c &&  adb push a.out /sdcard/a.out && adb shell /sdcard/a.out
+
 adb push raw.c /sdcard/raw.c
 adb shell /sdcard/a.out
 adb shell

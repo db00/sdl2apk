@@ -19,7 +19,7 @@ all: $(SWF)
 #	echo $(shell ls /)
 	$(FLASHPLAYER) $(SWF)
 $(SWF): $(SWC) $(AS3)
-	$(MXMLC) -source-path=$(AS3_PATH) -library-path+=$(SWC) $(AS3) -o $(SWF)
+	$(MXMLC) -source-path=$(AS3_PATH) -library-path+=$(SWC),md5.swc $(AS3) -o $(SWF)
 $(SWC): $(OBJS)
 	ALCHEMY_HOME=$(ALCHEMY_HOME) ASC=$(ASC) $(CC) $(OBJS) $(CFLAGS) -swc -o $(SWC)
 .c.o:

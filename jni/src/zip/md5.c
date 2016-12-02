@@ -1,5 +1,6 @@
 /***
  *
+ *
  gcc md5.c -Wall -g && ./a.out
  export ALCHEMY_HOME=/home/libiao/alchemy-ubuntu-v0.5a ; export ASC=$ALCHEMY_HOME/bin/asc.jar ; export PATH=$ALCHEMY_HOME/achacks:$ALCHEMY_HOME/bin:$PATH ; gcc -D as_api md5.c -O3 -Wall -swc -o md5.swc
  */

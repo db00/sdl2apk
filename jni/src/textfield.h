@@ -166,6 +166,14 @@ int TextField_getMaxScrollV(TextField *textfield);
 TTF_Font * getFontByPath(char * path,int fontSize);
 TTF_Font * getDefaultFont(int fontSize);
 
+#ifdef __ANDROID__
+#define	DEFAULT_TTF_FILE "/system/fonts/DroidSansFallback.ttf"
+#elif __MACOSX__
+#define	DEFAULT_TTF_FILE "/System/Library/Fonts/STHeiti Light.ttc"
+//#elif __IPHONEOS__
+//#define	DEFAULT_TTF_FILE "/System/Library/Fonts/"
+#else
 #define	DEFAULT_TTF_FILE "~/sound/DroidSansFallback.ttf"
+#endif
 
 #endif

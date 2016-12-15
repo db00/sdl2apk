@@ -136,8 +136,8 @@ ifeq ($(OS),Darwin)
 #codesign -f -s "iPhone Developer" --entitlements "${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/${PROJECT_NAME}.xcent" "${BUILT_PRODUCTS_DIR}/${WRAPPER_NAME}/"
 #fi
 
-	xcodebuild #-target ___PROJECTNAME___ -configuration Release # CODE_SIGN_IDENTITY="iPhone Distribution:XXXXXX"
-	xcrun -sdk iphoneos PackageApplication -v build/Release-iphoneos/___PROJECTNAME___.app -o ~/Desktop/$(APP_NAME).ipa # --sign "iPhone Distribution:XXXXXX"
+	xcodebuild  CODE_SIGN_IDENTITY="iPhone Distribution:hunan huaien network technology co., ltd.(6ZVSARMRUF)" #-target ___PROJECTNAME___ -configuration Release #
+	xcrun -sdk iphoneos PackageApplication -v build/Release-iphoneos/___PROJECTNAME___.app -o ~/Desktop/$(APP_NAME).ipa --sign "iPhone Distribution:hunan huaien network technology co., ltd.(6ZVSARMRUF)"
 endif
 
 .PHONY : clean

@@ -1,6 +1,5 @@
 /***
  *
- *
  gcc md5.c -Wall -g && ./a.out
  export ALCHEMY_HOME=/home/libiao/alchemy-ubuntu-v0.5a ; export ASC=$ALCHEMY_HOME/bin/asc.jar ; export PATH=$ALCHEMY_HOME/achacks:$ALCHEMY_HOME/bin:$PATH ; gcc -D as_api md5.c -O3 -Wall -swc -o md5.swc
  */
@@ -271,8 +270,8 @@ int main(int argc, char *argv[])
 {
 	MD5_CTX md5;
 	MD5Init(&md5);
-	//unsigned char encrypt[] ="123456";//21232f297a57a5a743894a0e4a801fc3
-	unsigned char encrypt[] ="9jlexznnpsoo";//acdc960823da308a6de06acfbad9a695
+	unsigned char encrypt[] ="123456";//21232f297a57a5a743894a0e4a801fc3
+	//unsigned char encrypt[] ="9jlexznnpsoo";//acdc960823da308a6de06acfbad9a695
 	unsigned char decrypt[16];
 	MD5Update(&md5,encrypt,strlen((char *)encrypt));
 	MD5Final(&md5,decrypt);

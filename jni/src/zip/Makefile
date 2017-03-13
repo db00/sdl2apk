@@ -26,4 +26,4 @@ $(SWC): $(OBJS)
 	ALCHEMY_HOME=$(ALCHEMY_HOME) $(CC) $(CFLAGS) -c $<
 
 clean:
-	rm *.swc *.o *.swf *.achacks.* a.out
+	rm -rf *.swc *.o *.swf *.achacks.* a.out *.dSYM

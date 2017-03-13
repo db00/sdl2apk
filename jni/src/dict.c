@@ -1,6 +1,6 @@
 /**
  *
- gcc -g -I"../SDL2/include/" files.c array.c mystring.c dict.c myregex.c -lm -D debug_dict  -lSDL2 && ./a.out help
+ gcc -g -I"../SDL2/include/" files.c array.c mystring.c dict.c myregex.c -lm -D debug_dict  -lSDL2 && ./a.out close
  gcc -g -I"../SDL2/include/" files.c array.c mystring.c dict.c myregex.c -lm -D debug_dict  -lmingw32 -lSDL2main -lSDL2 && a help
  gcc  -Wall files.c array.c mystring.c dict.c myregex.c -lm -Ddebug  && ./a.out help
  gcc  -Wall files.c mystring.c dict.c myregex.c regex.c -lm -Ddebug -DSTDC_HEADERS && a nude
@@ -270,7 +270,8 @@ char *Dict_getByIndex(Dict * dict,int id){
 		return NULL;
 
 	/*printf("word:%s,offset:%d,wordLength:%d\n",word->word,word->offset,word->length);*/
-	//printf("%s\r\n",word->word);
+	if(regex_match(word->word,"/^[slgthaeiou]{10,}$/i"))
+		printf("%s\r\n",word->word);
 	fflush(stdout);
 
 	rewind(dict->file);
@@ -373,23 +374,29 @@ int main(int argc,char**argv)
 	while(_i<numWords)
 	{
 		Word*word = Array_getByIndex(wordlist,_i);
-		if(word)
-			printf("%s\n",word->word);
+		if(word) printf("%s\n",word->word);
 		++_i;
 	}
 	Array_clear(wordlist);
 
 
-	return 0;
+	//return 0;
 	char* explain;
-	explain = Dict_explain(dict,"go");
-	if(explain==NULL)return 0;
-	printf("explaination:%s\n",explain);
-	fflush(stdout);
+
+
+	if(argc>1){
+		explain = Dict_explain(dict,argv[1]);
+		if(explain==NULL)return 0;
+		//explain = regex_replace_all(explain,"/ \\* /","\r\n");
+		explain = regex_replace_all(explain,"([^a-zA-Z])( [\\*0-9]+ )","$1\r\n$2");
+		explain = regex_replace_all(explain,"([^a-zA-Z0-9.,])( [a-z0-9]+ )","$1\r\n$2");
+		printf("explaination:%s\n",explain);
+		fflush(stdout);
+	}
+
 	Dict_free(dict);
-	explain = regex_replace_all(explain,"([^a-zA-Z])( [\\*0-9]+ )","$1\r\n$2");
 #ifdef WIN32
-		//SDL_setenv("SDL_VIDEODRIVER","dummy",1);
+	//SDL_setenv("SDL_VIDEODRIVER","dummy",1);
 	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO) < 0) {
 	}
 	char*explain2 = SDL_iconv_string("gb2312", "UTF-8", explain, SDL_strlen(explain) + 1);
@@ -397,18 +404,18 @@ int main(int argc,char**argv)
 	free(explain);
 	explain = explain2;
 #endif
-	printf("explaination:%s\n",explain);
-	return 0;
+	//printf("explaination:%s\n",explain);
+	//return 0;
 	fflush(stdout);
 	free(explain);
 	dict = Dict_new();
 	dict->name = "oxford-gb";
 	int i =1;
 	/*while(i < dict->wordcount)*/
-	while(i < 10)
+	while(i < 29429)
 	{
 		explain = regex_replace_all(Dict_getByIndex(dict,i)," \\* ","\r\n");
-		printf("%s\r\n",explain);
+		//printf("%s\r\n",explain);
 
 		fflush(stdout);
 		free(explain);

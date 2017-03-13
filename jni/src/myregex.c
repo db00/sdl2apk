@@ -43,7 +43,7 @@ static int regex_compile(regex_t * re ,const char *regString)
 				  */
 				case 'i':
 					flag |= REG_ICASE;
-					printf("REG_ICASE,");
+					//printf("REG_ICASE,");
 					break;
 					/*
 					   case 'm':

@@ -4,6 +4,10 @@
  gcc -Wall -g -I"../SDL2/include/" -I"../SDL2_image/" -I"../SDL2_ttf/" array.c tween.c ease.c textfield.c matrix.c sprite.c sdlstring.c mystring.c files.c -lSDL2_ttf -lmingw32 -lSDL2main -lSDL2 -D debugtext && a
  gcc -Wall -I"../SDL2/include/" -I"../SDL2_image/" -I"../SDL2_ttf/" array.c tween.c ease.c httploader.c ipstring.c base64.c sdlstring.c textfield.c matrix.c sprite.c mystring.c files.c -lSDL2_image -lSDL2_ttf -lm -lSDL2 -D debugtext -lssl -lcrypto && ./a.out
  *  
+ * 	6217 0029 5010 1015 186
+ *	1917086952
+ *	6902577682
+ *	5809216
  * @author db0@qq.com
  * @version 1.0.1
  * @date 2015-07-21
@@ -172,6 +176,8 @@ TTF_Font * getDefaultFont(int fontSize);
 #define	DEFAULT_TTF_FILE "/System/Library/Fonts/STHeiti Light.ttc"
 //#elif __IPHONEOS__
 //#define	DEFAULT_TTF_FILE "/System/Library/Fonts/"
+//#elif defined(linux)
+//#define	DEFAULT_TTF_FILE "/usr/share/fonts/adobe-source-han-sans-cn/SourceHanSansCN-Normal.otf"
 #else
 #define	DEFAULT_TTF_FILE "~/sound/DroidSansFallback.ttf"
 #endif

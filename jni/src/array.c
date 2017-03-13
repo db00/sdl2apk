@@ -315,6 +315,8 @@ void Array_print(Array * array)
 #ifdef test_array
 int main(int argc,char**argv)
 {
+
+	//for(int i=0;i<1;i++)printf("hello\n");
 	int i=0;
 	while(i<argc)
 	{

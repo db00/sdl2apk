@@ -165,7 +165,7 @@ int main(int argc, char *argv[]) {
         //pthread_join(thread1,NULL);
     }
 
-    SDL_SetWindowTitle(stage->window, "card");
+    SDL_SetWindowTitle(stage->window, "dict");
     //showCardTest(1);
     showSearchDict(1);
 

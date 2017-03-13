@@ -5,7 +5,7 @@
  gdb ~/a
  gcc -g -Wall -lpthread httpserver.c filetypes.c mystring.c urlcode.c base64.c -ldl -lm -D debug_httpserver -o ~/a && ~/a
 
-ndk_home=~/android-ndk-r10 ; GCC=$ndk_home/toolchains/arm-linux-androideabi-4.8/prebuilt/linux-x86/bin/arm-linux-androideabi-gcc ; sysroot=$ndk_home/platforms/android-9/arch-arm/usr ; $GCC --sysroot=$sysroot -I"$sysroot/include"  -g -Wall  httpserver.c array.c myregex.c filetypes.c dict.c files.c mystring.c  urlcode.c base64.c -ldl -lm -D DEBUG -D debug_httpserver && adb push a.out /sdcard/a.out && adb shell /sdcard/a.out
+ ndk_home=~/android-ndk-r10 ; GCC=$ndk_home/toolchains/arm-linux-androideabi-4.8/prebuilt/linux-x86/bin/arm-linux-androideabi-gcc ; sysroot=$ndk_home/platforms/android-9/arch-arm/usr ; $GCC --sysroot=$sysroot -I"$sysroot/include"  -g -Wall  httpserver.c array.c myregex.c filetypes.c dict.c files.c mystring.c  urlcode.c base64.c -ldl -lm -D DEBUG -D debug_httpserver && adb push a.out /sdcard/a.out && adb shell /sdcard/a.out
 
  curl -F Filedata=@localfilename -F Filename=localfilename localhost:8809 -u test:test
 
@@ -107,7 +107,7 @@ char* getmetavalue(char*head,const char*meta)
 	char *curpos = strstr(head,meta);
 	if(curpos == NULL)return NULL;
 	char *pos;
-	int len;
+	int len=0;
 	curpos += strlen(meta);
 	while(*curpos == ' ' || *curpos == ':' )curpos ++;
 	char* end1= strstr(curpos,"\r\n");
@@ -115,9 +115,11 @@ char* getmetavalue(char*head,const char*meta)
 	{
 		char* end2= strstr(curpos," ");
 		len = (end1>end2?end2:end1) - curpos;
-	}else{
+	}else if(end1){
 		len = end1 - curpos;
 	}
+	if(len<=0)
+		return NULL;
 	pos = malloc(len+1);
 	if(pos == NULL)return NULL;
 	memset(pos,0,len + 1);
@@ -448,6 +450,26 @@ int send_default(Client*client)
 	return 0;
 }
 
+/**
+ * 原样返回
+ */
+int send_echo(Client*client)
+{
+	char *xml = client->head;
+	send_str(client->fd,"Content-Type: text/html\r\n");
+	send_str(client->fd,"Connection: keep-alive\r\nAccept-Ranges: bytes\r\n");
+	if(xml)
+		send_str(client->fd,"Content-Length: %d\r\n",strlen(xml));
+	send_str(client->fd,"\r\n");
+	if(xml)
+	{
+		send_str(client->fd,"%s",xml);
+		printf("%s",xml);
+		fflush(stdout);
+	}
+	return 0;
+}
+
 int send_crossdomain(Client*client)
 {
 	char *xml = 
@@ -694,6 +716,9 @@ void Client_respond(Client*client)
 
 	} else if(strcmp(client->path,"/crossdomain.xml")==0){
 		send_crossdomain(client);
+		return;
+	} else if(strcmp(client->path,"/echo")==0){
+		send_echo(client);
 		return;
 	}
 	//fflush(stdout); pthread_exit(NULL);  

@@ -17,9 +17,13 @@ char * decodePath(char * path)
 		home = contact_str("","/sdcard");
 #elif defined(__IPHONEOS__)
 //		home = contact_str("",".");
-#elif defined(linux) || defined(__MACOSX__) || defined(__WIN32__)
-//#else
+#else
+#if defined(WIN64) || defined(WIN32)
+		char * _home = mysystem("echo %HOME%",NULL);
+#else
+//#if defined(linux) || defined(__MACOSX__) || defined(__WIN32__)
 		char * _home = mysystem("echo $HOME",NULL);
+#endif
 		if(_home==NULL)
 			return contact_str("",path);
 		home = regex_replace_all(_home,"/[\r\n]/g","");

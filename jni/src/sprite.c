@@ -409,7 +409,7 @@ Stage * Stage_init(int is3D)
 			stage->stage_w = mode.w;
 			stage->stage_h = mode.h;
 #else
-			stage->stage_w = 240;
+			stage->stage_w = 400;
 			stage->stage_h = (int)((float)stage->stage_w*16.0/12.0);
 #endif
 

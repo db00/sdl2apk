@@ -255,6 +255,43 @@ Word*Dict_getWord(Dict *dict,char * target_word)
 }
 
 
+int matchs(char * word,char *s)
+{
+	int i= 0;
+	char * s2 = malloc(strlen(s)+1);
+	memcpy(s2,s,strlen(s));
+	s2[strlen(s)]='\0';
+	for(i=0;i<strlen(word);i++)
+	{
+		int j;
+		int has=0;
+		for(j=0;j<strlen(s2);j++)
+		{
+			if(word[i]==s2[j])
+			{
+				int l = strlen(s2)-j-1;
+				char a[strlen(s2)+1];
+				memset(a,0,strlen(s2)+1);
+
+				memcpy(a,s2,j);
+				sprintf(a+j,"%s",s2+j+1);
+
+				sprintf(s2,"%s",a);
+				s2[strlen(a)]='\0';
+				has = 1;
+				break;
+			}
+		}
+		if(!has)
+		{
+			free(s2);
+			return 0;
+		}
+	}
+	free(s2);
+	return 1;
+}
+
 
 
 char *Dict_getByIndex(Dict * dict,int id){
@@ -270,8 +307,11 @@ char *Dict_getByIndex(Dict * dict,int id){
 		return NULL;
 
 	/*printf("word:%s,offset:%d,wordLength:%d\n",word->word,word->offset,word->length);*/
-	if(regex_match(word->word,"/^[slgthaeiou]{10,}$/i"))
-		printf("%s\r\n",word->word);
+	if(
+			regex_match(word->word,"/^[AAIUEODRM]{7,}$/i")
+			&& matchs(word->word,"aaiueodrm")
+	  )
+		printf("\r\n%s",word->word);
 	fflush(stdout);
 
 	rewind(dict->file);
@@ -390,7 +430,7 @@ int main(int argc,char**argv)
 		//explain = regex_replace_all(explain,"/ \\* /","\r\n");
 		explain = regex_replace_all(explain,"([^a-zA-Z])( [\\*0-9]+ )","$1\r\n$2");
 		explain = regex_replace_all(explain,"([^a-zA-Z0-9.,])( [a-z0-9]+ )","$1\r\n$2");
-		printf("explaination:%s\n",explain);
+		//printf("explaination:%s\n",explain);
 		fflush(stdout);
 	}
 
@@ -409,10 +449,10 @@ int main(int argc,char**argv)
 	fflush(stdout);
 	free(explain);
 	dict = Dict_new();
-	dict->name = "oxford-gb";
+	dict->name = "langdao";
 	int i =1;
 	/*while(i < dict->wordcount)*/
-	while(i < 29429)
+	while(i < 435468)
 	{
 		explain = regex_replace_all(Dict_getByIndex(dict,i)," \\* ","\r\n");
 		//printf("%s\r\n",explain);

@@ -171,9 +171,9 @@ int main(int argc, char *argv[]) {
 
     Sprite_addEventListener(stage->sprite,SDL_KEYUP,keyupEvent); 
     Sprite_addEventListener(stage->sprite,SDL_DROPFILE,droppedFile);
-    Sprite_addEventListener(stage->sprite,SDL_MOUSEMOTION,slideEvent);
-    Sprite_addEventListener(stage->sprite,SDL_MOUSEBUTTONDOWN,slideEvent);
-    Sprite_addEventListener(stage->sprite,SDL_MOUSEBUTTONUP,slideEvent);
+    //Sprite_addEventListener(stage->sprite,SDL_MOUSEMOTION,slideEvent);
+    //Sprite_addEventListener(stage->sprite,SDL_MOUSEBUTTONDOWN,slideEvent);
+    //Sprite_addEventListener(stage->sprite,SDL_MOUSEBUTTONUP,slideEvent);
     Stage_loopEvents();
     exit(0);
     return 0;

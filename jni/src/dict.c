@@ -294,6 +294,7 @@ int matchs(char * word,char *s)
 
 
 
+int maxlen = 10;
 char *Dict_getByIndex(Dict * dict,int id){
 	if(dict==NULL)
 		return NULL;
@@ -307,12 +308,21 @@ char *Dict_getByIndex(Dict * dict,int id){
 		return NULL;
 
 	/*printf("word:%s,offset:%d,wordLength:%d\n",word->word,word->offset,word->length);*/
+	/*
 	if(
 			regex_match(word->word,"/^[AAIUEODRM]{7,}$/i")
 			&& matchs(word->word,"aaiueodrm")
 	  )
 		printf("\r\n%s",word->word);
+		*/
 	fflush(stdout);
+	if( !regex_match(word->word,"/[\\// ,()]/i")
+		   	&& word->length >maxlen)
+	{
+		maxlen = word->length;
+		printf("\r\n%s:%d\r\n",word->word,maxlen);
+	}
+	//else if (strlen(word->word)>50) printf("\r\n%s:%d\r\n",word->word,maxlen);
 
 	rewind(dict->file);
 
@@ -449,10 +459,12 @@ int main(int argc,char**argv)
 	fflush(stdout);
 	free(explain);
 	dict = Dict_new();
-	dict->name = "langdao";
+	//dict->name = "langdao";
+	dict->name = "oxford-gb";
 	int i =1;
-	/*while(i < dict->wordcount)*/
-	while(i < 435468)
+	//while(i < dict->wordcount)
+	while(i < 39429)
+	//while(i < 435468)
 	{
 		explain = regex_replace_all(Dict_getByIndex(dict,i)," \\* ","\r\n");
 		//printf("%s\r\n",explain);

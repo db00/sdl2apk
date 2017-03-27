@@ -7,7 +7,19 @@
  */
 
 #include "searhdict.h"
+#include "datas.h"
 
+int add_history(char *word)
+{
+	if(history_db){
+		int rc=0;
+		rc = add_new_word(word);
+		printf("\r\n-------------------id:%d\r\n",rc);
+		rc = add_to_history(rc);
+		if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
+	}
+	return 0;
+}
 
 Sprite * curlistSprite = NULL;
 Sprite * dictContainer= NULL;
@@ -85,6 +97,7 @@ int getMean(Word*word)
 		}
 		pthread_detach(thread);
 		//Sound_playEng(word->word,2);
+		add_history(word->word);
 	}
 	return 0;
 }
@@ -107,6 +120,9 @@ int searchWord(char* _word)
 		}
 		explain = Dict_getMean(dict,word);
 		showExplain(explain);
+		if(word){
+			add_history(word->word);
+		}
 	}
 	return 0;
 }
@@ -300,6 +316,8 @@ void *uiThread(void *ptr){
 
 		Sprite_addEventListener(stage->sprite,SDL_KEYUP,keyupEvent); 
 	}
+	if(history_db==NULL)
+		init_db();
 	//pthread_exit(NULL);  
 	return NULL;
 }

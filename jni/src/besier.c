@@ -20,6 +20,15 @@ typedef struct Point{
 	float z;
 } Point;
 
+Point * Point_new(float x,float y,float z)
+{
+	Point * p = malloc(sizeof(Point));
+	p->x = x;
+	p->y = y;
+	p->z = z;
+	return p;
+}
+
 //阶乘
 int factorial(int n)
 {
@@ -57,24 +66,26 @@ Point* drawBezier3(Point * A, Point * B, Point * C, Point * D,double t)
 	double a3 = 3*t*t*(1-t);  
 	double a4 = t*t*t;  
 
-	Point* P = malloc(sizeof(Point));  
-	P->x = a1*A->x+a2*B->x+a3*C->x+a4*D->x;  
-	P->y = a1*A->y+a2*B->y+a3*C->y+a4*D->y;  
-	P->z = 0.0;
+	Point* P = Point_new(
+			a1*A->x+a2*B->x+a3*C->x+a4*D->x,
+			a1*A->y+a2*B->y+a3*C->y+a4*D->y,
+			0.0
+			);
 	return P;    
 }    
 //三个控制点的贝塞尔曲线 即二次Bezier曲线  
-Point* drawBezier2(Point * A, Point * B, Point * C,double t)     
+Point* drawBezier2(Point * A, Point * B, Point * C,float t)     
 {    
-	double a1 = pow((1-t),2); 
-	double a2 = pow((1-t),2)*2*t;  
-	double a3 = t*t;  
+	float a1 = pow((1.0-t),2); 
+	float a2 = 2*(1.0-t)*t;  
+	float a3 = t*t;  
+	//printf("%f,%f,%f\n",a1,a2,a3);
 
-	Point* P = malloc(sizeof(Point));  
-	memset(P,0,sizeof(Point));
-	P->x = a1*A->x+a2*B->x+a3*C->x;  
-	P->y = a1*A->y+a2*B->y+a3*C->y;  
-	P->z = 0.0;
+	Point* P = Point_new(
+			a1*(A->x)+a2*(B->x)+a3*(C->x),
+			a1*(A->y)+a2*(B->y)+a3*(C->y), 
+			0.0
+			);
 	return P;    
 }
 //n个控制点的贝塞尔曲线 即n-1次Bezier曲线  
@@ -100,13 +111,14 @@ Point * drawBezierN(Point ** PA,int n,double t)
 // 
 Point * drawLine(Point * A, Point * B,double t)     
 {    
-	Point* P = malloc(sizeof(Point));  
 	double a1 = 1-t; 
 	double a2 = t;  
 
-	P->x = a1*A->x+a2*B->x;
-	P->y = a1*A->y+a2*B->y;  
-	P->z = 0.0;
+	Point* P = Point_new(
+			a1*A->x+a2*B->x,
+			a1*A->y+a2*B->y,  
+			0.0
+			);
 	return P;    
 }    
 
@@ -116,7 +128,9 @@ Array * moveto(Array*array,Point* p)
 }
 Array * lineto(Array*array,Point* p)
 {
-	return Array_push(array,p);
+	Array * a = Array_push(array,p);
+	//printf("\r\nlength:%d\r\n",a->length);
+	return a;
 }
 
 Array * curveto(Array*array,Point* p,Point * endPoint)
@@ -124,21 +138,24 @@ Array * curveto(Array*array,Point* p,Point * endPoint)
 	Point * startPoint = NULL;
 	if(array->length==0)
 	{
-		startPoint = malloc(sizeof(Point));
-		memset(startPoint,0,sizeof(Point));
+		startPoint = Point_new(0.0,0.0,0.0);
 		array = Array_push(array,startPoint);
 	}else{
 		startPoint = Array_getByIndex(array,array->length - 1);
 	}
+	//printf("startPoint===%f,%f,%f\n",startPoint->x,startPoint->y,startPoint->z);
 
-	//double numPoint = 20.0;//(abs(p->x - startPoint->x) + abs(p->y - startPoint->y) + abs(p->x - endPoint->x) + abs(p->y - endPoint->y)*100);
-	double numPoint = (abs(p->x - startPoint->x) + abs(p->y - startPoint->y) + abs(p->x - endPoint->x) + abs(p->y - endPoint->y)*20);
-	double t = (double)1.0/numPoint;
+	//float numPoint = 20.0;//(abs(p->x - startPoint->x) + abs(p->y - startPoint->y) + abs(p->x - endPoint->x) + abs(p->y - endPoint->y)*100);
+	float numPoint = (abs(p->x - startPoint->x) + abs(p->y - startPoint->y) + abs(p->x - endPoint->x) + abs(p->y - endPoint->y))*20.0;
+	if(numPoint<=1) numPoint = 4.0;
+	else if(numPoint>=100) numPoint = 100.0;
+	float t = (float)1.0/numPoint;
 	int i = 0;
 	while(i<=numPoint)
 	{
 		//printf("===%f\n",t*i);
 		Point * point = drawBezier2(startPoint,p,endPoint,t*i);
+		//printf("===%f,%f,%f\n",point->x,point->y,point->z);
 		array = Array_push(array,point);
 		++i;
 	}
@@ -260,7 +277,7 @@ static void Data3d_show(Sprite*sprite)
 	}
 
 	int numPoint = userData->points->length;
-	printf("numPoint=%d\n",numPoint);
+	//printf("numPoint=%d\n",numPoint);
 
 	GLfloat *vVertices= malloc(sizeof(GLfloat)*numPoint*3);
 	//GLushort *vVertices = malloc(sizeof(GLfloat)*numPoint*3);
@@ -280,8 +297,8 @@ static void Data3d_show(Sprite*sprite)
 			vVertices[3*index] = point->x;
 			vVertices[3*index+1] = point->y;
 			vVertices[3*index+2] = 0.0f;
-			printf("x=%f,",point->x);
-			printf("y=%f\n",point->y);
+			//printf("x=%f,",point->x);
+			//printf("y=%f\n",point->y);
 		}
 		{
 			r = (rand()%1000)/1000.0f;
@@ -337,6 +354,41 @@ static void Data3d_show(Sprite*sprite)
 	free(vVertices);
 }
 
+void drawRoundRect(UserData * userData,float _x, float _y,float _w,float _h,float r_x,float r_y)
+{
+	if(r_x*2>_w) r_x = _w/2;
+	if(r_y*2>_h) r_y = _h/2;
+	Point * p0 = Point_new(_x,_y,0.0);//left top
+	Point * p1 = Point_new(_x+r_x,_y,0.0);
+	Point * p2 = Point_new(_x+_w-r_x,_y,0.0);
+	Point * p3 = Point_new(_x+_w,_y,0.0);//rig_ht top
+	Point * p4 = Point_new(_x+_w,_y+r_y,0.0);
+	Point * p5 = Point_new(_x+_w,_y+_h-r_y,0.0);
+	Point * p6 = Point_new(_x+_w,_y+_h,0.0);//rig_ht bottom
+	Point * p7 = Point_new(_x+_w-r_x,_y+_h,0.0);
+	Point * p8 = Point_new(_x+r_x,_y+_h,0.0);
+	Point * p9 = Point_new(_x,_y+_h,0.0);//left bottom
+	Point * p10 = Point_new(_x,_y+_h-r_y,0.0);
+	Point * p11 = Point_new(_x,_y+r_y,0.0);
+
+	userData->points = moveto(userData->points,p1);
+	userData->points = lineto(userData->points,p2);
+	userData->points = curveto(userData->points,p3,p4);
+	//userData->points = moveto(userData->points,p4);
+	userData->points = lineto(userData->points,p5);
+	userData->points = curveto(userData->points,p6,p7);
+	//userData->points = moveto(userData->points,p7);
+	userData->points = lineto(userData->points,p8);
+	userData->points = curveto(userData->points,p9,p10);
+	//userData->points = moveto(userData->points,p10);
+	userData->points = lineto(userData->points,p11);
+	userData->points = curveto(userData->points,p0,p1);
+}
+
+void drawRoundRect2D(UserData * userData,int _x, int _y,int _w,int _h,int r_x,int r_y)
+{
+	drawRoundRect(userData,xto3d(_x),-yto3d(_y),xto3d(_w),-yto3d(_h),xto3d(r_x),-yto3d(r_y));
+}
 
 #ifdef DEBUG_BESIER
 int main()
@@ -346,7 +398,7 @@ int main()
 	{
 		//printf("%d! = %d\n",i,factorial(i));
 		//printf("A_4_%d = %d\n",i, A_n_m(4,i));
-		printf("C_4_%d = %d\n",i, C_n_m(4,i));
+		//printf("C_4_%d = %d\n",i, C_n_m(4,i));
 		++i;
 	}
 
@@ -360,6 +412,11 @@ int main()
 
 	UserData userData;
 	memset(&userData,0,sizeof(UserData));
+	drawRoundRect(&userData,0.0,0.0,.50,.50,0.05,0.05);
+
+	drawRoundRect2D(&userData,0,0,300,400,40,40);
+
+	/*
 	//userData.points;
 	Point p = {0.0,0.0,0.0};
 	userData.points = moveto(userData.points,&p);
@@ -370,15 +427,21 @@ int main()
 	Point p3 = {.5,0.0,0.0};
 	userData.points = lineto(userData.points,&p3);
 	userData.points = curveto(userData.points,&p1,&p);
-	//userData.points = curveto(userData.points,&p2,&p);
+	userData.points = curveto(userData.points,&p2,&p);
+	*/
+	//
+	Sprite*sprite2 = Sprite_new();
+	//sprite2->surface = SDL_LoadBMP("1.bmp");
+	Sprite_addChild(stage->sprite,sprite2);
 
 	Sprite*sprite = Sprite_new();
-	sprite->x = 120;
-	sprite->y = 180;
+	sprite->x = stage->stage_w/2;
+	sprite->y = stage->stage_h/2;
 	sprite->data3d = &userData;
 	sprite->showFunc = Data3d_show;
 	sprite->destroyFunc = Data3d_destroy;
 	Sprite_addChild(stage->sprite,sprite);
+
 
 
 	Stage_loopEvents();

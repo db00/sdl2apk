@@ -387,7 +387,7 @@ void drawRoundRect(UserData * userData,float _x, float _y,float _w,float _h,floa
 
 void drawRoundRect2D(UserData * userData,int _x, int _y,int _w,int _h,int r_x,int r_y)
 {
-	drawRoundRect(userData,xto3d(_x),-yto3d(_y),xto3d(_w),-yto3d(_h),xto3d(r_x),-yto3d(r_y));
+	drawRoundRect(userData,xto3d(_x),yto3d(_y),xto3d(_w),yto3d(_h),xto3d(r_x),yto3d(r_y));
 }
 
 #ifdef DEBUG_BESIER
@@ -412,9 +412,9 @@ int main()
 
 	UserData userData;
 	memset(&userData,0,sizeof(UserData));
-	drawRoundRect(&userData,0.0,0.0,.50,.50,0.05,0.05);
+	drawRoundRect(&userData,-0.1,-0.1,.50,.50,0.05,0.05);
 
-	drawRoundRect2D(&userData,0,0,300,400,40,40);
+	drawRoundRect2D(&userData,0,0,300,400,40,-40);
 
 	/*
 	//userData.points;

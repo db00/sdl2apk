@@ -15,9 +15,9 @@ int add_history(char *word)
 	{
 		int rc=0;
 		rc = add_new_word(word);
-		printf("\r\n-------------------id:%d\r\n",rc);
+		//printf("\r\n-------------------id:%d\r\n",rc);
 		rc = add_to_history(rc);
-		if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
+		//if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
 	}
 	return 0;
 }
@@ -261,7 +261,7 @@ void changeHistoryList()
 		char * curWord = Array_getByIndex(history_str_arr,0);
 		if(curWord==NULL)
 			return;
-		printf("\r\n curWord:%s\r\n",curWord);
+		//printf("\r\n curWord:%s\r\n",curWord);
 
 		open_dict();
 		Word * word = Dict_getWord(dict,curWord);
@@ -282,7 +282,7 @@ void changeHistoryList()
 				break;
 
 			char * curWord = Array_getByIndex(history_str_arr,index);
-			printf("\r\n curWord:%s\r\n",curWord);
+			//printf("\r\n curWord:%s\r\n",curWord);
 			Word * word = Dict_getWord(dict,curWord);
 
 			appendWordBtn(word,1);

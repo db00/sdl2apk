@@ -1,6 +1,6 @@
 /***
  *
- gcc sqlite.c datas.c files.c array.c mystring.c myregex.c -lsqlite3 -D debug_datas -I"../SDL2/include/" && ./a.out
+ gcc cJSON.c sqlite.c datas.c files.c array.c mystring.c myregex.c -lm -lsqlite3 -D debug_datas -I"../SDL2/include/" && ./a.out
  */
 #include "datas.h"
 
@@ -17,7 +17,7 @@ int add_new_word(char * word)
 		memset(sql,0,100);
 		sprintf(sql,s,word,time(NULL));
 		int rc = DataBase_exec(history_db,sql);
-		if(!rc)printf("\n insert sql_result_str:%s",history_db->result_str);
+		//if(!rc)printf("\n insert sql_result_str:%s",history_db->result_str);
 		id = get_word_id(word);
 	}
 	return id;
@@ -32,10 +32,10 @@ int get_word_id(char * word)
 	int rc = DataBase_exec(history_db,sql);
 	if(regex_match(history_db->result_str,"/:\"[0-9]+\"/"))
 	{
-		if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
+		//if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
 		int len=0;
 		char * r =regex_replace(history_db->result_str,"/^.*:\"([0-9]+)\"\\}]$/i","$1",&len);
-		printf("\r\n-------------------%s\r\n",r);
+		//printf("\r\n-------------------%s\r\n",r);
 		return atoi(r);
 	}
 	return 0;
@@ -50,6 +50,31 @@ int add_to_history(int wordid)
 	sprintf(sql,s,wordid,time(NULL));
 	int rc = DataBase_exec(history_db,sql);
 	return rc;
+}
+
+void clear_result_str()
+{
+	if(history_db->result_str){
+		free(history_db->result_str);
+		history_db->result_str=NULL;
+	}
+}
+
+char * get_history()
+{
+	clear_result_str();
+	int rc;
+	rc = DataBase_exec(history_db,"select * from list group by wordid ORDER BY date desc;");
+	if(!rc){
+		printf("\n history :\n%s",history_db->result_str);
+
+
+
+
+
+		return history_db->result_str;
+	}
+	return NULL;
 }
 
 int add_to_test(int wordid,int result)
@@ -67,9 +92,9 @@ int init_db()
 	history_db = DataBase_new(decodePath("~/sound/test.db"));
 	int rc=0;
 	rc = DataBase_exec(history_db,"create table if not exists list(wordid INTEGER primary key asc,word varchar(50), date real, remembered char(1), numAccess INTEGER, numTest INTEGER);");
-	if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
+	//if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
 	rc = DataBase_exec(history_db,"create table if not exists history(id INTEGER primary key asc, wordid INTEGER, status varchar(1), date real);");
-	if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
+	//if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
 	return 0;
 }
 
@@ -77,6 +102,10 @@ int init_db()
 #ifdef debug_datas
 int main()
 {
+	unsigned int i = -1;
+	unsigned int j = -1;
+	//printf("%d\r\n",-(((unsigned int)-1)/4));
+	printf("%d\r\n",((unsigned int)-1)/4);
 	init_db();
 	if(history_db){
 		int rc=0;
@@ -91,8 +120,7 @@ int main()
 		history_db->result_str=NULL;
 		rc = DataBase_exec(history_db,"select * from list;");
 		if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
-		rc = DataBase_exec(history_db,"select * from history;");
-		if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
+		get_history();
 		DataBase_clear(history_db);
 		history_db = NULL;
 	}

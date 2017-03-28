@@ -99,7 +99,12 @@ void READ_loadSound(char *word,int type)
 {
 	char * url = getEngUrl(word,type);
 	char * fileName = getEngPath(word,type);
-	plays(url,fileName);
+	int saveFile = 0;
+	if(saveFile){
+		plays(url,fileName);
+	}else{
+		plays(url,NULL);
+	}
 	free(url);
 	free(fileName);
 	return;

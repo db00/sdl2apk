@@ -113,12 +113,16 @@ int Dict_readIndexFile(Dict *dict)
 			strncpy(curWord->word,(char*)tail,wordLength);//save the word to arr;
 			curWord->offset = to_int(head+1);//the offset of the word mean; 
 			curWord->length = to_int(head+5);//the length of the word mean;
+			curWord->index = numWords;
 			//if(900<numWords && numWords < 910) printf("%s:%d,%d\n",curWord->word,curWord->offset,curWord->length);
 			head += 9;
 			tail = head;
 			numWords ++;
 
-			if(numWords==dict->wordcount)break;//reach the end of file 
+			if(numWords==dict->wordcount){
+				//printf("file end\r\n");
+				break;//reach the end of file 
+			}
 		}else{
 			head++;
 		}
@@ -152,10 +156,10 @@ FILE * Dict_open(Dict *dict)
 			char *idxfilesize = "idxfilesize=";
 			if(strncasecmp(curpara,wordcount,strlen(wordcount))==0) {
 				dict->wordcount=atoi(curpara+strlen(wordcount));
-				printf("dict->wordcount:%d,",dict->wordcount);
+				//printf("dict->wordcount:%d,",dict->wordcount);
 			}else if(strncasecmp(curpara,idxfilesize,strlen(idxfilesize))==0) {
 				dict->idxfilesize=atoi(curpara+strlen(idxfilesize));
-				printf("dict->idxfilesize:%d,",dict->idxfilesize);
+				//printf("dict->idxfilesize:%d,",dict->idxfilesize);
 			}
 			curpara = strtok(NULL,"\r\n");
 		}
@@ -228,6 +232,7 @@ int Dict_getWordIndex(Dict *dict,char * target_word)
 		cur=(tail+head)/2;
 
 		if(tail<head){
+			cur++;
 			if(abs(cur)>=dict->wordcount)
 				cur = dict->wordcount-1;
 			return -(cur);
@@ -292,6 +297,17 @@ int matchs(char * word,char *s)
 	return 1;
 }
 
+Word *Dict_getWordByIndex(Dict * dict,int id)
+{
+	if(dict==NULL)
+		return NULL;
+	if(dict->file==0){
+		dict->file = Dict_open(dict);
+	}
+	Word*word = dict->words + id;
+
+	return word;
+}
 
 
 int maxlen = 10;
@@ -320,7 +336,7 @@ char *Dict_getByIndex(Dict * dict,int id){
 		   	&& word->length >maxlen)
 	{
 		maxlen = word->length;
-		printf("\r\n%s:%d\r\n",word->word,maxlen);
+		printf("\r\n%d==%d,%s:%d\r\n",id,word->index,word->word,maxlen);
 	}
 	//else if (strlen(word->word)>50) printf("\r\n%s:%d\r\n",word->word,maxlen);
 

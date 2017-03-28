@@ -3,6 +3,7 @@
 
 #include "sqlite.h"
 #include "files.h"
+#include "cJSON.h"
 
 
 /**

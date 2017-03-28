@@ -20,6 +20,7 @@
 
 typedef struct
 {
+	int index;
 	char *word;//单词
 	int offset;//
 	int length;//
@@ -48,8 +49,10 @@ Word*Dict_contains(Dict *dict,char *word);
 int Dict_getWordIndex(Dict *dict,char * target_word);
 Word*Dict_getWord(Dict *dict,char * target_word);
 char *Dict_getByIndex(Dict * dict,int id);
+Word *Dict_getWordByIndex(Dict * dict,int id);
 char *Dict_explain(Dict* dict,char* target_word);
 char *Dict_getMean(Dict* dict,Word* word);
 Array *Dict_getWordList(Dict*dict,char*s,int* numWords);
+char * get_history();
 
 #endif// dbs_h_libiao

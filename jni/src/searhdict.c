@@ -296,48 +296,49 @@ void show_history_list(SpriteEvent*e)
 	Sprite*target = e->target;
 	SDL_Event* event = e->e;
 
-	Array_clear(history_str_arr);
-	history_str_arr = NULL;
-
-	char * data =  get_history();
-	if(data==NULL)
-		return;
-	cJSON* pRoot = cJSON_Parse(data);
-	if(pRoot){
-		int nCount = cJSON_GetArraySize ( pRoot); 
-
-		int i;
-		for(i=0;i<nCount; i++){
-			if(history_str_arr==NULL)
-				history_str_arr = Array_new();
-
-			cJSON *child =  cJSON_GetArrayItem(pRoot, i);
-			cJSON * w = cJSON_GetObjectItem(child,"word");
-			//char * word = cJSON_Print(w);;
-			char * word = append_str(NULL,w->valuestring);
-			history_str_arr = Array_push(history_str_arr,word);
-			//printf("\n---------->%s,%s\n",word,(char*)Array_getByIndex(history_str_arr,i));
-			//fflush(stdout);
-
-			child = child->next;
-		}
-		cJSON_Delete(pRoot);
-		pRoot = NULL;
-		//printf("---------->%d,%s",nCount,cJSON_Print(pRoot));
-	}
-
-
-	if(curlistSprite){
-		Sprite_removeChildren(curlistSprite);
-		curlistSprite->x = 0;
-		curlistSprite->y = input->sprite->h;
-	}
-	if(strcmp(history_btn->obj,"历史"))
+	if(target == history_btn && strcmp(history_btn->obj,"历史"))
 	{
 		history_btn->obj = "历史";
 	}else{
-		history_btn->obj = "字典";
+		Array_clear(history_str_arr);
+		history_str_arr = NULL;
+
+		char * data =  get_history();
+		if(data==NULL)
+			return;
+		cJSON* pRoot = cJSON_Parse(data);
+		if(pRoot){
+			int nCount = cJSON_GetArraySize ( pRoot); 
+
+			int i;
+			for(i=0;i<nCount; i++){
+				if(history_str_arr==NULL)
+					history_str_arr = Array_new();
+
+				cJSON *child =  cJSON_GetArrayItem(pRoot, i);
+				cJSON * w = cJSON_GetObjectItem(child,"word");
+				//char * word = cJSON_Print(w);;
+				char * word = append_str(NULL,w->valuestring);
+				//char * word = w->valuestring;
+				history_str_arr = Array_push(history_str_arr,word);
+				//printf("\n---------->%s,%s\n",word,(char*)Array_getByIndex(history_str_arr,i));
+				//fflush(stdout);
+
+				child = child->next;
+			}
+			cJSON_Delete(pRoot);
+			pRoot = NULL;
+			//printf("---------->%d,%s",nCount,cJSON_Print(pRoot));
+		}
+
+
+		if(curlistSprite){
+			Sprite_removeChildren(curlistSprite);
+			curlistSprite->x = 0;
+			curlistSprite->y = input->sprite->h;
+		}
 		changeHistoryList();
+		history_btn->obj = "字典";
 	}
 	UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//Stage_redraw
 }

@@ -7,18 +7,8 @@
  * @date 2016-06-17
  */
 
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
-#include "math.h"
-#include "array.h"
-#include "time.h"
-#include "sprite.h"
-typedef struct Point{
-	float x;
-	float y;
-	float z;
-} Point;
+#include "besier.h"
+
 
 Point * Point_new(float x,float y,float z)
 {
@@ -122,18 +112,19 @@ Point * drawLine(Point * A, Point * B,double t)
 	return P;    
 }    
 
-Array * moveto(Array*array,Point* p)
+
+Array * Graphic_moveto(Array*array,Point* p)
 {
 	return Array_push(array,p);
 }
-Array * lineto(Array*array,Point* p)
+Array * Graphic_lineto(Array*array,Point* p)
 {
 	Array * a = Array_push(array,p);
 	//printf("\r\nlength:%d\r\n",a->length);
 	return a;
 }
 
-Array * curveto(Array*array,Point* p,Point * endPoint)
+Array * Graphic_curveto(Array*array,Point* p,Point * endPoint)
 {
 	Point * startPoint = NULL;
 	if(array->length==0)
@@ -162,25 +153,11 @@ Array * curveto(Array*array,Point* p,Point * endPoint)
 	return array;
 }
 
-typedef struct UserData
-{
-	GLuint programObject;
-	GLint positionLoc;
-	GLint colorLoc;
-	GLint mvpLoc;
-	GLfloat *vertices;
-	GLfloat *normals;
-	GLfloat *texCoords;
-	GLuint  *indices;
-
-	Array * points;
-} UserData;
-
-static void Data3d_destroy(Sprite * sprite)
+void Graphic_destroy(Sprite * sprite)
 {
 	if(sprite == NULL || sprite->data3d==NULL)
 		return;
-	UserData * data3d = sprite->data3d;
+	GraphicData * data3d = sprite->data3d;
 	if(data3d){
 		if(data3d->vertices)free(data3d->vertices);
 		if(data3d->indices)free(data3d->indices);
@@ -191,9 +168,9 @@ static void Data3d_destroy(Sprite * sprite)
 	sprite->data3d= NULL;
 }
 
-static void Data3d_show(Sprite*sprite)
+void Graphic_show(Sprite*sprite)
 {
-	UserData * userData = sprite->data3d;
+	GraphicData * userData = sprite->data3d;
 	if(userData==NULL)
 		return ;
 	if(userData->programObject == 0)
@@ -345,6 +322,8 @@ static void Data3d_show(Sprite*sprite)
 	//GL_CHECK(gles2.glDrawElements ( GL_LINE_LOOP, numPoint, GL_UNSIGNED_SHORT, indices));
 	//GL_CHECK(gles2.glDrawArrays ( GL_LINE_STRIP, 0, numPoint));
 	GL_CHECK(gles2.glDrawElements ( GL_LINE_STRIP,numPoint, GL_UNSIGNED_SHORT, indices));
+	//GL_CHECK(gles2.glDrawElements ( GL_TRIANGLE_FAN,numPoint, GL_UNSIGNED_SHORT, indices));
+	GL_CHECK(gles2.glDrawElements ( GL_TRIANGLE_FAN,numPoint, GL_UNSIGNED_SHORT, indices));
 	//GL_CHECK(gles2.glDrawElements ( GL_TRIANGLES, numPoint, GL_UNSIGNED_SHORT, indices));
 	//eglSwapBuffers ( esContext->eglDisplay, esContext->eglSurface );
 	//
@@ -354,7 +333,7 @@ static void Data3d_show(Sprite*sprite)
 	free(vVertices);
 }
 
-void drawRoundRect(UserData * userData,float _x, float _y,float _w,float _h,float r_x,float r_y)
+void Graphic_drawRoundRect(GraphicData * userData,float _x, float _y,float _w,float _h,float r_x,float r_y)
 {
 	//if(r_x*2>_w) r_x = _w/2;
 	//if(r_y*2>_h) r_y = _h/2;
@@ -371,23 +350,23 @@ void drawRoundRect(UserData * userData,float _x, float _y,float _w,float _h,floa
 	Point * p10 = Point_new(_x,_y+_h-r_y,0.0);
 	Point * p11 = Point_new(_x,_y+r_y,0.0);
 
-	userData->points = moveto(userData->points,p1);
-	userData->points = lineto(userData->points,p2);
-	userData->points = curveto(userData->points,p3,p4);
-	//userData->points = moveto(userData->points,p4);
-	userData->points = lineto(userData->points,p5);
-	userData->points = curveto(userData->points,p6,p7);
-	//userData->points = moveto(userData->points,p7);
-	userData->points = lineto(userData->points,p8);
-	userData->points = curveto(userData->points,p9,p10);
-	//userData->points = moveto(userData->points,p10);
-	userData->points = lineto(userData->points,p11);
-	userData->points = curveto(userData->points,p0,p1);
+	userData->points = Graphic_moveto(userData->points,p1);
+	userData->points = Graphic_lineto(userData->points,p2);
+	userData->points = Graphic_curveto(userData->points,p3,p4);
+	//userData->points = Graphic_moveto(userData->points,p4);
+	userData->points = Graphic_lineto(userData->points,p5);
+	userData->points = Graphic_curveto(userData->points,p6,p7);
+	//userData->points = Graphic_moveto(userData->points,p7);
+	userData->points = Graphic_lineto(userData->points,p8);
+	userData->points = Graphic_curveto(userData->points,p9,p10);
+	//userData->points = Graphic_moveto(userData->points,p10);
+	userData->points = Graphic_lineto(userData->points,p11);
+	userData->points = Graphic_curveto(userData->points,p0,p1);
 }
 
-void drawRoundRect2D(UserData * userData,int _x, int _y,int _w,int _h,int r_x,int r_y)
+void Graphic_drawRoundRect2D(GraphicData * userData,int _x, int _y,int _w,int _h,int r_x,int r_y)
 {
-	drawRoundRect(userData,
+	Graphic_drawRoundRect(userData,
 			xto3d(_x),yto3d(_y),
 			wto3d(_w),(-hto3d(_h)),
 			wto3d(r_x),(-hto3d(r_y))
@@ -409,14 +388,10 @@ int main()
 
 
 	Stage_init(1);
-	//Sprite*sprite = Sprite_new();
-	//SDL_Surface * surface = Surface_new(240,320);
-	//sprite->surface = surface;
 
-
-	UserData userData;
-	memset(&userData,0,sizeof(UserData));
-	drawRoundRect(&userData,-0.1,-0.1,.50,.50,0.05,0.05);
+	GraphicData userData;
+	memset(&userData,0,sizeof(GraphicData));
+	Graphic_drawRoundRect(&userData,-0.1,-0.1,.50,.50,0.05,0.05);
 
 
 	//
@@ -428,20 +403,20 @@ int main()
 	sprite->x = stage->stage_w/2;
 	sprite->y = stage->stage_h/2;
 	sprite->data3d = &userData;
-	sprite->showFunc = Data3d_show;
-	sprite->destroyFunc = Data3d_destroy;
+	sprite->showFunc = Graphic_show;
+	sprite->destroyFunc = Graphic_destroy;
 	Sprite_addChild(stage->sprite,sprite);
 
 
-	UserData userData2;
-	memset(&userData2,0,sizeof(UserData));
-	drawRoundRect2D(&userData2,0,0,200,300,40,40);
+	GraphicData userData2;
+	memset(&userData2,0,sizeof(GraphicData));
+	Graphic_drawRoundRect2D(&userData2,0,0,200,300,40,40);
 	Sprite*sprite3 = Sprite_new();
 	sprite3->x = stage->stage_w/2;
 	sprite3->y = stage->stage_h/2;
 	sprite3->data3d = &userData2;
-	sprite3->showFunc = Data3d_show;
-	sprite3->destroyFunc = Data3d_destroy;
+	sprite3->showFunc = Graphic_show;
+	sprite3->destroyFunc = Graphic_destroy;
 	Sprite_addChild(stage->sprite,sprite3);
 
 	Stage_loopEvents();

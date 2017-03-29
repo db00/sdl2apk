@@ -60,6 +60,18 @@ void clear_result_str()
 	}
 }
 
+char * datas_query(char * sql)
+{
+	clear_result_str();
+	int rc;
+	rc = DataBase_exec(history_db,sql);
+	if(!rc){
+		printf("\n history :\n%s",history_db->result_str);
+
+		return history_db->result_str;
+	}
+	return NULL;
+}
 char * get_history()
 {
 	clear_result_str();
@@ -68,14 +80,11 @@ char * get_history()
 	if(!rc){
 		printf("\n history :\n%s",history_db->result_str);
 
-
-
-
-
 		return history_db->result_str;
 	}
 	return NULL;
 }
+
 
 int add_to_test(int wordid,int result)
 {
@@ -118,8 +127,8 @@ int main()
 		if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
 		free(history_db->result_str);
 		history_db->result_str=NULL;
-		rc = DataBase_exec(history_db,"select * from list;");
-		if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
+		rc = DataBase_exec2array(history_db,"select * from list;");
+		if(!rc)DataBase_result_print(history_db);
 		get_history();
 		DataBase_clear(history_db);
 		history_db = NULL;

@@ -37,5 +37,6 @@ int get_word_id(char * word);
 int add_to_history(int wordid);
 int add_to_test(int wordid,int result);
 int add_new_word(char * word);
+char * datas_query(char * sql);
 
 #endif

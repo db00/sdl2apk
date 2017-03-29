@@ -356,8 +356,8 @@ static void Data3d_show(Sprite*sprite)
 
 void drawRoundRect(UserData * userData,float _x, float _y,float _w,float _h,float r_x,float r_y)
 {
-	if(r_x*2>_w) r_x = _w/2;
-	if(r_y*2>_h) r_y = _h/2;
+	//if(r_x*2>_w) r_x = _w/2;
+	//if(r_y*2>_h) r_y = _h/2;
 	Point * p0 = Point_new(_x,_y,0.0);//left top
 	Point * p1 = Point_new(_x+r_x,_y,0.0);
 	Point * p2 = Point_new(_x+_w-r_x,_y,0.0);
@@ -387,7 +387,11 @@ void drawRoundRect(UserData * userData,float _x, float _y,float _w,float _h,floa
 
 void drawRoundRect2D(UserData * userData,int _x, int _y,int _w,int _h,int r_x,int r_y)
 {
-	drawRoundRect(userData,xto3d(_x),yto3d(_y),xto3d(_w),yto3d(_h),xto3d(r_x),yto3d(r_y));
+	drawRoundRect(userData,
+			xto3d(_x),yto3d(_y),
+			wto3d(_w),(-hto3d(_h)),
+			wto3d(r_x),(-hto3d(r_y))
+			);
 }
 
 #ifdef DEBUG_BESIER
@@ -414,24 +418,10 @@ int main()
 	memset(&userData,0,sizeof(UserData));
 	drawRoundRect(&userData,-0.1,-0.1,.50,.50,0.05,0.05);
 
-	drawRoundRect2D(&userData,0,0,300,400,40,-40);
 
-	/*
-	//userData.points;
-	Point p = {0.0,0.0,0.0};
-	userData.points = moveto(userData.points,&p);
-	Point p1 = {0.0,1.0,0.0};
-	userData.points = lineto(userData.points,&p1);
-	Point p2 = {0.2,-0.5,0.0};
-	userData.points = lineto(userData.points,&p2);
-	Point p3 = {.5,0.0,0.0};
-	userData.points = lineto(userData.points,&p3);
-	userData.points = curveto(userData.points,&p1,&p);
-	userData.points = curveto(userData.points,&p2,&p);
-	*/
 	//
 	Sprite*sprite2 = Sprite_new();
-	//sprite2->surface = SDL_LoadBMP("1.bmp");
+	sprite2->surface = SDL_LoadBMP("1.bmp");
 	Sprite_addChild(stage->sprite,sprite2);
 
 	Sprite*sprite = Sprite_new();
@@ -443,6 +433,16 @@ int main()
 	Sprite_addChild(stage->sprite,sprite);
 
 
+	UserData userData2;
+	memset(&userData2,0,sizeof(UserData));
+	drawRoundRect2D(&userData2,0,0,200,300,40,40);
+	Sprite*sprite3 = Sprite_new();
+	sprite3->x = stage->stage_w/2;
+	sprite3->y = stage->stage_h/2;
+	sprite3->data3d = &userData2;
+	sprite3->showFunc = Data3d_show;
+	sprite3->destroyFunc = Data3d_destroy;
+	Sprite_addChild(stage->sprite,sprite3);
 
 	Stage_loopEvents();
 	return 0;

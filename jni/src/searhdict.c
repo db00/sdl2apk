@@ -10,18 +10,6 @@
 #include "datas.h"
 #include "besier.h"
 
-int add_history(char *word)
-{
-	if(history_db && regex_match(word,"/^[a-z-]*$/i")) 
-	{
-		int rc=0;
-		rc = add_new_word(word);
-		//printf("\r\n-------------------id:%d\r\n",rc);
-		rc = add_to_history(rc);
-		//if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
-	}
-	return 0;
-}
 
 Sprite * curlistSprite = NULL;
 Sprite * dictContainer= NULL;
@@ -69,30 +57,33 @@ char * showExplain(char *explain)
 	return explain;
 }
 
-static void * readWordUs(void * _key)
+int add_history(char *word)
 {
-	Word * word = _key;
-	Sound_playEng(word->word,2);
-	return NULL;
-}
-static void * readWordEn(void * _key)
-{
-	Word * word = _key;
-	Sound_playEng(word->word,1);
-	return NULL;
+	if(history_db && regex_match(word,"/^[a-z-]*$/i")) 
+	{
+		int rc=0;
+		rc = add_new_word(word);
+		//printf("\r\n-------------------id:%d\r\n",rc);
+		rc = add_to_history(rc);
+		//if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
+	}
+	return 0;
 }
 
-void readWord(char * word,int isEn)
+static void read_out(SpriteEvent*e)
 {
-	pthread_t thread;
-	void* (*func)(void *) = readWordEn;
-	if(!isEn)
-		func = readWordUs;
-	if(pthread_create(&thread, NULL, func , word)!=0)//创建子线程  
-	{  
-		perror("pthread_create");  
+	Sprite*target = e->target;
+	SDL_Event* event = e->e;
+
+	char * word = input->value;
+	if(strlen(word)==0)
+		return;
+	printf("read %s\n",word);
+	if(strcmp(target->obj,"英音")==0){
+		Sound_playEng(word,1);
+	}else if(strcmp(target->obj,"美音")==0){
+		Sound_playEng(word,2);
 	}
-	pthread_detach(thread);
 }
 
 int getMean(Word*word)
@@ -294,12 +285,12 @@ void show_history_list(SpriteEvent*e)
 		Array_clear(history_str_arr);
 		history_str_arr = NULL;
 
-		char * data =  get_history();
+		char * data = get_history();
 		if(data==NULL)
 			return;
 		cJSON* pRoot = cJSON_Parse(data);
 		if(pRoot){
-			int nCount = cJSON_GetArraySize ( pRoot); 
+			int nCount = cJSON_GetArraySize( pRoot); 
 
 			int i;
 			for(i=0;i<nCount; i++){
@@ -433,6 +424,16 @@ static void keyupEvent(SpriteEvent* e){
 	Redraw(NULL);
 }
 
+static Sprite * makeSideBtn(char * name,int y)
+{
+	Sprite * btn = Sprite_newText(name,30,0x0,0xffffffff);
+	btn->y = y;
+	Sprite_addEventListener(btn,SDL_MOUSEBUTTONUP,read_out);
+	//printf("btn:(%s)\n",btn->obj);
+	btn->x = stage->stage_w - btn->w;
+	Sprite_addChild(dictContainer,btn);
+	return btn;
+}
 
 void *uiThread(void *ptr){
 	if(dictContainer==NULL){
@@ -491,6 +492,14 @@ void *uiThread(void *ptr){
 		history_btn->x = stage->stage_w - history_btn->w;
 		Sprite_addChild(dictContainer,history_btn);
 
+		Sprite * enBtn = makeSideBtn("英音",history_btn->y + history_btn->h + 5);
+		enBtn = makeSideBtn("美音",enBtn->y + enBtn->h + 5);
+		/*
+		   enBtn = makeSideBtn("英",enBtn->y + enBtn->h + 5);
+		   enBtn = makeSideBtn("汉",enBtn->y + enBtn->h + 5);
+		   enBtn = makeSideBtn("英汉",enBtn->y + enBtn->h + 5);
+		   enBtn = makeSideBtn("测试",enBtn->y + enBtn->h + 5);
+		   */
 
 	}
 	if(history_db==NULL)

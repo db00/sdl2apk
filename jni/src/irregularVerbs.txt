@@ -2,7 +2,7 @@ abide abode,abided abode,abided
 alight alighted,alit alighted,alit
 arise arose arisen
 awake awoke,awaked awoken,awoke,awaked
-be were \was been
+be were,was been
 bear bore borne,born
 beat beat beaten
 become became become

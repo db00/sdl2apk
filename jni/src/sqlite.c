@@ -156,6 +156,7 @@ int DataBase_exec2array(DataBase*db,const char * sql)
 
 	DataBase_free_result(db);
 
+
 	char *zErrMsg = 0;
 	int rc = sqlite3_exec(db->db, sql ,callback2, db, &zErrMsg);
 	if(rc != SQLITE_OK){

@@ -1868,6 +1868,7 @@ void Sprite_rotate(Sprite*sprite,int _rotationX,int _rotationY,int _rotationZ)
 	sprite->rotationZ = _rotationZ % 360;
 }
 
+//2D->3D: 映射至第四像限, x:+,y:- , x,y各加屏幕大小的一半
 float wto3d(int x){
 	return x*2.0/stage->stage_w*stage->world->aspect;
 }

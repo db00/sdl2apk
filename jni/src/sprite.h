@@ -97,7 +97,7 @@ typedef struct Data3d
 	GLuint  *indices;
 } Data3d;
 
-typedef struct World3d{
+typedef struct World3d{//
 	float fovy;
 	float aspect;
 	float nearZ;

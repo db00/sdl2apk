@@ -1,6 +1,6 @@
 /**
  * @file searhdict.c
- gcc -D test_searchdict searhdict.c readbaidu.c input.c textfield.c dict.c music.c urlcode.c base64.c myregex.c files.c httploader.c ease.c tween.c utf8.c ipstring.c sprite.c array.c mystring.c matrix.c mysurface.c -lssl -lcrypto -lm -lpthread -lSDL2 -lSDL2_ttf -lSDL2_mixer -lSDL2_image -I"../SDL2_mixer/"  -I"../SDL2_ttf/" -I"../SDL2_image/" -I"../SDL2/include/" && ./a.out 
+ gcc -D test_searchdict searhdict.c readbaidu.c cJSON.c datas.c sqlite.c sqlite3.c input.c textfield.c dict.c music.c urlcode.c base64.c myregex.c files.c httploader.c ease.c tween.c utf8.c ipstring.c sprite.c array.c mystring.c matrix.c mysurface.c -lssl -lcrypto -lm -ldl -lpthread -lSDL2 -lSDL2_ttf -lSDL2_mixer -lSDL2_image -I"../SDL2_mixer/"  -I"../SDL2_ttf/" -I"../SDL2_image/" -I"../SDL2/include/" && ./a.out 
  * @author db0@qq.com
  * @version 1.0.1
  * @date 2016-09-22
@@ -8,6 +8,7 @@
 
 #include "searhdict.h"
 #include "datas.h"
+#include "besier.h"
 
 int add_history(char *word)
 {
@@ -81,10 +82,21 @@ static void * readWordEn(void * _key)
 	return NULL;
 }
 
+void readWord(char * word,int isEn)
+{
+	pthread_t thread;
+	void* (*func)(void *) = readWordEn;
+	if(!isEn)
+		func = readWordUs;
+	if(pthread_create(&thread, NULL, func , word)!=0)//创建子线程  
+	{  
+		perror("pthread_create");  
+	}
+	pthread_detach(thread);
+}
+
 int getMean(Word*word)
 {
-	printf("selected Word: %s\n",word->word);
-	//return 0;
 	if(word==NULL)
 		return 0;
 	open_dict();
@@ -93,13 +105,7 @@ int getMean(Word*word)
 	showExplain(explain);
 	if(word->word)
 	{
-		pthread_t thread;//创建不同的子线程以区别不同的客户端  
-		if(pthread_create(&thread, NULL, readWordUs, word)!=0)//创建子线程  
-		{  
-			perror("pthread_create");  
-		}
-		pthread_detach(thread);
-		//Sound_playEng(word->word,2);
+		Input_setText(input,word->word);
 		add_history(word->word);
 	}
 	return 0;
@@ -109,23 +115,8 @@ int searchWord(char* _word)
 {
 	if(_word && strlen(_word)){
 		open_dict();
-		char * explain = NULL;
 		Word *word = Dict_getWord(dict,_word);
-		if(word)
-		{
-			pthread_t thread;//创建不同的子线程以区别不同的客户端  
-			if(pthread_create(&thread, NULL, readWordEn, word)!=0)//创建子线程  
-			{  
-				perror("pthread_create");  
-			}
-			pthread_detach(thread);
-			//Sound_playEng(word->word,1);
-		}
-		explain = Dict_getMean(dict,word);
-		showExplain(explain);
-		if(word){
-			add_history(word->word);
-		}
+		getMean(word);
 	}
 	return 0;
 }
@@ -296,10 +287,10 @@ void show_history_list(SpriteEvent*e)
 	Sprite*target = e->target;
 	SDL_Event* event = e->e;
 
-	if(target == history_btn && strcmp(history_btn->obj,"历史"))
+	if(target != history_btn)
+		return;
+	if(strcmp(history_btn->obj,"历史")==0 || curlistSprite->visible==SDL_FALSE)
 	{
-		history_btn->obj = "历史";
-	}else{
 		Array_clear(history_str_arr);
 		history_str_arr = NULL;
 
@@ -337,8 +328,12 @@ void show_history_list(SpriteEvent*e)
 			curlistSprite->x = 0;
 			curlistSprite->y = input->sprite->h;
 		}
+		curlistSprite->visible = SDL_TRUE;
 		changeHistoryList();
 		history_btn->obj = "字典";
+	}else{
+		history_btn->obj = "历史";
+		curlistSprite->visible = SDL_FALSE;
 	}
 	UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//Stage_redraw
 }
@@ -426,9 +421,9 @@ static void keyupEvent(SpriteEvent* e){
 		case SDLK_RETURN:
 			if(strlen(input->value)>0){
 				searchWord(input->value);
-				Input_setText(input,"");
+				//Input_setText(input,"");
 			}else{
-				Input_setText(input,"输入单词，回车查询！");
+				//Input_setText(input,"输入单词，回车查询！");
 			}
 			break;
 		default:
@@ -490,11 +485,12 @@ void *uiThread(void *ptr){
 		Sprite_addEventListener(stage->sprite,SDL_KEYUP,keyupEvent); 
 
 		history_btn = Sprite_newText("历史",30,0x0,0xffffffff);
-		history_btn->y = 100;
+		history_btn->y = input->sprite->h;
 		Sprite_addEventListener(history_btn,SDL_MOUSEBUTTONUP,show_history_list);
 		//printf("history_btn:(%s)\n",history_btn->obj);
 		history_btn->x = stage->stage_w - history_btn->w;
 		Sprite_addChild(dictContainer,history_btn);
+
 
 	}
 	if(history_db==NULL)
@@ -512,6 +508,7 @@ void showSearchDict(int b)
 		Sprite_addChild(stage->sprite,dictContainer);
 		stage->focus = input->sprite;
 	}
+	//Sprite_roundRect2D(0,0,100,100,30,30);
 }
 
 

@@ -2,6 +2,10 @@
  * @file besier.c
  gcc -g -Wall -I"include" -I"../SDL2/include/" besier.c -D DEBUG_BESIER  array.c  sprite.c mystring.c   matrix.c  -lm -lSDL2  && ./a.out
 
+
+	//2D->3D: 映射至第四像限, x:+,y:- , x,y各加屏幕大小的一半
+
+
  * @author db0@qq.com
  * @version 1.0.1
  * @date 2016-06-17
@@ -113,6 +117,9 @@ Point * drawLine(Point * A, Point * B,double t)
 }    
 
 
+/**
+ *	第四
+ */
 Array * Graphic_moveto(Array*array,Point* p)
 {
 	return Array_push(array,p);
@@ -267,7 +274,7 @@ void Graphic_show(Sprite*sprite)
 	while(index<numPoint)
 	{
 		float r;
-		//r = 1.0;
+		r = 1.0;
 		//printf("r=%f\n",r);
 		{
 			point = Array_getByIndex(userData->points,index);
@@ -335,6 +342,15 @@ void Graphic_show(Sprite*sprite)
 
 void Graphic_drawRoundRect(GraphicData * userData,float _x, float _y,float _w,float _h,float r_x,float r_y)
 {
+	if(userData->points)
+	{
+		Array_clear(userData->points);
+		userData->points = NULL;
+	}
+
+	_y = -_y;
+	_h = -_h;
+	r_y = -r_y;
 	//if(r_x*2>_w) r_x = _w/2;
 	//if(r_y*2>_h) r_y = _h/2;
 	Point * p0 = Point_new(_x,_y,0.0);//left top
@@ -364,16 +380,66 @@ void Graphic_drawRoundRect(GraphicData * userData,float _x, float _y,float _w,fl
 	userData->points = Graphic_curveto(userData->points,p0,p1);
 }
 
-void Graphic_drawRoundRect2D(GraphicData * userData,int _x, int _y,int _w,int _h,int r_x,int r_y)
+
+ //2D->3D: 映射至第四像限, x:+,y:- , x,y各加屏幕大小的一半
+void Graphic_drawRoundRect2D(Sprite * sprite,int _x, int _y,int _w,int _h,int r_x,int r_y)
 {
-	Graphic_drawRoundRect(userData,
+	sprite->x = _x;
+	sprite->y = _y;
+	sprite->w = _w;
+	sprite->h = _h;
+
+	//2D->3D: 映射至第四像限, x:+,y:- , x,y各加屏幕大小的一半
+
+	_x = stage->stage_w/2;
+	_y = stage->stage_h/2;
+
+	Graphic_drawRoundRect(sprite->data3d,
 			xto3d(_x),yto3d(_y),
-			wto3d(_w),(-hto3d(_h)),
-			wto3d(r_x),(-hto3d(r_y))
+			wto3d(_w),(hto3d(_h)),
+			wto3d(r_x),(hto3d(r_y))
 			);
 }
 
+//标准2d坐标
+Sprite * Sprite_roundRect2D(int x,int y,int w,int h,int rx,int ry)
+{
+	GraphicData * userData2 = malloc(sizeof(GraphicData));
+	memset(userData2,0,sizeof(GraphicData));
+	Sprite*sprite3 = Sprite_new();
+	sprite3->data3d = userData2;
+	Graphic_drawRoundRect2D(sprite3,x,y,w,h,rx,ry);
+	sprite3->data3d = userData2;
+	sprite3->showFunc = Graphic_show;
+	sprite3->destroyFunc = Graphic_destroy;
+	Sprite_addChild(stage->sprite,sprite3);
+	return sprite3;
+}
+
 #ifdef DEBUG_BESIER
+
+int x = 20;
+void mouseMoves(SpriteEvent*e)
+{
+	Sprite*target = e->target;
+	//SDL_Event* event = e->e;
+
+	//if(event->motion.state)
+	{
+		//if(abs(event->motion.xrel)<20 && abs(event->motion.yrel)<20)
+		{
+			Graphic_drawRoundRect2D(target, x,40,200,200,30,30);
+			x+= 5;
+			//target->x += event->motion.xrel;
+			//target->y += event->motion.yrel;
+			printf("%d\n",x);fflush(stdout);
+		}
+		Stage_redraw();
+		//Redraw(NULL);
+	}
+}
+
+
 int main()
 {
 	int i = 0;
@@ -389,35 +455,24 @@ int main()
 
 	Stage_init(1);
 
-	GraphicData userData;
-	memset(&userData,0,sizeof(GraphicData));
-	Graphic_drawRoundRect(&userData,-0.1,-0.1,.50,.50,0.05,0.05);
 
-
-	//
 	Sprite*sprite2 = Sprite_new();
-	sprite2->surface = SDL_LoadBMP("1.bmp");
+	//sprite2->surface = SDL_LoadBMP("1.bmp");
 	Sprite_addChild(stage->sprite,sprite2);
 
+	GraphicData userData;
+	memset(&userData,0,sizeof(GraphicData));
+	//Graphic_drawRoundRect(&userData,0.1,0.2,.3,.4,0.08,0.08);
 	Sprite*sprite = Sprite_new();
-	sprite->x = stage->stage_w/2;
-	sprite->y = stage->stage_h/2;
 	sprite->data3d = &userData;
+	userData.points = Graphic_moveto(userData.points,Point_new(.1,-.2,0.0));
+	Graphic_lineto(userData.points,Point_new(.3,-.4,0.0));
 	sprite->showFunc = Graphic_show;
 	sprite->destroyFunc = Graphic_destroy;
 	Sprite_addChild(stage->sprite,sprite);
 
 
-	GraphicData userData2;
-	memset(&userData2,0,sizeof(GraphicData));
-	Graphic_drawRoundRect2D(&userData2,0,0,200,300,40,40);
-	Sprite*sprite3 = Sprite_new();
-	sprite3->x = stage->stage_w/2;
-	sprite3->y = stage->stage_h/2;
-	sprite3->data3d = &userData2;
-	sprite3->showFunc = Graphic_show;
-	sprite3->destroyFunc = Graphic_destroy;
-	Sprite_addChild(stage->sprite,sprite3);
+	Sprite * test = Sprite_roundRect2D(100,200,200,400*4/3-400,30,30); Sprite_addEventListener(test,SDL_MOUSEBUTTONUP,mouseMoves);
 
 	Stage_loopEvents();
 	return 0;

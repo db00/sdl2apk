@@ -13,6 +13,7 @@
 
 Sprite * curlistSprite = NULL;
 Sprite * dictContainer= NULL;
+Sprite * sideBtns= NULL;
 Input * input = NULL;
 TextField * textfield = NULL;
 Dict * dict = NULL;
@@ -98,6 +99,10 @@ int getMean(Word*word)
 	{
 		Input_setText(input,word->word);
 		add_history(word->word);
+	}
+	if(sideBtns)
+	{
+		sideBtns->visible = SDL_FALSE;
 	}
 	return 0;
 }
@@ -384,6 +389,10 @@ Sprite * makeWordlist(char * curWord)
 
 
 void textChangFunc(Input * input){
+	if(sideBtns)
+	{
+		sideBtns->visible = SDL_TRUE;
+	}
 	if(dictContainer->visible && strlen(input->value)>0)
 	{
 		SDL_Log("text input changed!");
@@ -424,14 +433,14 @@ static void keyupEvent(SpriteEvent* e){
 	Redraw(NULL);
 }
 
-static Sprite * makeSideBtn(char * name,int y)
+static Sprite * makeSideBtn(char * name,int y, void (*func)(SpriteEvent*))
 {
 	Sprite * btn = Sprite_newText(name,30,0x0,0xffffffff);
 	btn->y = y;
-	Sprite_addEventListener(btn,SDL_MOUSEBUTTONUP,read_out);
+	Sprite_addEventListener(btn,SDL_MOUSEBUTTONUP,func);
 	//printf("btn:(%s)\n",btn->obj);
 	btn->x = stage->stage_w - btn->w;
-	Sprite_addChild(dictContainer,btn);
+	Sprite_addChild(sideBtns,btn);
 	return btn;
 }
 
@@ -485,20 +494,26 @@ void *uiThread(void *ptr){
 
 		Sprite_addEventListener(stage->sprite,SDL_KEYUP,keyupEvent); 
 
-		history_btn = Sprite_newText("历史",30,0x0,0xffffffff);
-		history_btn->y = input->sprite->h;
-		Sprite_addEventListener(history_btn,SDL_MOUSEBUTTONUP,show_history_list);
-		//printf("history_btn:(%s)\n",history_btn->obj);
-		history_btn->x = stage->stage_w - history_btn->w;
-		Sprite_addChild(dictContainer,history_btn);
-
-		Sprite * enBtn = makeSideBtn("英音",history_btn->y + history_btn->h + 5);
-		enBtn = makeSideBtn("美音",enBtn->y + enBtn->h + 5);
 		/*
-		   enBtn = makeSideBtn("英",enBtn->y + enBtn->h + 5);
-		   enBtn = makeSideBtn("汉",enBtn->y + enBtn->h + 5);
-		   enBtn = makeSideBtn("英汉",enBtn->y + enBtn->h + 5);
-		   enBtn = makeSideBtn("测试",enBtn->y + enBtn->h + 5);
+		   history_btn = Sprite_newText("",30,0x0,0xffffffff);
+		   history_btn->y = input->sprite->h;
+		   Sprite_addEventListener(history_btn,SDL_MOUSEBUTTONUP,show_history_list);
+		   history_btn->x = stage->stage_w - history_btn->w;
+		   Sprite_addChild(dictContainer,history_btn);
+		   */
+		sideBtns = Sprite_new();
+		Sprite_addChild(dictContainer,sideBtns);
+
+
+		Sprite * enBtn;
+		history_btn = makeSideBtn("历史",input->sprite->h,show_history_list);
+		enBtn = makeSideBtn("英音",history_btn->y + history_btn->h + 5,read_out);
+		enBtn = makeSideBtn("美音",enBtn->y + enBtn->h + 5,read_out);
+		/*
+		   enBtn = makeSideBtn("英",enBtn->y + enBtn->h + 5,read_out);
+		   enBtn = makeSideBtn("汉",enBtn->y + enBtn->h + 5,readbaidu);
+		   enBtn = makeSideBtn("英汉",enBtn->y + enBtn->h + 5,read_out);
+		   enBtn = makeSideBtn("测试",enBtn->y + enBtn->h + 5,read_out);
 		   */
 
 	}

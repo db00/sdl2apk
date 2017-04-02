@@ -171,7 +171,8 @@ TTF_Font * getFontByPath(char * path,int fontSize);
 TTF_Font * getDefaultFont(int fontSize);
 
 #ifdef __ANDROID__
-#define	DEFAULT_TTF_FILE "/system/fonts/DroidSansFallback.ttf"
+//#define	DEFAULT_TTF_FILE "/system/fonts/DroidSansFallback.ttf"
+#define	DEFAULT_TTF_FILE "~/sound/DroidSansFallback.ttf"
 #elif __MACOSX__
 #define	DEFAULT_TTF_FILE "/System/Library/Fonts/STHeiti Light.ttc"
 //#elif __IPHONEOS__

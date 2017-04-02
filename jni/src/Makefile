@@ -22,20 +22,20 @@ SRC_DIR:=.
 LIB:= -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lm -lSDL2 -lssl -lcrypto -lpthread
 SRC:= sprite.c matrix.c input.c myregex.c kodi.c utf8.c jsonrpc.c files.c httploader.c ipstring.c mystring.c cJSON.c \
 		dict.c readbaidu.c update.c testime.c textfield.c read_card.c pinyin.c music.c searhdict.c\
-		tween.c ease.c urlcode.c filetypes.c httpserver.c array.c base64.c mysurface.c datas.c sqlite.c sqlite3.c besier.c
+		tween.c ease.c urlcode.c filetypes.c httpserver.c array.c base64.c mysurface.c datas.c sqlite.c besier.c# sqlite3.c
 DEFINES:= -D STDC_HEADERS -D test_ime
 TARGET:= ./a.out
 ifeq ($(OS),Darwin)
 INCLUDE:=-I"/usr/local/include/SDL2/" -I"include"
-LIB:=$(LIB) -L"/usr/local/lib/" -ldl -liconv
+LIB:=$(LIB) -L"/usr/local/lib/" -ldl -liconv -lsqlite3
 else ifeq ($(OS),Linux)
-INCLUDE:=-I"/usr/include/SDL2/" -I"include" -ldl
+INCLUDE:=-I"/usr/include/SDL2/" -I"include" -ldl -lsqlite3
 else ifeq ($(OS),Windows_NT)
 DEFINES:= $(DEFINES) -D main=SDL_main
 TARGET:= a.exe
 LIB:=-lmingw32 -lSDL2main $(LIB)  -mwindows  -Wl,--no-undefined -ldinput8 -ldxguid -ldxerr8 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lshell32 -lversion -luuid -static-libgcc -liconv -lws2_32 -lGLESv2 -lopengl32 -lwsock32 # lib/libssl.a lib/libcrypto.a lib/libeay32.dll.a lib/libssl32.dll.a#  -lavformat -lavcodec -lavutil -lswscale -lwsock32
 INCLUDE:=-I"../SDL2/include/" -I"." -I"../SDL2_image/" -I"../SDL2_mixer/" -I"../SDL2_ttf/" -I"include"
-SRC:= $(SRC) regex.c
+SRC:= $(SRC) regex.c sqlite3.c
 endif
 # -D debug_sprite
 KEY:=$(PROJ_PATH)/my.keystore

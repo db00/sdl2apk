@@ -51,6 +51,9 @@
 		16723F8B1DD452E500BC9224 /* libSDL2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 16723F861DD4529B00BC9224 /* libSDL2.a */; };
 		1673E5E31DE2C34A00967E8B /* openssl in Frameworks */ = {isa = PBXBuildFile; fileRef = 1673E5E21DE2C34A00967E8B /* openssl */; };
 		1673E5E51DE2C3A900967E8B /* sound in Resources */ = {isa = PBXBuildFile; fileRef = 1673E5E41DE2C3A900967E8B /* sound */; };
+		168FE4361E909CAA0055A7DA /* datas.c in Sources */ = {isa = PBXBuildFile; fileRef = 168FE4351E909CAA0055A7DA /* datas.c */; };
+		168FE43A1E909CC30055A7DA /* sqlite.c in Sources */ = {isa = PBXBuildFile; fileRef = 168FE4391E909CC30055A7DA /* sqlite.c */; };
+		168FE43E1E90A3D60055A7DA /* libsqlite3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 168FE43D1E90A3D60055A7DA /* libsqlite3.0.dylib */; };
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		28FD15000DC6FC520079059D /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD14FF0DC6FC520079059D /* OpenGLES.framework */; };
 		28FD15080DC6FC5B0079059D /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28FD15070DC6FC5B0079059D /* QuartzCore.framework */; };
@@ -171,6 +174,10 @@
 		16723F7F1DD4529B00BC9224 /* SDL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SDL.xcodeproj; path = "../SDL2/Xcode-iOS/SDL/SDL.xcodeproj"; sourceTree = "<group>"; };
 		1673E5E21DE2C34A00967E8B /* openssl */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = openssl; path = include/openssl.framework/Versions/A/openssl; sourceTree = "<group>"; };
 		1673E5E41DE2C3A900967E8B /* sound */ = {isa = PBXFileReference; lastKnownFileType = folder; name = sound; path = ../../../sound; sourceTree = "<group>"; };
+		168FE4351E909CAA0055A7DA /* datas.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = datas.c; sourceTree = "<group>"; };
+		168FE4391E909CC30055A7DA /* sqlite.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sqlite.c; sourceTree = "<group>"; };
+		168FE43B1E909CE40055A7DA /* sqlite3.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sqlite3.c; sourceTree = "<group>"; };
+		168FE43D1E90A3D60055A7DA /* libsqlite3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.0.dylib; path = usr/lib/libsqlite3.0.dylib; sourceTree = SDKROOT; };
 		1D30AB110D05D00D00671497 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		1D6058910D05DD3D006BFB54 /* ___PROJECTNAME___.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "___PROJECTNAME___.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
@@ -188,6 +195,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				168FE43E1E90A3D60055A7DA /* libsqlite3.0.dylib in Frameworks */,
 				1673E5E31DE2C34A00967E8B /* openssl in Frameworks */,
 				16723F8B1DD452E500BC9224 /* libSDL2.a in Frameworks */,
 				16722EEC1DD444FD00BC9224 /* UIKit.framework in Frameworks */,
@@ -257,6 +265,9 @@
 		29B97314FDCFA39411CA2CEA /* CustomTemplate */ = {
 			isa = PBXGroup;
 			children = (
+				168FE43B1E909CE40055A7DA /* sqlite3.c */,
+				168FE4391E909CC30055A7DA /* sqlite.c */,
+				168FE4351E909CAA0055A7DA /* datas.c */,
 				29B97315FDCFA39411CA2CEA /* Sources */,
 				29B97317FDCFA39411CA2CEA /* Resources */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
@@ -315,6 +326,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				168FE43D1E90A3D60055A7DA /* libsqlite3.0.dylib */,
 				1673E5E21DE2C34A00967E8B /* openssl */,
 				16722EEA1DD4449000BC9224 /* libstdc++.6.0.9.dylib */,
 				16722EE01DD43B6F00BC9224 /* GameKit.framework */,
@@ -476,6 +488,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				168FE43A1E909CC30055A7DA /* sqlite.c in Sources */,
+				168FE4361E909CAA0055A7DA /* datas.c in Sources */,
 				16722ED91DD42FC200BC9224 /* bytearray.c in Sources */,
 				16722ED81DD42F7200BC9224 /* read_card.c in Sources */,
 				16722ED71DD42F6100BC9224 /* textfield.c in Sources */,

@@ -327,7 +327,7 @@ void changeHistoryList()
 				int index = getIndexByValue(history_str_arr,_word->word);
 				//printf("\n-------------%s:%d\n",_word->word,index);fflush(stdout);
 				//int index = curlistSprite->children->length;
-				if(index<0 || index>= history_str_arr->length)
+				if(index<0 || index>= history_str_arr->length-1)
 					break;
 
 				char * curWord = Array_getByIndex(history_str_arr,index+1);
@@ -453,6 +453,7 @@ Sprite * makeWordlist(char * curWord)
 
 
 void textChangFunc(Input * input){
+	history_btn->obj = "历史";
 	if(sideBtns)
 	{
 		sideBtns->visible = SDL_TRUE;
@@ -471,7 +472,9 @@ void stopInput(SpriteEvent* e){
 }
 void show_list(SpriteEvent* e){
 	if(input && strlen(input->value)>0)
+	{
 		textChangFunc(input);
+	}
 }
 
 static void keyupEvent(SpriteEvent* e){
@@ -497,7 +500,7 @@ static void keyupEvent(SpriteEvent* e){
 		default:
 			break;
 	}
-	history_btn->obj = "历史";
+	//history_btn->obj = "历史";
 	Redraw(NULL);
 }
 

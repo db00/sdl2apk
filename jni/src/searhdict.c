@@ -202,6 +202,31 @@ Sprite * appendWordBtn(Word * word,int end)
 	return sprite;
 }
 
+void removeOuts()
+{
+	if(curlistSprite->children && curlistSprite->children->length>0)
+	{
+		Sprite * lastSprite = NULL;
+		lastSprite = Sprite_getChildByIndex(curlistSprite,0);
+		while(lastSprite->y + lastSprite->h + curlistSprite->y<0)
+		{
+			Word * _word = lastSprite->obj;
+			Sprite_removeChildAt(curlistSprite,0);
+			Sprite_destroy(lastSprite);
+			lastSprite = Sprite_getChildByIndex(curlistSprite,0);
+		}
+
+		lastSprite = Sprite_getChildByIndex(curlistSprite,curlistSprite->children->length-1);
+		while(lastSprite->y + curlistSprite->y > stage->stage_h)
+		{
+			Word * _word = lastSprite->obj;
+			Sprite_removeChild(curlistSprite,lastSprite);
+			Sprite_destroy(lastSprite);
+			lastSprite = Sprite_getChildByIndex(curlistSprite,curlistSprite->children->length-1);
+		}
+	}
+}
+
 void changeWordList()
 {
 	//printf("curlistSprite height: %d\n",curlistSprite->h);
@@ -232,8 +257,24 @@ void changeWordList()
 			lastSprite = Sprite_getChildByIndex(curlistSprite,curlistSprite->children->length-1);
 		}
 	}
+	removeOuts();
 }
 
+int getIndexByValue(Array * array,char * word)
+{
+	if(array && array->length>0)
+	{
+		int i = 0;
+		while(i<array->length)
+		{
+			char * s = Array_getByIndex(array,i);
+			if(s && strlen(s)>0 && strcmp(s,word)==0)
+				return i;
+			++i;
+		}
+	}
+	return -1;
+}
 
 void changeHistoryList()
 {
@@ -241,11 +282,11 @@ void changeHistoryList()
 	if(history_str_arr==NULL || history_str_arr->length<=0)
 		return;
 
-	//char * curWord;
+	char * curWord;
 	//Word* word;
 	if(curlistSprite->children ==NULL || curlistSprite->children->length<=0)
 	{
-		char * curWord = Array_getByIndex(history_str_arr,0);
+		curWord = Array_getByIndex(history_str_arr,0);
 		if(curWord==NULL)
 			return;
 		//printf("\r\n curWord:%s\r\n",curWord);
@@ -257,25 +298,48 @@ void changeHistoryList()
 		appendWordBtn(word,0);
 	}
 	//fflush(stdout); return;
-
+	Sprite * lastSprite = NULL;
 	if(curlistSprite->children && curlistSprite->children->length>0)
 	{
-		Sprite * lastSprite = NULL;
-		lastSprite = Sprite_getChildByIndex(curlistSprite,curlistSprite->children->length-1);
-		while(lastSprite->y + curlistSprite->y + lastSprite->h < stage->stage_h)
+		lastSprite = Sprite_getChildByIndex(curlistSprite,0);
+		while(lastSprite->y + curlistSprite->y>0)
 		{
-			int index = curlistSprite->children->length;
-			if(index>= history_str_arr->length)
+			Word * _word = lastSprite->obj;
+			int index = getIndexByValue(history_str_arr,_word->word);
+			if(index<1)
 				break;
+			curWord = Array_getByIndex(history_str_arr,index-1);
+			if(curWord){
+				Word * word = Dict_getWord(dict,curWord);
+				//Word * word = Array_getByIndex(history_str_arr,index-1); 
+				lastSprite = appendWordBtn(word,0);
+			}else{
+				break;
+			}
+		}
 
-			char * curWord = Array_getByIndex(history_str_arr,index);
-			//printf("\r\n curWord:%s\r\n",curWord);
-			Word * word = Dict_getWord(dict,curWord);
-
-			appendWordBtn(word,1);
+		if(curlistSprite->children && curlistSprite->children->length>0)
+		{
 			lastSprite = Sprite_getChildByIndex(curlistSprite,curlistSprite->children->length-1);
+			while(lastSprite->y + curlistSprite->y + lastSprite->h < stage->stage_h)
+			{
+				Word * _word = lastSprite->obj;
+				int index = getIndexByValue(history_str_arr,_word->word);
+				//printf("\n-------------%s:%d\n",_word->word,index);fflush(stdout);
+				//int index = curlistSprite->children->length;
+				if(index<0 || index>= history_str_arr->length)
+					break;
+
+				char * curWord = Array_getByIndex(history_str_arr,index+1);
+				//printf("\r\n curWord:%s\r\n",curWord);
+				Word * word = Dict_getWord(dict,curWord);
+
+				appendWordBtn(word,1);
+				lastSprite = Sprite_getChildByIndex(curlistSprite,curlistSprite->children->length-1);
+			}
 		}
 	}
+	removeOuts();
 }
 
 void show_history_list(SpriteEvent*e)

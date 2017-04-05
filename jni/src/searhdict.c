@@ -469,6 +469,10 @@ void stopInput(SpriteEvent* e){
 	stage->focus = NULL;
 	SDL_StopTextInput();
 }
+void show_list(SpriteEvent* e){
+	if(input && strlen(input->value)>0)
+		textChangFunc(input);
+}
 
 static void keyupEvent(SpriteEvent* e){
 	if(dictContainer==NULL || dictContainer->visible==0)
@@ -527,6 +531,7 @@ void *uiThread(void *ptr){
 
 		input = Input_new(stage->stage_w,stage->stage_h/10);
 		input->textChangFunc = textChangFunc;
+		Sprite_addEventListener(input->sprite,SDL_MOUSEBUTTONDOWN,show_list);//click to show a list
 		Sprite_addChild(dictContainer,input->sprite);
 		stage->focus = input->sprite;
 

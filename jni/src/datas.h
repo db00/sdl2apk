@@ -35,8 +35,10 @@ DataBase *history_db;
 int init_db();
 int get_word_id(char * word);
 int add_to_history(int wordid);
+char * get_remembered_history(int remembered);
 int add_to_test(int wordid,int result);
 int add_new_word(char * word);
 char * datas_query(char * sql);
+int add_remembered_word(char * word,int remembered);
 
 #endif

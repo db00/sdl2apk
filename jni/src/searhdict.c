@@ -12,6 +12,8 @@
  * 熟词查询
  * 单词导入
  * 图片
+ * 汉字查询
+ * 左右抽屉
  *
  */
 
@@ -167,7 +169,57 @@ int searchWord(char* _word)
 	return 0;
 }
 
+
+static int button_messagebox(char * word)
+{
+	if (word == NULL || strlen(word)==0) {
+		return 1;
+	}
+	const SDL_MessageBoxButtonData buttons[] = {
+		{
+			SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
+			0,
+			"remembered"
+		},
+		{
+			SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,
+			1,
+			"not remebered"
+		},
+	};
+
+	SDL_MessageBoxData data = {
+		SDL_MESSAGEBOX_INFORMATION,
+		NULL, /* no parent window */
+		"change rememeber status",
+		word,//data.message = word;
+		2,
+		buttons,
+		NULL /* Default color scheme */
+	};
+
+	int button = -1;
+	int success = 0;
+
+	success = SDL_ShowMessageBox(&data, &button);
+	if (success == -1) {
+		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Error Presenting MessageBox: %s\n", SDL_GetError());
+		return 1;
+	}
+	SDL_Log("Pressed button: %d, %s\n", button, button == 0 ? "熟" : "生");
+
+	if(button==0){
+		add_remembered_word(word,1);
+	}else{
+		add_remembered_word(word,0);
+	}
+
+	return button;
+}
+
+
 int stageMouseY =0;
+int timestamp = 0;
 void selectedEvent(SpriteEvent*e)
 {
 	if(e==NULL)
@@ -184,6 +236,8 @@ void selectedEvent(SpriteEvent*e)
 	switch(e->type)
 	{
 		case SDL_MOUSEBUTTONDOWN:
+			timestamp = event->button.timestamp;
+			printf("timestamp:%d\n",timestamp);fflush(stdout);
 			stageMouseY = event->button.y;
 			sprite->parent->obj= NULL;
 			return;
@@ -201,10 +255,17 @@ void selectedEvent(SpriteEvent*e)
 	}
 
 	//return;
-	Sprite_removeEventListener(sprite,e->type,selectedEvent);
 	//Sprite_removeEventListener(sprite,SDL_MOUSEBUTTONDOWN,selectedEvent);
 
-	getMean(word);
+	int time_diff = event->button.timestamp-timestamp;
+	if(time_diff<500)
+	{
+		Sprite_removeEventListener(sprite,e->type,selectedEvent);
+		getMean(word);
+	}else{
+		printf("time_diff:%d\n",time_diff);fflush(stdout);
+		button_messagebox(word->word);
+	}
 }
 
 
@@ -221,6 +282,13 @@ Sprite * makeWordBtn(Word * word)
 	sprite->name = contact_str("",word->word);
 	Sprite_addEventListener(sprite,SDL_MOUSEBUTTONDOWN,selectedEvent);
 	Sprite_addEventListener(sprite,SDL_MOUSEBUTTONUP,selectedEvent);
+
+	/*
+	   Sprite * btn = Sprite_newText("加入熟词",fontSize/2,0xff000000,0xffffffff);
+	   Sprite_addChild(sprite,btn);
+	   btn->x = stage->stage_w-btn->w*2;
+	   btn->y = fontSize/4;
+	   */
 	return sprite;
 }
 
@@ -450,14 +518,22 @@ void show_history_list(SpriteEvent*e)
 	Sprite*target = e->target;
 	SDL_Event* event = e->e;
 
-	if(target != history_btn)
-		return;
-	if(strcmp(history_btn->obj,"历史")==0 || curlistSprite->visible==SDL_FALSE)
+	if(strcmp(history_btn->obj,"历史")==0 || curlistSprite->visible==SDL_FALSE || (strcmp(target->obj,"熟词")==0) || (strcmp(target->obj,"生词")==0))
 	{
 		Array_clear(history_str_arr);
 		history_str_arr = NULL;
 
-		char * data = get_history();
+		char * data = NULL;
+		if(target == history_btn){
+			data = get_history();
+		}else if(strcmp(target->obj,"熟词")==0){
+			data = get_remembered_history(1);
+		}else if(strcmp(target->obj,"生词")==0){
+			data = get_remembered_history(0);
+		}else{
+			return;
+		}
+
 		if(data==NULL)
 			return;
 		cJSON* pRoot = cJSON_Parse(data);
@@ -476,7 +552,6 @@ void show_history_list(SpriteEvent*e)
 				//char * word = w->valuestring;
 				history_str_arr = Array_push(history_str_arr,word);
 				//printf("\n---------->%s,%s\n",word,(char*)Array_getByIndex(history_str_arr,i));
-				//fflush(stdout);
 
 				child = child->next;
 			}
@@ -484,7 +559,7 @@ void show_history_list(SpriteEvent*e)
 			pRoot = NULL;
 			//printf("---------->%d,%s",nCount,cJSON_Print(pRoot));
 		}
-
+		fflush(stdout);
 
 		if(curlistSprite){
 			Sprite_removeChildren(curlistSprite);
@@ -492,11 +567,16 @@ void show_history_list(SpriteEvent*e)
 			curlistSprite->y = input->sprite->h;
 		}
 		curlistSprite->visible = SDL_TRUE;
+
 		changeHistoryList();
 		history_btn->obj = "字典";
+
 	}else{
+		if(target == history_btn)
+		{
+			curlistSprite->visible = SDL_FALSE;
+		}
 		history_btn->obj = "历史";
-		curlistSprite->visible = SDL_FALSE;
 	}
 	UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//Stage_redraw
 }
@@ -596,7 +676,6 @@ static void keyupEvent(SpriteEvent* e){
 		default:
 			break;
 	}
-	//history_btn->obj = "历史";
 	Redraw(NULL);
 }
 
@@ -680,8 +759,8 @@ void *uiThread(void *ptr){
 		enBtn = makeSideBtn("清除",enBtn->y + enBtn->h + gap,read_out);
 		enBtn = makeSideBtn("英音",enBtn->y + enBtn->h + gap,read_out);
 		enBtn = makeSideBtn("美音",enBtn->y + enBtn->h + gap,read_out);
-		enBtn = makeSideBtn("熟词",enBtn->y + enBtn->h + gap,read_out);
-		enBtn = makeSideBtn("生词",enBtn->y + enBtn->h + gap,read_out);
+		enBtn = makeSideBtn("熟词",enBtn->y + enBtn->h + gap,show_history_list);
+		enBtn = makeSideBtn("生词",enBtn->y + enBtn->h + gap,show_history_list);
 		enBtn = makeSideBtn("复制",enBtn->y + enBtn->h + gap,read_out);
 		enBtn = makeSideBtn("粘贴",enBtn->y + enBtn->h + gap,read_out);
 		//enBtn = makeSideBtn("正则查询",enBtn->y + enBtn->h + gap,read_out);

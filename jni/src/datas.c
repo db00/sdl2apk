@@ -23,6 +23,26 @@ int add_new_word(char * word)
 	return id;
 }
 
+/**
+ *
+ * 把word加入熟词（1）/生词（0）
+ *
+ */
+int add_remembered_word(char * word,int remembered)
+{
+	int id = add_new_word(word);
+	if(id>0)
+	{
+		char * s ="update list set remembered=%d where wordid=%d;";
+		char sql[100];
+		memset(sql,0,100);
+		sprintf(sql,s,remembered,id);
+		int rc = DataBase_exec(history_db,sql);
+		if(!rc)printf("\n update sql_result_str:%s",history_db->result_str);
+	}
+	return id;
+}
+
 int get_word_id(char * word)
 {
 	char * s = "select wordid from list where word=\"%s\";";
@@ -74,6 +94,8 @@ char * datas_query(char * sql)
 }
 char * get_history()
 {
+	return datas_query("select * from list group by wordid ORDER BY date desc;");
+	/*
 	clear_result_str();
 	int rc;
 	rc = DataBase_exec(history_db,"select * from list group by wordid ORDER BY date desc;");
@@ -83,6 +105,15 @@ char * get_history()
 		return history_db->result_str;
 	}
 	return NULL;
+	*/
+}
+char * get_remembered_history(int remembered)
+{
+	char * s = ("select * from list where remembered=%d group by wordid ORDER BY date desc;");
+	char sql[200];
+	memset(sql,0,200);
+	sprintf(sql,s,remembered);
+	return datas_query(sql);
 }
 
 
@@ -118,6 +149,7 @@ int main()
 	init_db();
 	if(history_db){
 		int rc=0;
+		/*
 		rc = add_new_word("test");
 		printf("\r\n-------------------id:%d\r\n",rc);
 		rc = add_to_history(rc);
@@ -129,7 +161,10 @@ int main()
 		history_db->result_str=NULL;
 		rc = DataBase_exec2array(history_db,"select * from list;");
 		if(!rc)DataBase_result_print(history_db);
-		get_history();
+		*/
+		//printf("%s",get_history());
+		add_remembered_word("test",1);
+		printf("%s",get_remembered_history(1));
 		DataBase_clear(history_db);
 		history_db = NULL;
 	}

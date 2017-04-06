@@ -53,6 +53,9 @@ Word *Dict_getWordByIndex(Dict * dict,int id);
 char *Dict_explain(Dict* dict,char* target_word);
 char *Dict_getMean(Dict* dict,Word* word);
 Array *Dict_getWordList(Dict*dict,char*s,int* numWords);
+Word *Dict_getWordByRegIndex(Dict * dict,char * _regex,int id);//search the first match after index(id)
+Word *Dict_getWordByRegWordNext(Dict * dict,char * _regex,Word*_word);//search the next match after _word
+Word *Dict_getWordByRegWordPrev(Dict * dict,char * _regex,Word*_word);//search the previous match before _word
 char * get_history();
 
 #endif// dbs_h_libiao

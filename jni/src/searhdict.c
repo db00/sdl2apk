@@ -4,11 +4,21 @@
  * @author db0@qq.com
  * @version 1.0.1
  * @date 2016-09-22
+ *
+ *
+ * 各种时态单词查询
+ * 生词查询
+ * 生词测试
+ * 熟词查询
+ * 单词导入
+ * 图片
+ *
  */
 
 #include "searhdict.h"
 #include "datas.h"
 #include "besier.h"
+#include "sdlstring.h"
 
 
 Sprite * curlistSprite = NULL;
@@ -20,6 +30,13 @@ Dict * dict = NULL;
 Array * history_str_arr;
 Sprite * history_btn;
 
+
+int isInputRegexp()
+{
+	if(input && input->value && regex_match(input->value,"/^\\/.*\\/[img]*$/"))
+		return 1;
+	return 0;
+}
 
 void Redraw(char *text) {
 	if(text){
@@ -77,14 +94,46 @@ static void read_out(SpriteEvent*e)
 	SDL_Event* event = e->e;
 
 	char * word = input->value;
-	if(strlen(word)==0)
-		return;
-	printf("read %s\n",word);
+	//printf("read %s\n",word);
 	if(strcmp(target->obj,"英音")==0){
+		if(strlen(word)==0)
+			return;
 		Sound_playEng(word,1);
 	}else if(strcmp(target->obj,"美音")==0){
+		if(strlen(word)==0)
+			return;
 		Sound_playEng(word,2);
-	}
+	}else if(strcmp(target->obj,"清除")==0){
+		if(strlen(word)==0)
+			return;
+		Input_setText(input,"");
+	}else if(strcmp(target->obj,"复制")==0){
+		if(strlen(word)==0)
+			return;
+		int r= setClipboardText(input->value);
+		if(r==0)
+		{
+			//printf("\n%d,",r);fflush(stdout);
+			int success = SDL_ShowSimpleMessageBox(
+					SDL_MESSAGEBOX_ERROR,
+					word,
+					"copied",
+					NULL);
+			if (success == -1) {
+				SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Error Presenting MessageBox: %s\n", SDL_GetError());
+			}
+		}
+	}else if(strcmp(target->obj,"粘贴")==0){
+		char * s = getClipboardText();
+		printf("\n------%s,",s);fflush(stdout);
+		if(s && strlen(s)>0)
+		{
+			Input_setText(input,s);
+			//searchWord(s);
+		}
+		//}else if(strcmp(target->obj,"正则查询")==0){
+}
+//Redraw(NULL);
 }
 
 int getMean(Word*word)
@@ -97,7 +146,8 @@ int getMean(Word*word)
 	showExplain(explain);
 	if(word->word)
 	{
-		Input_setText(input,word->word);
+		if(!isInputRegexp())
+			Input_setText(input,word->word);
 		add_history(word->word);
 	}
 	if(sideBtns)
@@ -229,32 +279,79 @@ void removeOuts()
 
 void changeWordList()
 {
+	int isReg = isInputRegexp();
+	char * curWord = input->value;
+	if(curlistSprite->children==NULL || curlistSprite->children->length==0)
+	{//first match
+		Word * word = NULL;
+		if(isReg){
+			word = Dict_getWordByRegIndex(dict,input->value,0); 
+		}else{
+			word = Dict_getWord(dict,curWord);
+		}
+		if(word){
+			Sprite * first = appendWordBtn(word,1);
+			if(isReg) first->name = append_str(NULL,"first");
+		}else{
+			return;
+		}
+	}
 	//printf("curlistSprite height: %d\n",curlistSprite->h);
 	if(curlistSprite->children && curlistSprite->children->length>0)
 	{
 		Sprite * lastSprite = NULL;
 		lastSprite = Sprite_getChildByIndex(curlistSprite,0);
+		if(strcmp(lastSprite->name,"only")==0) return;
 		while(lastSprite->y + curlistSprite->y>0)
-		{
+		{//first button
 			Word * _word = lastSprite->obj;
 			int index = _word->index;
 			if(index<=1)
 				break;
-			Word * word = Dict_getWordByIndex(dict,index-1); 
-			appendWordBtn(word,0);
-			lastSprite = Sprite_getChildByIndex(curlistSprite,0);
+			Word * word = NULL;
+			if(isReg){
+				if(strcmp(lastSprite->name,"first")==0) break;
+				Word * p = Dict_getWordByIndex(dict,index-1); 
+				word = Dict_getWordByRegWordPrev(dict,input->value,p); 
+			}else{
+				word = Dict_getWordByIndex(dict,index-1); 
+			}
+			if(word){
+				appendWordBtn(word,0);
+				lastSprite = Sprite_getChildByIndex(curlistSprite,0);
+			}else{
+				if(isReg) lastSprite->name = append_str(NULL,"first");
+				break;
+			}
 		}
 		lastSprite = Sprite_getChildByIndex(curlistSprite,curlistSprite->children->length-1);
 
-		while(lastSprite->y + curlistSprite->y + lastSprite->h < stage->stage_h)
-		{
+		while(lastSprite && lastSprite->y + curlistSprite->y + lastSprite->h < stage->stage_h)
+		{//last button
 			Word * _word = lastSprite->obj;
 			int index = _word->index + 1;
 			if(index>= dict->wordcount)
 				break;
-			Word * word = Dict_getWordByIndex(dict,index); 
-			appendWordBtn(word,1);
-			lastSprite = Sprite_getChildByIndex(curlistSprite,curlistSprite->children->length-1);
+			Word * word = NULL;
+			if(isReg){
+				if(lastSprite->name && strcmp(lastSprite->name,"last")==0) break;
+				word = Dict_getWordByRegIndex(dict,input->value,index-1); 
+				if(word==NULL){
+					if(strcmp(lastSprite->name,"first")==0){
+						lastSprite->name = append_str(NULL,"only"); break;
+					}else{
+						lastSprite->name = append_str(NULL,"last"); break;
+					}
+				}
+			}else{
+				word = Dict_getWordByIndex(dict,index);
+			}
+			if(word){
+				appendWordBtn(word,1);
+				lastSprite = Sprite_getChildByIndex(curlistSprite,curlistSprite->children->length-1);
+			}else{
+				break;
+			}
 		}
 	}
 	removeOuts();
@@ -286,7 +383,13 @@ void changeHistoryList()
 	//Word* word;
 	if(curlistSprite->children ==NULL || curlistSprite->children->length<=0)
 	{
-		curWord = Array_getByIndex(history_str_arr,0);
+		int index = getIndexByValue(history_str_arr,input->value);
+		if(index>=0)
+		{
+			curWord = Array_getByIndex(history_str_arr,index);
+		}else{
+			curWord = Array_getByIndex(history_str_arr,0);
+		}
 		if(curWord==NULL)
 			return;
 		//printf("\r\n curWord:%s\r\n",curWord);
@@ -439,14 +542,7 @@ Sprite * makeWordlist(char * curWord)
 	}
 
 	open_dict();
-	int numWords = 1;
-	int _i=0;
-	Word * word = Dict_getWord(dict,curWord);
-	if(word){
-		appendWordBtn(word,1);
-		//printf("%s,%d\n",word->word,btn->h);
-		changeWordList();
-	}
+	changeWordList();
 	//Array_clear(wordlist);
 	return curlistSprite;
 }
@@ -577,13 +673,20 @@ void *uiThread(void *ptr){
 		Sprite_addChild(dictContainer,sideBtns);
 
 
+		int gap=12;
 		Sprite * enBtn;
 		history_btn = makeSideBtn("历史",input->sprite->h,show_history_list);
-		enBtn = makeSideBtn("英音",history_btn->y + history_btn->h + 5,read_out);
-		enBtn = makeSideBtn("美音",enBtn->y + enBtn->h + 5,read_out);
+		enBtn = history_btn;
+		enBtn = makeSideBtn("清除",enBtn->y + enBtn->h + gap,read_out);
+		enBtn = makeSideBtn("英音",enBtn->y + enBtn->h + gap,read_out);
+		enBtn = makeSideBtn("美音",enBtn->y + enBtn->h + gap,read_out);
+		enBtn = makeSideBtn("熟词",enBtn->y + enBtn->h + gap,read_out);
+		enBtn = makeSideBtn("生词",enBtn->y + enBtn->h + gap,read_out);
+		enBtn = makeSideBtn("复制",enBtn->y + enBtn->h + gap,read_out);
+		enBtn = makeSideBtn("粘贴",enBtn->y + enBtn->h + gap,read_out);
+		//enBtn = makeSideBtn("正则查询",enBtn->y + enBtn->h + gap,read_out);
+		enBtn = makeSideBtn("测试",enBtn->y + enBtn->h + gap,read_out);
 		/*
-		   enBtn = makeSideBtn("英",enBtn->y + enBtn->h + 5,read_out);
-		   enBtn = makeSideBtn("汉",enBtn->y + enBtn->h + 5,readbaidu);
 		   enBtn = makeSideBtn("英汉",enBtn->y + enBtn->h + 5,read_out);
 		   enBtn = makeSideBtn("测试",enBtn->y + enBtn->h + 5,read_out);
 		   */

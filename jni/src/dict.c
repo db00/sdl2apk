@@ -308,6 +308,52 @@ Word *Dict_getWordByIndex(Dict * dict,int id)
 
 	return word;
 }
+Word *Dict_getWordByRegIndex(Dict * dict,char * _regex,int id)
+{
+	id++;
+	while(id<dict->wordcount)
+	{
+		Word * word = Dict_getWordByIndex(dict,id);
+		if(regex_match(word->word,_regex))
+		{
+			return word;
+		}
+		++id;
+	}
+	return NULL;
+}
+Word *Dict_getWordByRegWordNext(Dict * dict,char * _regex,Word*_word)
+{
+	int id = 0;
+	if(_word)id=_word->index;
+	while(id<dict->wordcount)
+	{
+		Word * word = Dict_getWordByIndex(dict,id);
+		if(regex_match(word->word,_regex))
+		{
+			printf("found %s:%s\n",_regex,word->word);
+			return word;
+		}
+		++id;
+	}
+	return NULL;
+}
+Word *Dict_getWordByRegWordPrev(Dict * dict,char * _regex,Word*_word)
+{
+	int id = dict->wordcount-1;
+	if(_word)id=_word->index;
+	while(id>0)
+	{
+		Word * word = Dict_getWordByIndex(dict,id);
+		if(regex_match(word->word,_regex))
+		{
+			printf("found %s:%s\n",_regex,word->word);
+			return word;
+		}
+		--id;
+	}
+	return NULL;
+}
 
 
 int maxlen = 10;
@@ -325,15 +371,15 @@ char *Dict_getByIndex(Dict * dict,int id){
 
 	/*printf("word:%s,offset:%d,wordLength:%d\n",word->word,word->offset,word->length);*/
 	/*
-	if(
-			regex_match(word->word,"/^[AAIUEODRM]{7,}$/i")
-			&& matchs(word->word,"aaiueodrm")
-	  )
-		printf("\r\n%s",word->word);
-		*/
+	   if(
+	   regex_match(word->word,"/^[AAIUEODRM]{7,}$/i")
+	   && matchs(word->word,"aaiueodrm")
+	   )
+	   printf("\r\n%s",word->word);
+	   */
 	fflush(stdout);
 	if( !regex_match(word->word,"/[\\// ,()]/i")
-		   	&& word->length >maxlen)
+			&& word->length >maxlen)
 	{
 		maxlen = word->length;
 		printf("\r\n%d==%d,%s:%d\r\n",id,word->index,word->word,maxlen);
@@ -480,15 +526,17 @@ int main(int argc,char**argv)
 	int i =1;
 	//while(i < dict->wordcount)
 	while(i < 39429)
-	//while(i < 435468)
+		//while(i < 435468)
 	{
 		explain = regex_replace_all(Dict_getByIndex(dict,i)," \\* ","\r\n");
 		//printf("%s\r\n",explain);
 
 		fflush(stdout);
 		free(explain);
+		break;
 		++i;
 	}
+	Word * w = Dict_getWordByRegWordNext(dict,"/^s.*b.*d/i",NULL);
 	/*getchar();*/
 	return 0;
 }

@@ -601,8 +601,8 @@ void mouseWheels(SpriteEvent*e)
 						sprite->y += event->motion.yrel;
 						if(sprite->y + textfield->scrollV > textfield->y)//top
 							sprite->y = textfield->y - textfield->scrollV;
-						else if((sprite->y + textfield->scrollV) +(textfield->textHeight-TextField_getMoreDrawHeight(textfield)*2) < textfield->y)//bottom
-							sprite->y = textfield->y - (textfield->textHeight-TextField_getMoreDrawHeight(textfield)*2) - textfield->scrollV;
+						else if((sprite->y + textfield->scrollV) +(textfield->textHeight-TextField_getMoreDrawHeight(textfield)*1.0) < textfield->y)//bottom
+							sprite->y = textfield->y - (textfield->textHeight-TextField_getMoreDrawHeight(textfield)*1.0) - textfield->scrollV;
 
 						TextField_drawPostionBar(textfield);
 					}

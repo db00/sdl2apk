@@ -666,8 +666,15 @@ static void keyupEvent(SpriteEvent* e){
 			return;
 			break;
 		case SDLK_RETURN:
-			if(strlen(input->value)>0){
-				searchWord(input->value);
+			if(strlen(input->value)>1){
+				int l= strlen(input->value);
+				char v[l];
+				memset(v,0,l);
+				memcpy(v,input->value,l-1);
+				while( v[strlen(v)-1]=='\r'|| v[strlen(v)-1]=='\n')
+					v[strlen(v)-1]='\0';
+				searchWord(v);
+				//searchWord(input->value);
 				//Input_setText(input,"");
 			}else{
 				//Input_setText(input,"输入单词，回车查询！");
@@ -681,7 +688,7 @@ static void keyupEvent(SpriteEvent* e){
 
 static Sprite * makeSideBtn(char * name,int y, void (*func)(SpriteEvent*))
 {
-	Sprite * btn = Sprite_newText(name,30,0x0,0xffffffff);
+	Sprite * btn = Sprite_newText(name,40,0x0,0xffffffff);
 	btn->y = y;
 	Sprite_addEventListener(btn,SDL_MOUSEBUTTONUP,func);
 	//printf("btn:(%s)\n",btn->obj);
@@ -707,7 +714,7 @@ void *uiThread(void *ptr){
 
 
 
-		input = Input_new(stage->stage_w,stage->stage_h/10);
+		input = Input_new(stage->stage_w,min(stage->stage_h/10,50));
 		input->textChangFunc = textChangFunc;
 		Sprite_addEventListener(input->sprite,SDL_MOUSEBUTTONDOWN,show_list);//click to show a list
 		Sprite_addChild(dictContainer,input->sprite);
@@ -759,12 +766,12 @@ void *uiThread(void *ptr){
 		enBtn = makeSideBtn("清除",enBtn->y + enBtn->h + gap,read_out);
 		enBtn = makeSideBtn("英音",enBtn->y + enBtn->h + gap,read_out);
 		enBtn = makeSideBtn("美音",enBtn->y + enBtn->h + gap,read_out);
-		enBtn = makeSideBtn("熟词",enBtn->y + enBtn->h + gap,show_history_list);
 		enBtn = makeSideBtn("生词",enBtn->y + enBtn->h + gap,show_history_list);
+		enBtn = makeSideBtn("熟词",enBtn->y + enBtn->h + gap,show_history_list);
 		enBtn = makeSideBtn("复制",enBtn->y + enBtn->h + gap,read_out);
 		enBtn = makeSideBtn("粘贴",enBtn->y + enBtn->h + gap,read_out);
 		//enBtn = makeSideBtn("正则查询",enBtn->y + enBtn->h + gap,read_out);
-		enBtn = makeSideBtn("测试",enBtn->y + enBtn->h + gap,read_out);
+		//enBtn = makeSideBtn("测试",enBtn->y + enBtn->h + gap,read_out);
 		/*
 		   enBtn = makeSideBtn("英汉",enBtn->y + enBtn->h + 5,read_out);
 		   enBtn = makeSideBtn("测试",enBtn->y + enBtn->h + 5,read_out);

@@ -269,8 +269,16 @@ TextWord * Textword_new(TextFormat*format, Uint8 * curChar)
 	memset(textword,0,sizeof(TextWord));
 
 	textword->numbyte = UTF8_numByte((char*)curChar);
+	if(('A'<=curChar[0] && curChar[0]<='Z') || ('a'<=curChar[0] && curChar[0]<='z'))
+	{//单词不分段
+		while(
+				('a'<=curChar[textword->numbyte] && curChar[textword->numbyte]<='z')
+				|| ('A'<=curChar[textword->numbyte] && curChar[textword->numbyte]<='Z')
+			 )
+			textword->numbyte++;
+	}
 
-	char word[7];
+	char word[textword->numbyte+1];
 	memset(word,0,textword->numbyte + 1);
 	memcpy(word,curChar,textword->numbyte);
 

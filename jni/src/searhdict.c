@@ -32,6 +32,14 @@ Dict * dict = NULL;
 Array * history_str_arr;
 Sprite * history_btn;
 
+static enum DICT_STATS {
+	DICT,
+	HISTORY,
+	NEW,
+	REMEMBERED,
+	END
+} STATS;
+
 
 int isInputRegexp()
 {
@@ -63,7 +71,7 @@ void open_dict()
 char * showExplain(char *explain)
 {
 	if(explain){
-		char *tmp = regex_replace_all(explain,"([^a-zA-Z])( [\\*0-9]+ )","$1\n$2");
+		char *tmp = regex_replace_all(explain,"([^a-zA-Z,;])( [\\*0-9]+ )","$1\n$2");
 		free(explain);
 		explain = regex_replace_all(tmp,"([:?!\\.])( )","$1\n$2");
 		free(tmp);
@@ -522,24 +530,28 @@ void show_history_list(SpriteEvent*e)
 	Sprite*target = e->target;
 	SDL_Event* event = e->e;
 
-	if(strcmp(history_btn->obj,"历史")==0 || curlistSprite->visible==SDL_FALSE || (strcmp(target->obj,"熟词")==0) || (strcmp(target->obj,"生词")==0))
-	{
-		Array_clear(history_str_arr);
-		history_str_arr = NULL;
+	Array_clear(history_str_arr);
+	history_str_arr = NULL;
 
-		char * data = NULL;
-		if(target == history_btn){
+	char * data = NULL;
+	if(target == history_btn){
+		if(STATS!=HISTORY)
 			data = get_history();
-		}else if(strcmp(target->obj,"熟词")==0){
+		STATS = HISTORY;
+	}else if(strcmp(target->obj,"熟词")==0){
+		if(STATS!=STATS)
 			data = get_remembered_history(1);
-		}else if(strcmp(target->obj,"生词")==0){
+		STATS = REMEMBERED;
+	}else if(strcmp(target->obj,"生词")==0){
+		if(STATS!=NEW)
 			data = get_remembered_history(0);
-		}else{
-			return;
-		}
+		STATS = NEW;
+	}else{
+		return;
+	}
 
-		if(data==NULL)
-			return;
+	if(data)
+	{
 		cJSON* pRoot = cJSON_Parse(data);
 		if(pRoot){
 			int nCount = cJSON_GetArraySize( pRoot); 
@@ -570,18 +582,13 @@ void show_history_list(SpriteEvent*e)
 			curlistSprite->x = 0;
 			curlistSprite->y = input->sprite->h;
 		}
-		curlistSprite->visible = SDL_TRUE;
-
-		changeHistoryList();
-		history_btn->obj = "字典";
-
-	}else{
-		if(target == history_btn)
-		{
-			curlistSprite->visible = SDL_FALSE;
-		}
-		history_btn->obj = "历史";
 	}
+
+	curlistSprite->visible = SDL_TRUE;
+
+	changeHistoryList();
+	//history_btn->obj = "字典";
+
 	UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//Stage_redraw
 }
 
@@ -603,7 +610,7 @@ void mouseMoves(SpriteEvent*e)
 		Sprite_limitPosion(target,target->dragRect);
 		if(target==curlistSprite)
 		{
-			if(strcmp(history_btn->obj,"历史")==0)
+			if(STATS == DICT)
 			{
 				changeWordList();
 			}else{
@@ -633,7 +640,8 @@ Sprite * makeWordlist(char * curWord)
 
 
 void textChangFunc(Input * input){
-	history_btn->obj = "历史";
+	//history_btn->obj = "历史";
+	STATS=DICT;
 	if(sideBtns)
 	{
 		sideBtns->visible = SDL_TRUE;
@@ -641,8 +649,8 @@ void textChangFunc(Input * input){
 	if(dictContainer->visible && strlen(input->value)>0)
 	{
 		SDL_Log("text input changed!");
-		makeWordlist(input->value);
 		curlistSprite->visible = 1;
+		makeWordlist(input->value);
 		Redraw(NULL);
 	}
 }
@@ -653,7 +661,20 @@ void stopInput(SpriteEvent* e){
 void show_list(SpriteEvent* e){
 	if(input && strlen(input->value)>0)
 	{
-		textChangFunc(input);
+		printf("%d,\r\n",STATS);fflush(stdout);
+		if(STATS==DICT)
+			textChangFunc(input);
+		else// if(STATS== HISTORY)
+		{
+			if(curlistSprite){
+				Sprite_removeChildren(curlistSprite);
+				curlistSprite->x = 0;
+				curlistSprite->y = input->sprite->h;
+			}
+			curlistSprite->visible = 1;
+			changeHistoryList();
+			Redraw(NULL);
+		}
 	}
 }
 
@@ -692,7 +713,7 @@ static void keyupEvent(SpriteEvent* e){
 
 static Sprite * makeSideBtn(char * name,int y, void (*func)(SpriteEvent*))
 {
-	Sprite * btn = Sprite_newText(name,40,0x0,0xffffffff);
+	Sprite * btn = Sprite_newText(name,45,0x0,0xffffffff);
 	btn->y = y;
 	Sprite_addEventListener(btn,SDL_MOUSEBUTTONUP,func);
 	//printf("btn:(%s)\n",btn->obj);
@@ -769,7 +790,7 @@ void *uiThread(void *ptr){
 		enBtn = history_btn;
 		enBtn = makeSideBtn("清除",enBtn->y + enBtn->h + gap,read_out);
 		enBtn = makeSideBtn("英音",enBtn->y + enBtn->h + gap,read_out);
-		enBtn = makeSideBtn("美音",enBtn->y + enBtn->h + gap,read_out);
+		//enBtn = makeSideBtn("美音",enBtn->y + enBtn->h + gap,read_out);
 		enBtn = makeSideBtn("生词",enBtn->y + enBtn->h + gap,show_history_list);
 		enBtn = makeSideBtn("熟词",enBtn->y + enBtn->h + gap,show_history_list);
 		enBtn = makeSideBtn("复制",enBtn->y + enBtn->h + gap,read_out);
@@ -806,6 +827,7 @@ int main()
 {
 	Stage_init(1);
 	if(stage==NULL)return 0;
+	STATS=DICT;
 	showSearchDict(1);
 	Stage_loopEvents();
 	return 0;

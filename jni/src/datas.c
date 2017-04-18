@@ -86,7 +86,7 @@ char * datas_query(char * sql)
 	int rc;
 	rc = DataBase_exec(history_db,sql);
 	if(!rc){
-		printf("\n history :\n%s",history_db->result_str);
+		//printf("\n history :\n%s",history_db->result_str);
 
 		return history_db->result_str;
 	}

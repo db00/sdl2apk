@@ -2050,6 +2050,11 @@ int main(int argc, char *argv[])
 	printf("set opacity\n");
 	//SDL_SetWindowOpacity(stage->window,.5);
 #endif
+#ifdef HAVE_OPENGL
+	printf("HAVE_OPENGL\n");
+#else
+	printf("OPENGL_ES\n");
+#endif
 	Sprite_addEventListener(stage->sprite,SDL_MOUSEBUTTONDOWN,mouseDown);
 	//char * path = decodePath("~/sound/1.bmp");
 	char * path = ("1.bmp");
@@ -2104,6 +2109,8 @@ int main(int argc, char *argv[])
 		Sprite_addEventListener(sprite2,SDL_MOUSEBUTTONDOWN,mouseDown);
 		//Sprite_removeEventListener(sprite2,SDL_MOUSEBUTTONDOWN,mouseDown);
 		*/
+	}else{
+		printf("-------------\n");
 	}
 	Sprite*sprite3 = Sprite_new();
 	sprite3->surface = (SDL_LoadBMP(path));

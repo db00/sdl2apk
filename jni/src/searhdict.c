@@ -65,7 +65,11 @@ char * showExplain(char *explain)
 	if(explain){
 		char *tmp = regex_replace_all(explain,"([^a-zA-Z])( [\\*0-9]+ )","$1\n$2");
 		free(explain);
-		explain = tmp;
+		explain = regex_replace_all(tmp,"([:?!\\.])( )","$1\n$2");
+		free(tmp);
+		//tmp=explain;
+		//explain = regex_replace_all(tmp,"\\(([b-z])\\)","\n($1)");
+		//explain = tmp;
 		TextField_setText(textfield,explain);
 	}
 	if(curlistSprite)

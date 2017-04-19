@@ -453,7 +453,7 @@ int getIndexByValue(Array * array,char * word)
 	return -1;
 }
 
-void changeHistoryList()
+static void changeHistoryList()
 {
 	//printf("curlistSprite height: %d\n",curlistSprite->h);
 	if(history_str_arr==NULL || history_str_arr->length<=0)
@@ -577,17 +577,10 @@ void show_history_list(SpriteEvent*e)
 		}
 		fflush(stdout);
 
-		if(curlistSprite){
-			Sprite_removeChildren(curlistSprite);
-			curlistSprite->x = 0;
-			curlistSprite->y = input->sprite->h;
-		}
 	}
 
-	curlistSprite->visible = SDL_TRUE;
+	showHistory();
 
-	changeHistoryList();
-	//history_btn->obj = "字典";
 
 	UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//Stage_redraw
 }
@@ -658,7 +651,19 @@ void stopInput(SpriteEvent* e){
 	stage->focus = NULL;
 	SDL_StopTextInput();
 }
-void show_list(SpriteEvent* e){
+static void showHistory()
+{
+	if(curlistSprite){
+		Sprite_removeChildren(curlistSprite);
+		curlistSprite->x = 0;
+		curlistSprite->y = input->sprite->h;
+	}
+	curlistSprite->visible = 1;
+	changeHistoryList();
+	Redraw(NULL);
+}
+
+static void show_list(SpriteEvent* e){
 	if(input && strlen(input->value)>0)
 	{
 		printf("%d,\r\n",STATS);fflush(stdout);
@@ -666,14 +671,7 @@ void show_list(SpriteEvent* e){
 			textChangFunc(input);
 		else// if(STATS== HISTORY)
 		{
-			if(curlistSprite){
-				Sprite_removeChildren(curlistSprite);
-				curlistSprite->x = 0;
-				curlistSprite->y = input->sprite->h;
-			}
-			curlistSprite->visible = 1;
-			changeHistoryList();
-			Redraw(NULL);
+			showHistory();
 		}
 	}
 }
@@ -813,6 +811,7 @@ void *uiThread(void *ptr){
 void showSearchDict(int b)
 {
 	uiThread(NULL);
+	STATS=DICT;
 	dictContainer->visible = b;
 	if(b){
 		Sprite_addChild(stage->sprite,dictContainer);
@@ -827,7 +826,6 @@ int main()
 {
 	Stage_init(1);
 	if(stage==NULL)return 0;
-	STATS=DICT;
 	showSearchDict(1);
 	Stage_loopEvents();
 	return 0;

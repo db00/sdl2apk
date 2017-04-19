@@ -165,9 +165,7 @@ int getMean(Word*word)
 		add_history(word->word);
 	}
 	if(sideBtns)
-	{
 		sideBtns->visible = SDL_FALSE;
-	}
 	return 0;
 }
 

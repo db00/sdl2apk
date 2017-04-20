@@ -523,6 +523,18 @@ static void changeHistoryList()
 	removeOuts();
 }
 
+static void showHistory()
+{
+	if(curlistSprite){
+		Sprite_removeChildren(curlistSprite);
+		curlistSprite->x = 0;
+		curlistSprite->y = input->sprite->h;
+	}
+	curlistSprite->visible = 1;
+	changeHistoryList();
+	Redraw(NULL);
+}
+
 void show_history_list(SpriteEvent*e)
 {
 	Sprite*target = e->target;
@@ -648,17 +660,6 @@ void textChangFunc(Input * input){
 void stopInput(SpriteEvent* e){
 	stage->focus = NULL;
 	SDL_StopTextInput();
-}
-static void showHistory()
-{
-	if(curlistSprite){
-		Sprite_removeChildren(curlistSprite);
-		curlistSprite->x = 0;
-		curlistSprite->y = input->sprite->h;
-	}
-	curlistSprite->visible = 1;
-	changeHistoryList();
-	Redraw(NULL);
 }
 
 static void show_list(SpriteEvent* e){

@@ -38,7 +38,7 @@ int add_remembered_word(char * word,int remembered)
 		memset(sql,0,100);
 		sprintf(sql,s,remembered,id);
 		int rc = DataBase_exec(history_db,sql);
-		if(!rc)printf("\n update sql_result_str:%s",history_db->result_str);
+		//if(!rc)printf("\n update sql_result_str:%s",history_db->result_str);
 	}
 	return id;
 }
@@ -87,7 +87,6 @@ char * datas_query(char * sql)
 	rc = DataBase_exec(history_db,sql);
 	if(!rc){
 		//printf("\n history :\n%s",history_db->result_str);
-
 		return history_db->result_str;
 	}
 	return NULL;
@@ -113,6 +112,7 @@ char * get_remembered_history(int remembered)
 	char sql[200];
 	memset(sql,0,200);
 	sprintf(sql,s,remembered);
+	//printf("\n%s\n",sql);fflush(stdout);
 	return datas_query(sql);
 }
 

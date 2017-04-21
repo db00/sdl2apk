@@ -91,7 +91,7 @@ char * showExplain(char *explain)
 
 int add_history(char *word)
 {
-	if(history_db && regex_match(word,"/^[a-z-]*$/i")) 
+	if(history_db && strlen(word)>1 && regex_match(word,"/^[a-z-]*$/i")) 
 	{
 		int rc=0;
 		rc = add_new_word(word);
@@ -139,7 +139,7 @@ static void read_out(SpriteEvent*e)
 		}
 	}else if(strcmp(target->obj,"粘贴")==0){
 		char * s = getClipboardText();
-		printf("\n------%s,",s);fflush(stdout);
+		//printf("\n------%s,",s);fflush(stdout);
 		if(s && strlen(s)>0)
 		{
 			Input_setText(input,s);
@@ -247,7 +247,7 @@ void selectedEvent(SpriteEvent*e)
 	{
 		case SDL_MOUSEBUTTONDOWN:
 			timestamp = event->button.timestamp;
-			printf("timestamp:%d\n",timestamp);fflush(stdout);
+			//printf("timestamp:%d\n",timestamp);fflush(stdout);
 			stageMouseY = event->button.y;
 			sprite->parent->obj= NULL;
 			return;
@@ -273,7 +273,7 @@ void selectedEvent(SpriteEvent*e)
 		Sprite_removeEventListener(sprite,e->type,selectedEvent);
 		getMean(word);
 	}else{
-		printf("time_diff:%d\n",time_diff);fflush(stdout);
+		//printf("time_diff:%d\n",time_diff);fflush(stdout);
 		button_messagebox(word->word);
 	}
 }
@@ -443,11 +443,19 @@ int getIndexByValue(Array * array,char * word)
 		while(i<array->length)
 		{
 			char * s = Array_getByIndex(array,i);
-			if(s && strlen(s)>0 && strcmp(s,word)==0)
+			if(s && strlen(word)>0 && strcmp(s,word)==0)
 				return i;
 			++i;
 		}
+	}else{
+		if(array==NULL){
+			printf("array==NULL\n");
+		}else{
+			printf("array.length=%d\n",array->length);
+		}
 	}
+	//printf("s=%s,%d\n",word,strlen(word));
+	fflush(stdout);
 	return -1;
 }
 
@@ -488,13 +496,17 @@ static void changeHistoryList()
 			Word * _word = lastSprite->obj;
 			int index = getIndexByValue(history_str_arr,_word->word);
 			if(index<1)
+			{
+				//printf("getIndexByValue---%d\n",index);
 				break;
+			}
 			curWord = Array_getByIndex(history_str_arr,index-1);
 			if(curWord){
 				Word * word = Dict_getWord(dict,curWord);
 				//Word * word = Array_getByIndex(history_str_arr,index-1); 
 				lastSprite = appendWordBtn(word,0);
 			}else{
+				//printf("getIndexByValue---%d\n",index);
 				break;
 			}
 		}
@@ -509,7 +521,10 @@ static void changeHistoryList()
 				//printf("\n-------------%s:%d\n",_word->word,index);fflush(stdout);
 				//int index = curlistSprite->children->length;
 				if(index<0 || index>= history_str_arr->length-1)
+				{
+					//printf("getIndexByValue--- %s %d\n",_word->word,index); fflush(stdout);
 					break;
+				}
 
 				char * curWord = Array_getByIndex(history_str_arr,index+1);
 				//printf("\r\n curWord:%s\r\n",curWord);
@@ -540,21 +555,25 @@ void show_history_list(SpriteEvent*e)
 	Sprite*target = e->target;
 	SDL_Event* event = e->e;
 
-	Array_clear(history_str_arr);
-	history_str_arr = NULL;
 
 	char * data = NULL;
 	if(target == history_btn){
 		if(STATS!=HISTORY)
+		{
 			data = get_history();
+		}
 		STATS = HISTORY;
 	}else if(strcmp(target->obj,"熟词")==0){
-		if(STATS!=STATS)
+		if(STATS!=REMEMBERED)
+		{
 			data = get_remembered_history(1);
+		}
 		STATS = REMEMBERED;
 	}else if(strcmp(target->obj,"生词")==0){
 		if(STATS!=NEW)
+		{
 			data = get_remembered_history(0);
+		}
 		STATS = NEW;
 	}else{
 		return;
@@ -562,6 +581,9 @@ void show_history_list(SpriteEvent*e)
 
 	if(data)
 	{
+		Array_clear(history_str_arr);
+		history_str_arr = NULL;
+
 		cJSON* pRoot = cJSON_Parse(data);
 		if(pRoot){
 			int nCount = cJSON_GetArraySize( pRoot); 
@@ -573,10 +595,13 @@ void show_history_list(SpriteEvent*e)
 
 				cJSON *child =  cJSON_GetArrayItem(pRoot, i);
 				cJSON * w = cJSON_GetObjectItem(child,"word");
-				//char * word = cJSON_Print(w);;
-				char * word = append_str(NULL,w->valuestring);
-				//char * word = w->valuestring;
-				history_str_arr = Array_push(history_str_arr,word);
+				char * s = w->valuestring;
+				if(strlen(s)>1){
+					//char * word = cJSON_Print(w);;
+					char * word = append_str(NULL,s);
+					//char * word = w->valuestring;
+					history_str_arr = Array_push(history_str_arr,word);
+				}
 				//printf("\n---------->%s,%s\n",word,(char*)Array_getByIndex(history_str_arr,i));
 
 				child = child->next;
@@ -585,9 +610,17 @@ void show_history_list(SpriteEvent*e)
 			pRoot = NULL;
 			//printf("---------->%d,%s",nCount,cJSON_Print(pRoot));
 		}
-		fflush(stdout);
 
 	}
+	if(history_str_arr==NULL)
+	{
+		printf("\n no words \n");fflush(stdout);
+		return;
+	}
+	//printf("\n=====\n");fflush(stdout);
+	fflush(stdout);
+	printf("\n---------->%d\n",history_str_arr->length);
+	fflush(stdout);
 
 	showHistory();
 
@@ -665,12 +698,16 @@ void stopInput(SpriteEvent* e){
 static void show_list(SpriteEvent* e){
 	if(input && strlen(input->value)>0)
 	{
-		printf("%d,\r\n",STATS);fflush(stdout);
+		//printf("%d,\r\n",STATS);fflush(stdout);
 		if(STATS==DICT)
 			textChangFunc(input);
 		else// if(STATS== HISTORY)
 		{
 			showHistory();
+			if(sideBtns)
+			{
+				sideBtns->visible = SDL_TRUE;
+			}
 		}
 	}
 }

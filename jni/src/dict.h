@@ -32,6 +32,10 @@ typedef struct
 	int wordcount;            //单词数量
 	int idxfilesize;          //索引文件大小
 	char* sametypesequence;
+	Array * files;//文件列表
+	char * ifo_path;
+	char * idx_path;
+	char * dict_path;
 
 	int numIndexDealed;//处理的index_file 单词个数
 	char* name;           //词典名称

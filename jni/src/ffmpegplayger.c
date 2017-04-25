@@ -1,6 +1,6 @@
 /**
  *
- gcc -Wall ffmpegplayger.c -I"../SDL2/include/" -I"/usr/include/ffmpeg/" -lm -lavformat -lavcodec -lavutil -lswscale -lswresample -lSDL2 && ./a.out a.flv
+ gcc -Wall ffmpegplayger.c -I"../SDL2/include/" -I"/usr/include/ffmpeg/" -lm -lavformat -lavcodec -lavutil -lswscale -lswresample -lSDL2 && ./a.out http://live.cgtn.com/500d/prog_index.m3u8 a.flv
  gcc -Wall ffmpegplayger.c -I"../SDL2/include/" -I"/home/libiao/src/android-ndk-r10/sources/ffmpeg-2.8.6/android/arm/include/" -lm -lavformat -lavcodec -lavutil -lswscale -lswresample -lSDL2 && ./a.out a.flv
  gcc ffmpegplayger.c -I"../SDL2/include/" -I"include/" -L"../ffmpeg/lib/" -lmingw32 -lSDL2main -lSDL2  -lavformat -lavcodec  -lavutil -lswscale && a
  * 最简单的基于FFmpeg的视频播放器 2

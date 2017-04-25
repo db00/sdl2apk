@@ -1,6 +1,6 @@
 /*
  * SDL2:
- gcc cmdutils.c ffplay2.c -lSDL2 -I"/usr/include/ffmpeg/" -L"/usr/lib" -I"/usr/include/SDL2/" -l"avformat" -l"avcodec" -l"avutil" -l"swresample" -l"avfilter" -l"swscale" -l"avdevice" -lm && ./a.out a.flv
+ gcc cmdutils.c ffplay2.c -lSDL2 -I"/usr/include/ffmpeg/" -L"/usr/lib" -I"/usr/include/SDL2/" -l"avformat" -l"avcodec" -l"avutil" -l"swresample" -l"avfilter" -l"swscale" -l"avdevice" -lm && ./a.out  http://live.cgtn.com/500d/prog_index.m3u8 
  gcc cmdutils.c ffplay2.c -lSDL2 -I"$(ANDROID_NDK)/sources/ffmpeg/android/arm/include" -L"/usr/lib" -I"/usr/include/SDL2/" -lm -l"avformat" -l"avcodec" -l"avutil" -l"swresample" -l"avfilter" -l"swscale" -l"avdevice" && ./a.out a.flv
  gcc ffplay2.c cmdutils.c sprite.c array.c ease.c matrix.c tween.c -L"lib" -lavdevice -lavcodec -lavformat -lavutil -lswscale -lswresample -lavfilter -D test_video -I"../SDL2/include" -I"include" -lpthread -lmingw32 -lSDL2main -lSDL2 && a a.flv
 

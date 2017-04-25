@@ -28,7 +28,8 @@ Sprite * dictContainer= NULL;
 Sprite * sideBtns= NULL;
 Input * input = NULL;
 TextField * textfield = NULL;
-Dict * dict = NULL;
+Dict * ec_dict = NULL;
+Dict * ce_dict = NULL;
 Array * history_str_arr;
 Sprite * history_btn;
 
@@ -47,6 +48,12 @@ int isInputRegexp()
 		return 1;
 	return 0;
 }
+int isCE()
+{
+	if(input && input->value && !regex_match(input->value,"/^[a-z0-9-()]*$/i"))
+		return 1;
+	return 0;
+}
 
 void Redraw(char *text) {
 	if(text){
@@ -61,10 +68,15 @@ void Redraw(char *text) {
 
 void open_dict()
 {
-	if(dict==NULL)
+	if(ec_dict==NULL)
 	{
-		dict = Dict_new();
-		dict->name = "oxford-gb";
+		ec_dict = Dict_new();
+		ec_dict->name = "oxford-gb";
+	}
+	if(ce_dict==NULL)
+	{
+		ce_dict = Dict_new();
+		ce_dict->name = "ce";
 	}
 }
 
@@ -156,7 +168,11 @@ int getMean(Word*word)
 		return 0;
 	open_dict();
 	char * explain = NULL;
-	explain = Dict_getMean(dict,word);
+	if(isCE()){
+		explain = Dict_getMean(ce_dict,word);
+	}else{
+		explain = Dict_getMean(ec_dict,word);
+	}
 	showExplain(explain);
 	if(word->word)
 	{
@@ -169,11 +185,20 @@ int getMean(Word*word)
 	return 0;
 }
 
+Word * _getWord(char * _word)
+{
+	if(isCE()){
+		return Dict_getWord(ce_dict,_word);
+	}
+	return Dict_getWord(ec_dict,_word);
+}
+
 int searchWord(char* _word)
 {
 	if(_word && strlen(_word)){
 		open_dict();
-		Word *word = Dict_getWord(dict,_word);
+		Word * word;
+		word = _getWord(_word);
 		getMean(word);
 	}
 	return 0;
@@ -358,14 +383,19 @@ void removeOuts()
 void changeWordList()
 {
 	int isReg = isInputRegexp();
+	int isC_E= isCE();
 	char * curWord = input->value;
 	if(curlistSprite->children==NULL || curlistSprite->children->length==0)
 	{//first match
 		Word * word = NULL;
 		if(isReg){
-			word = Dict_getWordByRegIndex(dict,input->value,0); 
+			if(isC_E){
+				word = Dict_getWordByRegIndex(ce_dict,input->value,0); 
+			}else{
+				word = Dict_getWordByRegIndex(ec_dict,input->value,0); 
+			}
 		}else{
-			word = Dict_getWord(dict,curWord);
+			word = _getWord(curWord);
 		}
 		if(word){
 			Sprite * first = appendWordBtn(word,1);
@@ -389,10 +419,20 @@ void changeWordList()
 			Word * word = NULL;
 			if(isReg){
 				if(strcmp(lastSprite->name,"first")==0) break;
-				Word * p = Dict_getWordByIndex(dict,index-1); 
-				word = Dict_getWordByRegWordPrev(dict,input->value,p); 
+				Word * p;
+				if(isC_E){
+					p = Dict_getWordByIndex(ce_dict,index-1); 
+					word = Dict_getWordByRegWordPrev(ce_dict,input->value,p); 
+				}else{
+					p = Dict_getWordByIndex(ec_dict,index-1); 
+					word = Dict_getWordByRegWordPrev(ec_dict,input->value,p); 
+				}
 			}else{
-				word = Dict_getWordByIndex(dict,index-1); 
+				if(isC_E){
+					word = Dict_getWordByIndex(ce_dict,index-1); 
+				}else{
+					word = Dict_getWordByIndex(ec_dict,index-1); 
+				}
 			}
 			if(word){
 				appendWordBtn(word,0);
@@ -408,12 +448,21 @@ void changeWordList()
 		{//last button
 			Word * _word = lastSprite->obj;
 			int index = _word->index + 1;
-			if(index>= dict->wordcount)
-				break;
+			if(isC_E){
+				if(index>= ce_dict->wordcount)
+					break;
+			}else{
+				if(index>= ec_dict->wordcount)
+					break;
+			}
 			Word * word = NULL;
 			if(isReg){
 				if(lastSprite->name && strcmp(lastSprite->name,"last")==0) break;
-				word = Dict_getWordByRegIndex(dict,input->value,index-1); 
+				if(isC_E){
+					word = Dict_getWordByRegIndex(ce_dict,input->value,index-1); 
+				}else{
+					word = Dict_getWordByRegIndex(ec_dict,input->value,index-1); 
+				}
 				if(word==NULL){
 					if(strcmp(lastSprite->name,"first")==0){
 						lastSprite->name = append_str(NULL,"only"); break;
@@ -422,7 +471,12 @@ void changeWordList()
 					}
 				}
 			}else{
-				word = Dict_getWordByIndex(dict,index);
+				if(isC_E){
+					word = Dict_getWordByIndex(ce_dict,index);
+				}else{
+					word = Dict_getWordByIndex(ec_dict,index);
+				}
+
 			}
 			if(word){
 				appendWordBtn(word,1);
@@ -481,7 +535,7 @@ static void changeHistoryList()
 		//printf("\r\n curWord:%s\r\n",curWord);
 
 		open_dict();
-		Word * word = Dict_getWord(dict,curWord);
+		Word * word = _getWord(curWord);
 		if(word==NULL)
 			return;
 		appendWordBtn(word,0);
@@ -502,7 +556,7 @@ static void changeHistoryList()
 			}
 			curWord = Array_getByIndex(history_str_arr,index-1);
 			if(curWord){
-				Word * word = Dict_getWord(dict,curWord);
+				Word * word = _getWord(curWord);
 				//Word * word = Array_getByIndex(history_str_arr,index-1); 
 				lastSprite = appendWordBtn(word,0);
 			}else{
@@ -528,7 +582,7 @@ static void changeHistoryList()
 
 				char * curWord = Array_getByIndex(history_str_arr,index+1);
 				//printf("\r\n curWord:%s\r\n",curWord);
-				Word * word = Dict_getWord(dict,curWord);
+				Word * word = _getWord(curWord);
 
 				appendWordBtn(word,1);
 				lastSprite = Sprite_getChildByIndex(curlistSprite,curlistSprite->children->length-1);

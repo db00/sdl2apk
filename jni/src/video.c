@@ -1,6 +1,7 @@
 /*
  *
- gcc -D test_video -g -Wall -I"../SDL2/include/" -I"/usr/include/ffmpeg/" video.c array.c tween.c ease.c sprite.c mystring.c matrix.c -LGLESv2 -lm -lSDL2 -D debug_video -L"/usr/local/lib/" -lm -lavformat -lavcodec -lavutil -lswscale -lswresample -lz -lpthread && ./a.out 
+ gcc -D test_video -g -Wall -I"../SDL2/include/" -I"/usr/include/ffmpeg/" video.c array.c tween.c ease.c sprite.c mystring.c matrix.c -LGLESv2 -lm -lSDL2 -D debug_video -L"/usr/local/lib/" -lm -lavformat -lavcodec -lavutil -lswscale -lswresample -lz -lpthread && ./a.out http://live.cgtn.com/500d/prog_index.m3u8
+
  gcc video.c sprite.c array.c ease.c matrix.c tween.c -L"lib" -lavdevice -lavcodec -lavformat -lavutil -lswscale -lswresample -D test_video -I"../SDL2/include" -I"include" -lpthread -lmingw32 -lSDL2main -lSDL2 && a
  gcc -D test_video -g -Wall -L"/usr/lib/" -I"/usr/include/ffmpeg/"  -I"../SDL2/include/" video.c array.c tween.c ease.c sprite.c mystring.c matrix.c -LGLESv2 -lm -lSDL2 -D debug_video  -lm -lavformat -lavcodec -lavutil -lswscale -lswresample -lavdevice -lz -lpthread  && ./a.out
  gcc -D test_video -g -Wall  -I"../SDL2/include/" -I"/home/libiao/src/android-ndk-r10/sources/ffmpeg/android/arm/include/" video.c array.c tween.c ease.c sprite.c mystring.c matrix.c -LGLESv2 -lm -lSDL2 -D debug_video  -lm -lavformat -lavcodec -lavutil -lswscale -lswresample  -L"/usr/local/lib/" -lavdevice -lz -lpthread -llzma && ./a.out

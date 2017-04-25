@@ -136,17 +136,35 @@ int Dict_readIndexFile(Dict *dict)
 
 FILE * Dict_open(Dict *dict)
 {
-	char * rootpath = decodePath("~/sound/");
+	char * rootpath = decodePath("~/sound");
 	char *_file = dict->name;
-	dict->index_file = fopen(append_str(NULL,"%s%s/%s%s",rootpath,_file,_file,".idx"),"rb");
-	char *dict_file= append_str(NULL,"%s%s/%s%s",rootpath,_file,_file,".dict");
-	char *info_file= append_str(NULL,"%s%s/%s%s",rootpath,_file,_file,".ifo");
+
+	if(dict->files==NULL){
+		char dir[1024];
+		memset(dir,0,1024);
+		sprintf(dir,"%s/%s",rootpath,_file);
+		dict->files = listDir(dir);
+		int i=0;
+		while(i<dict->files->length)
+		{
+			char * filename = Array_getByIndex(dict->files,i);
+			int len = strlen(filename);
+			if(strcmp(filename+len-5,".dict")==0){
+				dict->dict_path = filename;
+			}else if(strcmp(filename+len-4,".ifo")==0){
+				dict->ifo_path = filename;
+			}else if(strcmp(filename+len-4,".idx")==0){
+				dict->idx_path = filename;
+			}
+			++i;
+		}
+	}
+	dict->index_file = fopen(dict->idx_path,"rb");
+
 
 	char* file_content = NULL;
-	if(info_file){
-		file_content = readfile(info_file,NULL);
-		free(info_file);
-		info_file = NULL;
+	if(dict->ifo_path){
+		file_content = readfile(dict->ifo_path,NULL);
 	}
 
 	if(file_content){
@@ -167,7 +185,7 @@ FILE * Dict_open(Dict *dict)
 		file_content = NULL;
 	}
 
-	dict->file = fopen(dict_file,"rb");
+	dict->file = fopen(dict->dict_path,"rb");
 	if(Dict_readIndexFile(dict))
 	{
 		printf("open dict index_file error!\n");
@@ -523,13 +541,14 @@ int main(int argc,char**argv)
 	dict = Dict_new();
 	//dict->name = "langdao";
 	dict->name = "oxford-gb";
+	dict->name = "ce";
 	int i =1;
 	//while(i < dict->wordcount)
 	while(i < 39429)
 		//while(i < 435468)
 	{
 		explain = regex_replace_all(Dict_getByIndex(dict,i)," \\* ","\r\n");
-		//printf("%s\r\n",explain);
+		printf("%s\r\n",explain);
 
 		fflush(stdout);
 		free(explain);

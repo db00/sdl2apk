@@ -379,3 +379,60 @@ http://rthklive2-lh.akamaihd.net/i/rthk32_1@168450/index_2052_av-p.m3u8?sd=10&re
 #EXTINF:-1,TVB8
 #EXTINF:-1,Aus-Asia澳亚卫视
 http://live.mastvnet.com/n1rtlHG/500/live.m3u8
+
+
+#英国天空新闻台,
+http://skydvn-nowtv-atv-prod.skydvn.com/atv/skynews/1404/live/04.m3u8
+#美国ABC NEWS,
+http://abclive.abcnews.com/i/abc_live4@136330/index_1200_av-b.m3u8
+#美国WGN,
+http://wgntribune-lh.akamaihd.net/i/WGNPrimary_1@304622/index_700_av-p.m3u8?sd=10&rebase=on
+#EXTINF:-1,radio http://chinaplus.cri.cn/
+ffplay http://sk.cri.cn/am846.m3u8
+#美國中文台, 
+http://ec.sinovision.net/video/ts/lv.m3u8
+#卡塔尔半岛台,
+http://aljazeera-doc-apple-live.adaptive.level3.net/apple/aljazeera/hq-doc/800kStream.m3u8
+#MTV, 
+http://149.255.152.110/mtvhits/index.m3u8
+#CGNTV radio中文台,
+http://cgntv-glive.ofsdelivery.net/live/_definst_/cgntv_ch/playlist.m3u8
+#美东频道,
+http://174.127.67.246/live330/playlist.m3u8
+#新唐人电视,
+ffplay	http://123.108.164.71/etv2/phd1058/playlist.m3u8
+#英国BBC-阿拉伯语,
+ffplay http://bbcwshdlive01-lh.akamaihd.net/i/atv_1@61433/index_800_av-p.m3u8?sd=10&rebase=on
+#[WORLD]新唐人電視台,
+http://174.127.67.246/live400/playlist.m3u8
+#意大利天空SKY TG24 ,
+rtmp://cp49989.live.edgefcs.net/live/streamRM1@2564
+#韩阿里郎,
+rtmp://123.108.164.112/etv1sb/phd36
+#俄罗斯MTV,
+http://85.132.78.6:1935/live/muztv.stream/lihattv.m3u8
+#CHING连续剧 M-tv,
+rtmp://edge1.everyon.tv/etv1sb/phd783?country=CN&quality=0&channel=phd783&player=web&network=pc&p2pupuser=on&domain=everyon&bitrate=896&ser
+#新加坡亚洲新闻 ffplay http://tglcnas-lh.akamaihd.net/i/cnas_fta@334579/master.m3u8
+#新加坡Channel 8, ffplay http://tglch8-lh.akamaihd.net/i/channel8_fta@334582/master.m3u8
+#新加坡Channel 5,http://tglch5-lh.akamaihd.net/i/channel5_fta@334581/master.m3u8
+#新加坡Channel U,http://tglchu-lh.akamaihd.net/i/channelu_fta@334583/master.m3u8
+#新加坡Toggle LIVE,http://tgllive-lh.akamaihd.net/i/toggle_live@334524/master.m3u8
+#新加坡Toggle LIVE2,http://tgllive2-lh.akamaihd.net/i/toggle_live2@342560/master.m3u8
+#泰国东盟卫视, ffplay http://103.40.138.89:1935/live/mgtv/playlist.m3u8
+#美国中文台, ffplay http://media3.sinovision.net:1935/live/livestream/playlist.m3u8
+#rtmp://media3.sinovision.net:1935/live/livestream
+#泰国中文台, ffplay rtmp://110.164.48.237:1935/tcctv_ch002/tcctv02.stream_live1 ffplay	http://110.164.48.237:1935:1935/tcctv_ch002/tcctv02.stream_live1/chunklist.m3u8
+#新唐人亚太, ffplay rtmp://123.108.164.71/etv2/phd926
+#欧洲体育台, ffplay http://esioslive6-i.akamaihd.net/hls/live/202892/AL_P_ESP1_FR_FRA/playlist_1000.m3u8
+#日本NHK WORLD,http://web-cache.stream.ne.jp/www11/nhkworld-tv/global/222714/live_tv.m3u8
+#韩CHC969体育, ffplay rtmp://123.108.164.112/etv1/phd969
+#朝鲜中央电视台, ffplay mms://121.167.43.161/chosun
+#美国NBA MLS, ffplay	http://208.92.36.158/ipad/live/nba_ipad_1240.m3u8
+#美国航天NASA, ffplay	http://nasatv-lh.akamaihd.net/i/NASA_101@319270/index_1000_av-p.m3u8
+#西班牙LA, ffplay http://a3live-lh.akamaihd.net/i/lasexta_1@35272/master.m3u8
+#半岛纪录 , ffplay rtmp://aljazeeraflashlivefs.fplive.net:1935/aljazeeraflashlive-live/aljazeera_doc_high
+#泰国ac4好莱坞, ffplay rtmp://103.40.138.89:1935/live/ac4
+#马来西亚MARA, ffplay http://stream2.1malaysiaiptv.com:1935/mylive/smil:maratv_all.smil/playlist.m3u8
+#马来西亚BERNAMA, ffplay http://stream2.1malaysiaiptv.com/mylive/smil:bernama2_all.smil/playlist.m3u8
+#马来西亚ASTRO GO SHOP, ffplay http://playback01.aotg-video.astro.com.my/AOTGHLS/master_GOSHOP_04.m3u8

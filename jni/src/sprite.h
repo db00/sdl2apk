@@ -56,7 +56,7 @@ typedef struct GLES2_Context
 	} \
 }
 
-int LoadContext(GLES2_Context * data);
+//int LoadContext(GLES2_Context * data);
 
 typedef struct SpriteEvent{
 	Uint32 type;
@@ -109,10 +109,11 @@ typedef struct Sprite{
 	int is3D;//1:is3D,0:2d;
 	char* name;
 	int visible;
-	SDL_Rect* Bounds;//鼠标响应区
+	SDL_Rect * Bounds;//鼠标响应区,(窗口坐标)
+	SDL_Rect * mask;//遮罩区域，(窗口坐标)
 	SDL_Surface * surface;//
 	SDL_Texture * texture;//显示信息
-	SDL_Rect*dragRect;//非null可拖拽
+	SDL_Rect * dragRect;//非null可拖拽,(窗口坐标)
 	SDL_bool canDrag;//可拖拽
 	struct Sprite*parent;//显示在舞台的父节点
 	Array *children;//Sprite Array 子节点数组;
@@ -140,12 +141,12 @@ typedef struct Sprite{
 	void (*Tween_kill)(void*,int);//动画效果清除,arguments[0]:tween,arguments[1]:toEnd
 
 
-	int x;
-	int y;
-	int z;
+	int x;//(窗口坐标)
+	int y;//(窗口坐标)
+	int z;//(窗口坐标)
 
-	int w;
-	int h;
+	int w;//(窗口坐标)
+	int h;//(窗口坐标)
 
 	GLfloat alpha;
 

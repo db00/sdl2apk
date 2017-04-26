@@ -517,10 +517,16 @@ int main(int argc,char**argv)
 	if(argc>1){
 		explain = Dict_explain(dict,argv[1]);
 		if(explain==NULL)return 0;
-		//explain = regex_replace_all(explain,"/ \\* /","\r\n");
-		explain = regex_replace_all(explain,"([^a-zA-Z])( [\\*0-9]+ )","$1\r\n$2");
-		explain = regex_replace_all(explain,"([^a-zA-Z0-9.,])( [a-z0-9]+ )","$1\r\n$2");
-		//printf("explaination:%s\n",explain);
+		/*
+		char *tmp = regex_replace_all(explain,"([^a-zA-Z,;])( [\\*0-9]+ )","$1\n$2");
+		free(explain);
+		explain = regex_replace_all(tmp,"([:?!\\.]) ","$1\n");
+		free(tmp);
+		*/
+		char *tmp = regex_replace_all(explain,"([^a-zA-Z,;'> ]|[:?!\\.])([ \\*0-9]{,2} )","$1\n$2");
+		free(explain);
+		explain = tmp;
+		printf("explaination:%s\n",explain);
 		fflush(stdout);
 	}
 

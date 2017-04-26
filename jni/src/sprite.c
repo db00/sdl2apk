@@ -15,7 +15,7 @@ Stage * stage = NULL;
 static SDL_mutex *mutex = NULL;
 Data3d * data2D;
 
-int LoadContext(GLES2_Context * data)
+static int LoadContext(GLES2_Context * data)
 {
 #if SDL_VIDEO_DRIVER_UIKIT
 #define __SDL_NOGETPROCADDR__
@@ -70,7 +70,7 @@ void quit(int rc)
 	exit(rc);
 }
 
-int power_of_two(int input)
+static int power_of_two(int input)
 {
 	/*return input;*/
 	int value = 1;
@@ -252,6 +252,15 @@ SDL_Rect* setSpriteBorder(Sprite*sprite,SDL_Rect*rect)
 	if(sprite->Bounds){
 		free(sprite->Bounds);
 		sprite->Bounds = NULL;
+	}
+	if(sprite->mask)
+	{
+		sprite->Bounds = malloc(sizeof(SDL_Rect));
+		sprite->Bounds->x = sprite->mask->x;
+		sprite->Bounds->y = sprite->mask->y;
+		sprite->Bounds->w = sprite->mask->w;
+		sprite->Bounds->h = sprite->mask->h;
+		return sprite->Bounds;
 	}
 	if(sprite->is3D){
 		SDL_Rect *r = (SDL_Rect*)malloc(sizeof(SDL_Rect));
@@ -622,7 +631,12 @@ static void Data3d_show(Sprite*sprite)
 	//GL_CHECK(gles2.glEnable(GL_DEPTH_TEST));
 	//GL_CHECK(gles2.glDisable ( GL_DEPTH_TEST));
 	//GL_CHECK(gles2.glEnable( GL_STENCIL_TEST ));
-	//GL_CHECK(gles2.glEnable( GL_SCISSOR_TEST));
+	if(sprite->mask)
+	{
+		GL_CHECK(gles2.glEnable( GL_SCISSOR_TEST));
+		//gles2.glScissor((sprite->mask->x),stage->stage_h-(sprite->mask->y),(sprite->mask->w),(sprite->mask->h));
+		gles2.glScissor(sprite->mask->x,stage->stage_h-(sprite->mask->y+sprite->mask->h),sprite->mask->w,sprite->mask->h);
+	}
 
 	if(_data3D->programObject)
 	{
@@ -735,6 +749,7 @@ static void Data3d_show(Sprite*sprite)
 		GL_CHECK(gles2.glDisableVertexAttribArray(_data3D->normalLoc));
 	if(_data3D->texCoordLoc>=0)
 		GL_CHECK(gles2.glDisableVertexAttribArray(_data3D->texCoordLoc));
+	GL_CHECK(gles2.glDisable( GL_SCISSOR_TEST));
 	//GL_CHECK(gles2.glEnable ( GL_DEPTH_TEST));
 	//return _data3D;
 	return ;
@@ -2119,6 +2134,13 @@ int main(int argc, char *argv[])
 	sprite3->x = 0;
 	sprite3->w = 100;
 	sprite3->h = 100;
+	sprite3->scaleX = 2.0;
+	SDL_Rect rect;
+	rect.x = 10;
+	rect.y = 20;
+	rect.w = 50;
+	rect.h = 50;
+	sprite3->mask= &rect;
 	Sprite_addChild(stage->sprite,sprite3);
 	//sprite3->visible = 0;
 	Sprite_addEventListener(sprite3,SDL_MOUSEBUTTONDOWN,mouseDown);

@@ -273,6 +273,8 @@ Word*Dict_contains(Dict *dict,char *word)
 Word*Dict_getWord(Dict *dict,char * target_word)
 {
 	int id = abs(Dict_getWordIndex(dict,target_word));
+	if(id>dict->wordcount)
+		id=dict->wordcount-1;
 	Word* retword = (Word*)(dict->words+id);
 	return retword;
 }
@@ -518,11 +520,11 @@ int main(int argc,char**argv)
 		explain = Dict_explain(dict,argv[1]);
 		if(explain==NULL)return 0;
 		/*
-		char *tmp = regex_replace_all(explain,"([^a-zA-Z,;])( [\\*0-9]+ )","$1\n$2");
-		free(explain);
-		explain = regex_replace_all(tmp,"([:?!\\.]) ","$1\n");
-		free(tmp);
-		*/
+		   char *tmp = regex_replace_all(explain,"([^a-zA-Z,;])( [\\*0-9]+ )","$1\n$2");
+		   free(explain);
+		   explain = regex_replace_all(tmp,"([:?!\\.]) ","$1\n");
+		   free(tmp);
+		   */
 		char *tmp = regex_replace_all(explain,"([^a-zA-Z,;'> ]|[:?!\\.])([ \\*0-9]{,2} )","$1\n$2");
 		free(explain);
 		explain = tmp;

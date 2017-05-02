@@ -91,29 +91,87 @@ char * datas_query(char * sql)
 	}
 	return NULL;
 }
+
+Array * datas_query2(char * sql)
+{
+	clear_result_str();
+	int rc = DataBase_exec2array(history_db,sql);
+	if(!rc){
+		DataBase_result_print(history_db);
+		return history_db->result_arr;
+	}
+	return NULL;
+}
+
+
 char * get_history()
 {
 	return datas_query("select * from list group by wordid ORDER BY date desc;");
 	/*
-	clear_result_str();
-	int rc;
-	rc = DataBase_exec(history_db,"select * from list group by wordid ORDER BY date desc;");
-	if(!rc){
-		printf("\n history :\n%s",history_db->result_str);
+	   clear_result_str();
+	   int rc;
+	   rc = DataBase_exec(history_db,"select * from list group by wordid ORDER BY date desc;");
+	   if(!rc){
+	   printf("\n history :\n%s",history_db->result_str);
 
-		return history_db->result_str;
-	}
-	return NULL;
-	*/
+	   return history_db->result_str;
+	   }
+	   return NULL;
+	   */
 }
 char * get_remembered_history(int remembered)
 {
-	char * s = ("select * from list where remembered=%d group by wordid ORDER BY date desc;");
 	char sql[200];
 	memset(sql,0,200);
+	char * s = ("select * from list where remembered=%d group by wordid ORDER BY date desc;");
 	sprintf(sql,s,remembered);
 	//printf("\n%s\n",sql);fflush(stdout);
 	return datas_query(sql);
+}
+
+Array * get_history_list(int numWords,char * word,char * compare)
+{
+	char sql[300];
+	memset(sql,0,300);
+	char *s;
+	if(word && compare)
+	{
+		//s = ("select * from list where group by wordid ORDER BY date desc;");
+		if(compare[0]=='<')
+			s = "select *  from list where wordid %s (select wordid from list where word==\"%s\") order by wordid desc limit 0,%d";
+		else
+			s = "select *  from list where wordid %s (select wordid from list where word==\"%s\") order by wordid limit 0,%d";
+		sprintf(sql,s,compare,word,numWords);
+	}else{
+		s = "select *  from list order by wordid desc limit 0,%d";
+		sprintf(sql,s,numWords);
+	}
+	printf("\n%s\n",sql);fflush(stdout);
+	return datas_query2(sql);
+}
+Array * get_remembered_list(int remembered,int numWords,char * word,char * compare)
+{
+	char sql[300];
+	memset(sql,0,300);
+	char *s;
+	if(word && compare)
+	{
+		//s = ("select * from list where remembered=%d group by wordid ORDER BY date desc;");
+		if(compare[0]=='<')
+			s = "select *  from list where wordid %s (select wordid from list where word==\"%s\") and remembered==%d order by wordid desc limit 0,%d";
+		else
+			s = "select *  from list where wordid %s (select wordid from list where word==\"%s\") and remembered==%d order by wordid limit 0,%d";
+		sprintf(sql,s,compare,word,remembered,numWords);
+	}else{
+		s = "select *  from list where remembered==%d order by wordid desc limit 0,%d";
+		sprintf(sql,s,remembered,numWords);
+	}
+
+	//select *  from list where wordid <= (select wordid from list where word=="good") order by wordid desc limit 0,20;
+	//char * s = ("select * from list where remembered=%d group by wordid ORDER BY date desc;");
+	//sprintf(sql,s,remembered);
+	printf("\n%s\n",sql);fflush(stdout);
+	return datas_query2(sql);
 }
 
 
@@ -150,10 +208,10 @@ int main()
 	if(history_db){
 		int rc=0;
 		/*
-		rc = add_new_word("test");
-		printf("\r\n-------------------id:%d\r\n",rc);
-		rc = add_to_history(rc);
-		if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
+		   rc = add_new_word("test");
+		   printf("\r\n-------------------id:%d\r\n",rc);
+		   rc = add_to_history(rc);
+		   if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
 		//printf("\r\n-------------------id:%d\r\n",rc);
 		rc = DataBase_exec(history_db,"select * from sqlite_master;");
 		if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
@@ -163,8 +221,9 @@ int main()
 		if(!rc)DataBase_result_print(history_db);
 		*/
 		//printf("%s",get_history());
-		add_remembered_word("test",1);
-		printf("%s",get_remembered_history(1));
+		//add_remembered_word("test",1);
+		//printf("%s",get_remembered_history(1));
+		Array * arr = get_remembered_list(0,20,"good",">");
 		DataBase_clear(history_db);
 		history_db = NULL;
 	}

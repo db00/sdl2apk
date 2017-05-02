@@ -511,6 +511,7 @@ int getIndexByValue(Array * array,char * word)
 		while(i<array->length)
 		{
 			char * s = Array_getByIndex(array,i);
+			//printf("%s - %s\r\n",s,word);
 			if(s && strlen(word)>0 && strcmp(s,word)==0)
 				return i;
 			++i;
@@ -527,17 +528,141 @@ int getIndexByValue(Array * array,char * word)
 	return -1;
 }
 
+static int noMoreAppend=0;
+static int noMorePreppend=0;
+static Array * get_more_list(char * word,int isAppend,int isFromCenter)
+{
+	int num = 20;
+	char * compare = ">";
+	if(isAppend)
+	{
+		printf(" isAppend\r\n");
+		compare = "<";
+	}
+	if(isFromCenter || word==NULL)
+	{
+		if(history_str_arr)
+			Array_clear(history_str_arr);
+		history_str_arr = NULL;
+	}
+	if(word && strlen(word)==0)
+		word = NULL;
+
+	if(isFromCenter==0)
+	{
+		if(noMoreAppend && isAppend)
+			return history_str_arr;
+		if(noMorePreppend && (!isAppend))
+			return history_str_arr;
+	}
+	if(isFromCenter){
+		if(strcmp(compare,"<")==0)
+			compare = "<=";
+		else
+			compare = ">=";
+		noMoreAppend=0;
+		noMorePreppend=0;
+	}
+
+	Array * data = NULL;
+	if(STATS==HISTORY){
+		if(word && strlen(word)>0)
+			data = get_history_list(num,word,compare);
+		if(isFromCenter && data==NULL)
+			data = get_history_list(num,NULL,compare);
+	}else if(STATS==REMEMBERED){
+		if(word && strlen(word)>0)
+			data = get_remembered_list(1,num,word,compare);
+		if(isFromCenter && data==NULL)
+			data = get_remembered_list(1,num,NULL,compare);
+	}else if(STATS==NEW){
+		if(word && strlen(word)>0)
+			data = get_remembered_list(0,num,word,compare);
+		if(isFromCenter && data==NULL)
+			data = get_remembered_list(0,num,NULL,compare);
+	}
+
+	if(data)
+	{
+		Array * names = Array_getByIndex(data,0);
+		if(names==NULL){
+			printf("no names Array");
+			return history_str_arr;
+		}
+		int nCount = names->length;
+		int i = 0;
+		while(i<nCount)
+		{
+			char * curName =Array_getByIndex(names,i);
+			if(strcmp(curName,"word")==0)
+			{
+				Array * wordsArr = Array_getByIndex(data,i+i);
+				if(wordsArr && wordsArr->length>0)
+				{
+					Array * a = Array_new();
+					int j = 0;
+					while(j<wordsArr->length)
+					{
+						if(isAppend){
+							Array_push(a,append_str(NULL,"%s",Array_getByIndex(wordsArr,j)));
+						}else{
+							Array_push(a,append_str(NULL,"%s",Array_getByIndex(wordsArr,wordsArr->length-1-j)));
+						}
+						++j;
+					}
+
+					if(isAppend){
+						history_str_arr = Array_concat(history_str_arr,a);
+					}else{
+						Array * tmpArr = NULL;
+						tmpArr = Array_concat(a,history_str_arr);
+						Array_clear(history_str_arr);
+						history_str_arr = tmpArr;
+					}
+				}
+				if(wordsArr->length < num)
+				{
+					if(isAppend)
+						noMoreAppend = 1;
+					else
+						noMorePreppend = 1;
+				}
+				//printf("\r\n column_name:%s:%d,length:%d\r\n",curName,i+1,wordsArr->length);
+				break;
+			}
+			++i;
+		}
+	}else{
+		if(isAppend)
+			noMoreAppend = 1;
+		else
+			noMorePreppend = 1;
+	}
+	return history_str_arr;
+}
+
 static void changeHistoryList()
 {
 	//printf("curlistSprite height: %d\n",curlistSprite->h);
 	if(history_str_arr==NULL || history_str_arr->length<=0)
+	{
+		printf("\n no words \n");fflush(stdout);
 		return;
+	}
 
 	char * curWord;
 	//Word* word;
 	if(curlistSprite->children ==NULL || curlistSprite->children->length<=0)
-	{
+	{// first word
 		int index = getIndexByValue(history_str_arr,input->value);
+		if(index<0)
+		{
+			if(strlen(input->value)>0)
+			{
+				history_str_arr = get_more_list(input->value,1,1);
+				index = getIndexByValue(history_str_arr,input->value);
+			}
+		}
 		if(index>=0)
 		{
 			curWord = Array_getByIndex(history_str_arr,index);
@@ -560,12 +685,20 @@ static void changeHistoryList()
 	{
 		lastSprite = Sprite_getChildByIndex(curlistSprite,0);
 		while(lastSprite->y + curlistSprite->y>0)
-		{
+		{// prepend
 			Word * _word = lastSprite->obj;
 			int index = getIndexByValue(history_str_arr,_word->word);
-			if(index<1)
+			if(index==0)
 			{
-				//printf("getIndexByValue---%d\n",index);
+				//printf ("index==0 history_str_arr length: %d ->",history_str_arr->length);
+				history_str_arr = get_more_list(_word->word,0,0);
+				index = getIndexByValue(history_str_arr,_word->word);
+				//printf (" history_str_arr ---->%d (%d)\r\n",history_str_arr->length,index);
+				fflush(stdout);
+			}
+			if(index<0)
+			{
+				printf("getIndexByValue--- %d\n",index);
 				break;
 			}
 			curWord = Array_getByIndex(history_str_arr,index-1);
@@ -583,14 +716,22 @@ static void changeHistoryList()
 		{
 			lastSprite = Sprite_getChildByIndex(curlistSprite,curlistSprite->children->length-1);
 			while(lastSprite->y + curlistSprite->y + lastSprite->h < stage->stage_h)
-			{
+			{//append
 				Word * _word = lastSprite->obj;
 				int index = getIndexByValue(history_str_arr,_word->word);
-				//printf("\n-------------%s:%d\n",_word->word,index);fflush(stdout);
-				//int index = curlistSprite->children->length;
-				if(index<0 || index>= history_str_arr->length-1)
+				//printf("\n-------------%s:%d/%d\n",_word->word,index,history_str_arr->length);fflush(stdout);
+				if(index==history_str_arr->length-1)
 				{
-					//printf("getIndexByValue--- %s %d\n",_word->word,index); fflush(stdout);
+					//printf ("history_str_arr length: %d =======>",history_str_arr->length);
+					history_str_arr = get_more_list(_word->word,1,0);
+					index = getIndexByValue(history_str_arr,_word->word);
+					//printf ("%d (%d)\r\n",history_str_arr->length,index);
+				}
+				//printf("\n-------------%s:%d/%d\n",_word->word,index,history_str_arr->length);fflush(stdout);
+				//int index = curlistSprite->children->length;
+				if(index<0 || index>= history_str_arr->length)
+				{
+					printf("getIndexByValue--- %s %d\n",_word->word,index); fflush(stdout);
 					break;
 				}
 
@@ -618,77 +759,75 @@ static void showHistory()
 	Redraw(NULL);
 }
 
+
 void show_history_list(SpriteEvent*e)
 {
 	Sprite*target = e->target;
 	SDL_Event* event = e->e;
 
 
-	char * data = NULL;
+	//Array * data = NULL;
 	if(strcmp(target->obj,"历史")==0){
 		if(STATS!=HISTORY)
 		{
-			data = get_history();
+			STATS = HISTORY;
 		}
-		STATS = HISTORY;
+		SDL_SetWindowTitle(stage->window, "history");
 	}else if(strcmp(target->obj,"熟词")==0){
 		if(STATS!=REMEMBERED)
 		{
-			data = get_remembered_history(1);
+			STATS = REMEMBERED;
 		}
-		STATS = REMEMBERED;
+		SDL_SetWindowTitle(stage->window, "remembered");
 	}else if(strcmp(target->obj,"生词")==0){
 		if(STATS!=NEW)
 		{
-			data = get_remembered_history(0);
+			STATS = NEW;
 		}
-		STATS = NEW;
+		SDL_SetWindowTitle(stage->window, "new words");
 	}else{
 		return;
 	}
+	get_more_list(input->value,1,1);
 
-	if(data)
-	{
-		Array_clear(history_str_arr);
-		history_str_arr = NULL;
+	/*
+	   if(data)
+	   {
+	   Array_clear(history_str_arr);
+	   history_str_arr = NULL;
 
-		cJSON* pRoot = cJSON_Parse(data);
-		if(pRoot){
-			int nCount = cJSON_GetArraySize( pRoot); 
+	   cJSON* pRoot = cJSON_Parse(data);
+	   if(pRoot){
+	   int nCount = cJSON_GetArraySize( pRoot); 
 
-			int i;
-			for(i=0;i<nCount; i++){
-				if(history_str_arr==NULL)
-					history_str_arr = Array_new();
+	   int i;
+	   for(i=0;i<nCount; i++){
+	   if(history_str_arr==NULL)
+	   history_str_arr = Array_new();
 
-				cJSON *child =  cJSON_GetArrayItem(pRoot, i);
-				cJSON * w = cJSON_GetObjectItem(child,"word");
-				char * s = w->valuestring;
-				if(strlen(s)>1){
-					//char * word = cJSON_Print(w);;
-					char * word = append_str(NULL,s);
-					//char * word = w->valuestring;
-					history_str_arr = Array_push(history_str_arr,word);
-				}
-				//printf("\n---------->%s,%s\n",word,(char*)Array_getByIndex(history_str_arr,i));
+	   cJSON *child =  cJSON_GetArrayItem(pRoot, i);
+	   cJSON * w = cJSON_GetObjectItem(child,"word");
+	   char * s = w->valuestring;
+	   if(strlen(s)>1){
+	//char * word = cJSON_Print(w);;
+	char * word = append_str(NULL,s);
+	//char * word = w->valuestring;
+	history_str_arr = Array_push(history_str_arr,word);
+	}
+	//printf("\n---------->%s,%s\n",word,(char*)Array_getByIndex(history_str_arr,i));
 
-				child = child->next;
-			}
-			cJSON_Delete(pRoot);
-			pRoot = NULL;
-			//printf("---------->%d,%s",nCount,cJSON_Print(pRoot));
-		}
+	child = child->next;
+	}
+	cJSON_Delete(pRoot);
+	pRoot = NULL;
+	//printf("---------->%d,%s",nCount,cJSON_Print(pRoot));
+	}
 
 	}
-	if(history_str_arr==NULL)
-	{
-		printf("\n no words \n");fflush(stdout);
-		return;
-	}
+	*/
+
 	//printf("\n=====\n");fflush(stdout);
-	fflush(stdout);
-	printf("\n---------->%d\n",history_str_arr->length);
-	fflush(stdout);
+	//printf("\n---------->%d\n",history_str_arr->length); fflush(stdout);
 
 	showHistory();
 
@@ -753,6 +892,7 @@ Sprite * makeWordlist(char * curWord)
 
 void textChangFunc(Input * input){
 	STATS=DICT;
+	SDL_SetWindowTitle(stage->window, "dictionary");
 	if(dictContainer->visible && strlen(input->value)>0)
 	{
 		SDL_Log("text input changed!");
@@ -983,6 +1123,7 @@ void showSearchDict(int b)
 {
 	uiThread(NULL);
 	STATS=DICT;
+	SDL_SetWindowTitle(stage->window, "dictionary");
 	dictContainer->visible = b;
 	if(b){
 		Sprite_addChild(stage->sprite,dictContainer);

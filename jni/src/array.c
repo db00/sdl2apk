@@ -220,7 +220,7 @@ Array * Array_concat(Array * array,Array * array2)
 		return array;
 	int len = array->length;
 	array = Array_resize(array,array->length+array2->length);
-	memcpy(&(array->data[len]),array2->data,array2->length*sizeof(void*));
+	memcpy((void*)&(array->data[len]),array2->data,array2->length*sizeof(void*));
 	return array;
 }
 

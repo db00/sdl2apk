@@ -219,9 +219,11 @@ int Dict_getWordIndex(Dict *dict,char * target_word)
 		//int cmp = 
 		if(0 == cmp)
 		{
-			int _i=0;
-			int first = cur + _i;
-			while(_i!=0 && cur+_i>=0 && strcasecmp(target_word,dict->words[cur+_i].word)==0)
+			if(strcmp(target_word,dict->words[cur].word)==0)
+				return cur;
+			int first = cur;
+			int _i=-1;
+			while(cur+_i>=0 && strcasecmp(target_word,dict->words[cur+_i].word)==0)
 			{
 				first = cur + _i;
 				if(strcmp(target_word,dict->words[cur+_i].word)==0)

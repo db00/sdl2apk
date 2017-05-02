@@ -209,6 +209,7 @@ void DataBase_result_print(DataBase * db)
 		printf("\n");
 		++i;
 	}
+	fflush(stdout);
 }
 
 DataBase *exec_sql(DataBase*db,char*Path)

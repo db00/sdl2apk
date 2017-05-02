@@ -729,7 +729,7 @@ static void changeHistoryList()
 				}
 				//printf("\n-------------%s:%d/%d\n",_word->word,index,history_str_arr->length);fflush(stdout);
 				//int index = curlistSprite->children->length;
-				if(index<0 || index>= history_str_arr->length)
+				if(index<0 || index>= history_str_arr->length-1)
 				{
 					printf("getIndexByValue--- %s %d\n",_word->word,index); fflush(stdout);
 					break;
@@ -737,6 +737,7 @@ static void changeHistoryList()
 
 				char * curWord = Array_getByIndex(history_str_arr,index+1);
 				//printf("\r\n curWord:%s\r\n",curWord);
+				//if(curWord==NULL) return;
 				Word * word = _getWord(curWord);
 
 				appendWordBtn(word,1);

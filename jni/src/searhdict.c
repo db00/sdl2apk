@@ -88,7 +88,8 @@ char * showExplain(char *explain)
 		//char *tmp = regex_replace_all(explain,"([^a-zA-Z0-9,;'>\\(\\)\\/ ~]|[:?!\\.])([ \\*0-9]{,2} )","$1\n$2");
 		char *tmp = regex_replace_all(explain,"([^\r\n][:?!\\.\\*]) ","$1\n");
 		free(explain);
-		explain = tmp;
+		explain = regex_replace_all(tmp,"([^a-zA-Z,;\r\n])( [\\*0-9]{1,2} )","$1\n$2");
+		//explain = tmp;
 		TextField_setText(textfield,explain);
 	}
 	if(curlistSprite)
@@ -133,6 +134,18 @@ static void read_out(SpriteEvent*e)
 	if(target==NULL || target->obj==NULL)
 		return;
 	SDL_Event* event = e->e;
+
+
+	if(strcmp(target->obj,"粘贴")==0){
+		char * s = getClipboardText();
+		//printf("\n------%s,",s);fflush(stdout);
+		if(s && strlen(s)>0)
+		{
+			Input_setText(input,s);
+			//searchWord(s);
+		}
+		return;
+	}
 
 	char * word = input->value;
 	if(word==NULL || strlen(word)<=0)
@@ -596,7 +609,7 @@ static Array * get_more_list(char * word,int isAppend,int isFromCenter)
 			char * curName =Array_getByIndex(names,i);
 			if(strcmp(curName,"word")==0)
 			{
-				Array * wordsArr = Array_getByIndex(data,i+i);
+				Array * wordsArr = Array_getByIndex(data,i+1);
 				if(wordsArr && wordsArr->length>0)
 				{
 					Array * a = Array_new();

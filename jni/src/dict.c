@@ -66,6 +66,14 @@ void Dict_free(Dict*dict)
 }
 
 inline static int to_int(unsigned char *from_int) {
+	/*
+	int i=0;
+	*((char*)(&i)+0) = *(from_int+3);
+	*((char*)(&i)+1) = *(from_int+2);
+	*((char*)(&i)+2) = *(from_int+1);
+	*((char*)(&i)+3) = *(from_int+0);
+	return i;
+	*/
 	return *(from_int+3)+(*(from_int+2)<<8)+(*(from_int+1)<<16)+(*from_int<<24);
 }
 
@@ -434,7 +442,7 @@ char *Dict_getMean(Dict* dict,Word* word)
 		return NULL;
 	}
 
-	printf("word:%s,offset:%d,wordLength:%d\n",word->word,word->offset,word->length);
+	//printf("word:%s,offset:%d,wordLength:%d\n",word->word,word->offset,word->length);
 	//return NULL;
 	if(0 != fseek(dict->file,word->offset,SEEK_SET)){
 		printf("seek word error\n");
@@ -500,7 +508,7 @@ int main(int argc,char**argv)
 {
 
 	Dict * dict = Dict_new();
-	dict->name = "oxford-gb";
+	dict->name = "oxford";
 	int numWords = 10;
 	int _i=0;
 	Array *wordlist = Dict_getWordList(dict,"zz",&numWords);
@@ -514,7 +522,6 @@ int main(int argc,char**argv)
 	Array_clear(wordlist);
 
 
-	//return 0;
 	char* explain;
 
 
@@ -535,6 +542,7 @@ int main(int argc,char**argv)
 	}
 
 	Dict_free(dict);
+	//return 0;
 #ifdef WIN32
 	//SDL_setenv("SDL_VIDEODRIVER","dummy",1);
 	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO) < 0) {

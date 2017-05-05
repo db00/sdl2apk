@@ -131,6 +131,8 @@ char * get_remembered_history(int remembered)
 
 Array * get_history_list(int numWords,char * word,char * compare)
 {
+	if(word==NULL||strlen(word)==0)
+		word="";
 	char sql[300];
 	memset(sql,0,300);
 	char *s;
@@ -151,9 +153,12 @@ Array * get_history_list(int numWords,char * word,char * compare)
 }
 Array * get_remembered_list(int remembered,int numWords,char * word,char * compare)
 {
-	char sql[300];
-	memset(sql,0,300);
-	char *s;
+	int len = 300;
+	if(word)
+		len += strlen(word);
+	char sql[len];
+	memset(sql,0,len);
+	char *s=NULL;
 	if(word && compare)
 	{
 		//s = ("select * from list where remembered=%d group by wordid ORDER BY date desc;");

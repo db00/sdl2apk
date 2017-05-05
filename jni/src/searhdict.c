@@ -665,6 +665,8 @@ static void changeHistoryList()
 			if(strlen(input->value)>0)
 			{
 				history_str_arr = get_more_list(input->value,1,1);
+				if(history_str_arr==NULL)
+					return;
 				index = getIndexByValue(history_str_arr,input->value);
 			}
 		}
@@ -778,19 +780,19 @@ void show_history_list(SpriteEvent*e)
 		{
 			STATS = HISTORY;
 		}
-		SDL_SetWindowTitle(stage->window, "history");
+		SDL_SetWindowTitle(stage->window, "历史");
 	}else if(strcmp(target->obj,"熟词")==0){
 		if(STATS!=REMEMBERED)
 		{
 			STATS = REMEMBERED;
 		}
-		SDL_SetWindowTitle(stage->window, "remembered");
+		SDL_SetWindowTitle(stage->window, "熟词");
 	}else if(strcmp(target->obj,"生词")==0){
 		if(STATS!=NEW)
 		{
 			STATS = NEW;
 		}
-		SDL_SetWindowTitle(stage->window, "new words");
+		SDL_SetWindowTitle(stage->window, "生词");
 	}else{
 		return;
 	}
@@ -898,7 +900,7 @@ Sprite * makeWordlist(char * curWord)
 
 void textChangFunc(Input * input){
 	STATS=DICT;
-	SDL_SetWindowTitle(stage->window, "dictionary");
+	SDL_SetWindowTitle(stage->window, "词典");
 	if(dictContainer->visible && strlen(input->value)>0)
 	{
 		SDL_Log("text input changed!");
@@ -913,6 +915,18 @@ void stopInput(SpriteEvent* e){
 }
 
 static void show_list(SpriteEvent* e){
+	Sprite*target = e->target;
+	SDL_Event* event = e->e;
+	switch(event->type)
+	{
+		case SDL_MOUSEBUTTONDOWN:
+			if(event->button.x>stage->stage_w*10/11)
+			{
+				Input_setText(input,"");
+			}
+			break;
+	}
+
 	if(input && strlen(input->value)>0)
 	{
 		if(sideBtns)
@@ -1051,12 +1065,16 @@ void *uiThread(void *ptr){
 
 		gap=12;
 		int y = input->sprite->h;
-		enBtn = makeSideBtn("清除",y,read_out);
+		//enBtn = makeSideBtn("清除",y,read_out);
+		//y = enBtn->y + enBtn->h + gap;
+		enBtn = makeSideBtn("粘贴",y,read_out);
 		y = enBtn->y + enBtn->h + gap;
-		enBtn = makeSideBtn("粘贴",enBtn->y + enBtn->h + gap,read_out);
-		enBtn = makeSideBtn("历史",enBtn->y + enBtn->h + gap,show_history_list);
-		enBtn = makeSideBtn("生词",enBtn->y + enBtn->h + gap,show_history_list);
-		enBtn = makeSideBtn("熟词",enBtn->y + enBtn->h + gap,show_history_list);
+		enBtn = makeSideBtn("历史",y,show_history_list);
+		y = enBtn->y + enBtn->h + gap;
+		enBtn = makeSideBtn("生词",y,show_history_list);
+		y = enBtn->y + enBtn->h + gap;
+		enBtn = makeSideBtn("熟词",y,show_history_list);
+		y = enBtn->y + enBtn->h + gap;
 		//enBtn = makeSideBtn("正则查询",enBtn->y + enBtn->h + gap,read_out);
 		//enBtn = makeSideBtn("测试",enBtn->y + enBtn->h + gap,read_out);
 		/*
@@ -1066,7 +1084,7 @@ void *uiThread(void *ptr){
 
 		char * clipboardtext = getClipboardText(0);
 		if(clipboardtext && strlen(clipboardtext)>0){//显示剪切版单词
-			if(regex_match(clipboardtext,"/^[a-z -]*$/"))
+			if(regex_match(clipboardtext,"/^[\x01-\x7f]*$/"))
 				Input_setText(input,clipboardtext);
 		}
 	}
@@ -1110,6 +1128,7 @@ void stageMouseEvent(SpriteEvent* e){
 					Redraw(NULL);
 					Sprite_removeEventListener(stage->sprite,SDL_MOUSEMOTION,stageMouseEvent); 
 				}
+				/*
 			}else if(starty<stage->stage_h/10){
 				if(event->button.y>stage->stage_h*2/10)
 				{
@@ -1126,6 +1145,15 @@ void stageMouseEvent(SpriteEvent* e){
 					printf("\r\nfrom bottom\r\n"); fflush(stdout);
 					Sprite_removeEventListener(stage->sprite,SDL_MOUSEMOTION,stageMouseEvent); 
 				}
+				*/
+			}else if(stage->stage_w*5/10 < startx && startx<stage->stage_w*8.5/10){
+				if(event->button.x>stage->stage_w*9/10)
+				{
+					sideBtns->visible = SDL_FALSE;
+					//printf("\r\n to right"); fflush(stdout);
+					Redraw(NULL);
+					Sprite_removeEventListener(stage->sprite,SDL_MOUSEMOTION,stageMouseEvent); 
+				}
 			}
 			break;
 	}
@@ -1136,7 +1164,7 @@ void showSearchDict(int b)
 {
 	uiThread(NULL);
 	STATS=DICT;
-	SDL_SetWindowTitle(stage->window, "dictionary");
+	SDL_SetWindowTitle(stage->window, "词典");
 	dictContainer->visible = b;
 	if(b){
 		Sprite_addChild(stage->sprite,dictContainer);

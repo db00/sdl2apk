@@ -62,7 +62,7 @@ void changeStats(int at)
             break;
         case DICT:
             showSearchDict(1);
-            SDL_SetWindowTitle(stage->window, "dict");
+            SDL_SetWindowTitle(stage->window, "词典");
             break;
         case CARD:
             showCardTest(1);
@@ -165,7 +165,7 @@ int main(int argc, char *argv[]) {
         //pthread_join(thread1,NULL);
     }
 
-    SDL_SetWindowTitle(stage->window, "dict");
+    SDL_SetWindowTitle(stage->window, "词典");
     //showCardTest(1);
     showSearchDict(1);
 

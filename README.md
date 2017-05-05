@@ -26,9 +26,9 @@ adb pull /system/lib/libcrypto.so $ANDROID_NDK/platforms/android-9/arch-arm/usr/
 
 
 
-目前仅提供Android，如需ios版，自己下载源码编译
-字典: https://pan.baidu.com/s/1jH76fv4
-sound.zip: 为字典文件，解压，复制到Android手机 /sdcard/ 目录下即可
+#目前仅提供Android，如需ios版，自己下载源码编译
+#字典: https://pan.baidu.com/s/1jH76fv4
+#sound.zip: 为字典文件，解压，复制到Android手机 /sdcard/ 目录下即可
 
-contact: db0@qq.com
+#contact: db0@qq.com
 

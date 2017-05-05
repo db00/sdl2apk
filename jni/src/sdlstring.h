@@ -10,6 +10,6 @@ char*getLinkedVersionString();
 const char*getPlatformString();//Windows, Mac OS X, Linux, iOS, Android 
 void printfStatus();
 int setClipboardText(char *s);
-char * getClipboardText();
+char * getClipboardText(int showAlert);
 
 #endif

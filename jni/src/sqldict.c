@@ -286,8 +286,8 @@ int make_db(char * dict_name,char * db_path)
 
 int main()
 {
-	return update_word("/home/libiao/dict2.db","hello","has long mean");
+	//return update_word("/home/libiao/dict.db","hello","has long mean");
 	//return make_dict("/home/libiao/dict.db","oxford");// from sqlite3 to stardict
-	return make_db("oxford-gb","/home/libiao/dict2.db");//from stardict to sqlite3
+	return make_db("oxford-gb","/home/libiao/dict.db");//from stardict to sqlite3
 	return 0;
 }

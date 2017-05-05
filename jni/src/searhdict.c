@@ -137,7 +137,7 @@ static void read_out(SpriteEvent*e)
 
 
 	if(strcmp(target->obj,"粘贴")==0){
-		char * s = getClipboardText();
+		char * s = getClipboardText(1);
 		//printf("\n------%s,",s);fflush(stdout);
 		if(s && strlen(s)>0)
 		{
@@ -174,14 +174,6 @@ static void read_out(SpriteEvent*e)
 			return;
 		int r= setClipboardText(textfield->text);
 		show_copied(textfield->text,r);
-	}else if(strcmp(target->obj,"粘贴")==0){
-		char * s = getClipboardText();
-		//printf("\n------%s,",s);fflush(stdout);
-		if(s && strlen(s)>0)
-		{
-			Input_setText(input,s);
-			//searchWord(s);
-		}
 	}
 	//Redraw(NULL);
 }
@@ -923,6 +915,8 @@ void stopInput(SpriteEvent* e){
 static void show_list(SpriteEvent* e){
 	if(input && strlen(input->value)>0)
 	{
+		if(sideBtns)
+			sideBtns->visible = SDL_FALSE;
 		//printf("%d,\r\n",STATS);fflush(stdout);
 		if(STATS==DICT)
 			textChangFunc(input);
@@ -1070,6 +1064,11 @@ void *uiThread(void *ptr){
 		   enBtn = makeSideBtn("测试",enBtn->y + enBtn->h + 5,read_out);
 		   */
 
+		char * clipboardtext = getClipboardText(0);
+		if(clipboardtext && strlen(clipboardtext)>0){//显示剪切版单词
+			if(regex_match(clipboardtext,"/^[a-z -]*$/"))
+				Input_setText(input,clipboardtext);
+		}
 	}
 	if(history_db==NULL)
 		init_db();

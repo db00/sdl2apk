@@ -13,8 +13,8 @@ int add_new_word(char * word)
 	}else{
 		printf("\r\nnot in list\r\n");
 		char * s ="insert into list(word,date,remembered,numAccess,numTest) values (\"%s\",%d,0,1,0);";
-		char sql[100];
-		memset(sql,0,100);
+		char sql[256];
+		memset(sql,0,256);
 		sprintf(sql,s,word,time(NULL));
 		int rc = DataBase_exec(history_db,sql);
 		//if(!rc)printf("\n insert sql_result_str:%s",history_db->result_str);
@@ -38,7 +38,7 @@ int add_remembered_word(char * word,int remembered)
 		memset(sql,0,100);
 		sprintf(sql,s,remembered,id);
 		int rc = DataBase_exec(history_db,sql);
-		//if(!rc)printf("\n update sql_result_str:%s",history_db->result_str);
+		if(!rc)printf("\n update sql_result_str:%s",history_db->result_str);
 	}
 	return id;
 }
@@ -65,8 +65,8 @@ int add_to_history(int wordid)
 {
 
 	char * s ="insert into history(wordid,status,date) values (%d,\"-\",%d);";
-	char sql[100];
-	memset(sql,0,100);
+	char sql[200];
+	memset(sql,0,200);
 	sprintf(sql,s,wordid,time(NULL));
 	int rc = DataBase_exec(history_db,sql);
 	return rc;
@@ -178,8 +178,8 @@ Array * get_remembered_list(int remembered,int numWords,char * word,char * compa
 int add_to_test(int wordid,int result)
 {
 	char * s ="insert into history(wordid,status,date) values (%d,%d,%d);";
-	char sql[100];
-	memset(sql,0,100);
+	char sql[128];
+	memset(sql,0,128);
 	sprintf(sql,s,wordid,result,time(NULL));
 	int rc = DataBase_exec(history_db,sql);
 	return rc;

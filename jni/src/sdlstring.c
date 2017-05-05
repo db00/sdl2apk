@@ -59,7 +59,7 @@ int setClipboardText(char *s)
 }
 
 
-char * getClipboardText()
+char * getClipboardText(int showAlert)
 {
 	//#ifdef __ANDROID__
 	//printf("getClipboardText!\n");
@@ -69,7 +69,7 @@ char * getClipboardText()
 	{
 		//printf("hasClipboardText\n");
 		return s;
-	}else{
+	}else if(showAlert){
 		int success = SDL_ShowSimpleMessageBox(
 				SDL_MESSAGEBOX_ERROR,
 				"no text in clipboard",
@@ -116,7 +116,7 @@ void printfStatus()
 	//SDL_Log("SDL_GetPerformanceFrequency:0x%lx\n",SDL_GetPerformanceFrequency());
 
 	fflush(stdout);
-	SDL_Log("clipboardtext:%s\n",getClipboardText());
+	SDL_Log("clipboardtext:%s\n",getClipboardText(0));
 
 	int secs, pct , powerstatus; 
 	powerstatus = SDL_GetPowerInfo(&secs, &pct);

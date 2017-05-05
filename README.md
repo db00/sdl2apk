@@ -1,6 +1,6 @@
 # sdl2apk
 
-can run on Linux MacOSX iphoneos Android Raspbian
+can run on Linux MacOSX iPhoneOS Android Raspbian
 
 ## Linux:
 ` cd jni/src/ ; make `

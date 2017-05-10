@@ -14,6 +14,7 @@ http://ozzmaker.com/2014/06/30/virtual-keyboard-for-the-raspberry-pi/
 #include <stdio.h>
 #include <string.h>
 
+#include "update.h"
 #include "SDL_image.h"
 #include "dict.h"
 #include "httploader.h"
@@ -174,6 +175,16 @@ int main(int argc, char *argv[]) {
     //Sprite_addEventListener(stage->sprite,SDL_MOUSEMOTION,slideEvent);
     //Sprite_addEventListener(stage->sprite,SDL_MOUSEBUTTONDOWN,slideEvent);
     //Sprite_addEventListener(stage->sprite,SDL_MOUSEBUTTONUP,slideEvent);
+    
+	pthread_t thread2;
+	if(pthread_create(&thread2, NULL, update, NULL)!=0)//创建查找更新子线程  
+	{  
+		perror("pthread_create");  
+	}else{
+		pthread_detach(thread2);// do not know why uncommit this line , will occur an ERROR !
+		//pthread_join(thread2,NULL);
+	}
+    //
     Stage_loopEvents();
     exit(0);
     return 0;

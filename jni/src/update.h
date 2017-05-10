@@ -20,4 +20,5 @@ UPDATE net;
 void Update_clear(UPDATE*update);
 UPDATE * Update_decode(UPDATE*update,char *data);
 void Update_init();
+void * update(void *ptr);
 #endif

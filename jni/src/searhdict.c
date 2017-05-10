@@ -976,7 +976,7 @@ static void show_list(SpriteEvent* e){
 	switch(event->type)
 	{
 		case SDL_MOUSEBUTTONDOWN:
-			if(event->button.x>stage->stage_w*10/11)
+			if(event->button.x>stage->stage_w-40*1.6)
 			{
 				Input_setText(input,"");
 			}
@@ -1077,6 +1077,13 @@ void *uiThread(void *ptr){
 		Sprite_addEventListener(input->sprite,SDL_MOUSEBUTTONDOWN,show_list);//click to show a list
 		Sprite_addChild(dictContainer,input->sprite);
 		stage->focus = input->sprite;
+
+
+		//Sprite * clearbtn = Sprite_newText("×",40,0x0,0x00000000);
+		Sprite * clearbtn = Sprite_newText("⊗",40,0x0,0x00000000);
+		clearbtn->x = stage->stage_w-clearbtn->w*1.3;
+		Sprite_addChild(input->sprite,clearbtn);
+
 
 		explainContainer = Sprite_new();
 		Sprite_addChildAt(dictContainer,explainContainer,0);
@@ -1220,100 +1227,7 @@ void stageMouseEvent(SpriteEvent* e){
 	}
 
 }
-static void * update(void *ptr)
-{
-	char * s = loadUrl("https://raw.githubusercontent.com/db00/sdl2apk/master/AndroidManifest.xml",NULL);
-	if(s)
-	{
-		//android:versionName="
-		char * versionName = getStrBtw(s,"android:versionName=\"","\"",0);
 
-		if(versionName)
-		{
-			char * curVersion = ".0";
-			printf("\r\nversionName========= %s\r\n",versionName);
-
-			Array* curVersionArr = string_split(curVersion,".");
-			Array* versionArr = string_split(versionName,".");
-			int i = 0;
-			int hasNewVersion = 0;
-			while(i<versionArr->length)
-			{
-				if(curVersionArr->length<=i)
-				{
-					hasNewVersion = 1;
-					break;
-				}
-				if(atoi(Array_getByIndex(versionArr,i))>atoi(Array_getByIndex(curVersionArr,i)))
-				{
-					hasNewVersion = 1;
-					break;
-				}
-				++i;
-			}
-			if(!hasNewVersion)
-			{
-				return;
-			}else{
-				const SDL_MessageBoxButtonData buttons[] = {
-					{
-						SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,
-						0,
-						//"remembered"
-						"下载"
-					},
-					{
-						SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
-						1,
-						//"not remebered"
-						"取消"
-					},
-				};
-
-				SDL_MessageBoxData data = {
-					SDL_MESSAGEBOX_INFORMATION,
-					NULL, /* no parent window */
-					//"change rememeber status",
-					"发现新版本",
-					"发现新版本内容",//data.message = word;
-					2,
-					buttons,
-					NULL /* Default color scheme */
-				};
-
-				int button = -1;
-				int success = 0;
-
-				success = SDL_ShowMessageBox(&data, &button);
-				if (success == -1) {
-					SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Error Presenting MessageBox: %s\n", SDL_GetError());
-					return NULL;
-				}
-				SDL_Log("Pressed button: %d, %s\n", button, button == 0 ? "熟" : "生");
-
-				if(button==0){//下载
-#if defined(__ANDROID__)
-					system("am start --user 0 -a android.intent.action.VIEW -d https://www.pgyer.com/jEjl");
-#elif defined(linux)
-					system("xdg-open https://www.pgyer.com/jEjl");
-#elif defined(__MACOS__)
-					system("open https://www.pgyer.com/jEjl");
-#elif defined(__WIN32__) || defined(WIN64)
-					system("cmd /c start https://www.pgyer.com/jEjl");
-#else
-					system("open https://www.pgyer.com/jEjl");
-#endif
-
-				}else if(button==1){//取消
-				}
-			}
-
-		}
-		fflush(stdout);
-
-	}
-	return NULL;
-}
 
 void showSearchDict(int b)
 {
@@ -1329,14 +1243,6 @@ void showSearchDict(int b)
 	//Sprite_roundRect2D(0,0,100,100,30,30);
 
 
-	pthread_t thread1;
-	if(pthread_create(&thread1, NULL, update, NULL)!=0)//创建子线程  
-	{  
-		perror("pthread_create");  
-	}else{
-		pthread_detach(thread1);// do not know why uncommit this line , will occur an ERROR !
-		//pthread_join(thread1,NULL);
-	}
 }
 
 

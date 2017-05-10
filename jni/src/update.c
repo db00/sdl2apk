@@ -243,12 +243,35 @@ void * update(void *ptr)
 			}
 			hasNewVersion = compareVersion(curVersion,newVersion);
 			free(f);
+		}else{
+			hasNewVersion = 1;
 		}
 
 		if(hasNewVersion){
 			SDL_Log("has new oxford version: %s\r\n",newVersion);
 			//https://pan.baidu.com/s/1jH76fv4
-			toBrowser("发现新字典版本","请下载新字典sound.zip并解压","https://pan.baidu.com/s/1jH76fv4");
+			//toBrowser("发现新字典版本","请下载新字典sound.zip并解压","https://git.oschina.net/db0/kodi/raw/master/sound.zip");//https://pan.baidu.com/s/1jH76fv4");
+
+			int len = 0;
+			char * dict_zip = loadUrl("https://git.oschina.net/db0/kodi/raw/master/sound.zip",(size_t*)&len);
+			if(dict_zip)
+			{
+				//int r= writefile("/sdcard/dict.zip",dict_zip,len);
+
+				ByteArray * bytearray = ByteArray_new(len);
+				bytearray->data = dict_zip;
+
+				/*
+				   char * out = malloc(fileLen*10);
+				   memset(out,0,fileLen*10);
+				   int outlen=0;
+				   ZipFile_free(ZipFile_parser(bytearray,"",out,&outlen));
+				   */
+				ZipFile_free(ZipFile_unzipAll(bytearray,"/sdcard/"));
+
+
+				free(dict_zip);
+			}
 		}else{
 			SDL_Log("no newer than oxford version: %s\r\n",curVersion);
 		}

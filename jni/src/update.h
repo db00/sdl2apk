@@ -1,10 +1,13 @@
 #ifndef update_h__
 #define update_h__
-#include "mystring.h"
-#include "sprite.h"
+
+#include "bytearray.h"
 #include "files.h"
-#include "sdlfiles.h"
 #include "httploader.h"
+#include "mystring.h"
+#include "sdlfiles.h"
+#include "sprite.h"
+#include "zip.h"
 
 typedef struct UPDATE
 {

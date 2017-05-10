@@ -25,7 +25,7 @@ LOCAL_SRC_FILES := $(SDL_PATH)/src/main/android/SDL_android_main.c \
 	readbaidu.c update.c regex.c textfield.c pinyin.c read_card.c music.c searhdict.c\
 	tween.c ease.c mysurface.c androidcam.c map.c\
 	testime.c besier.c sdlstring.c\
-	sqlite3.c
+	sqlite3.c zip.c bytearray.c
 
 
 

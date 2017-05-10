@@ -1,5 +1,6 @@
 /**
  * @file zip.c
+ gcc -D test_zip zip.c files.c mystring.c array.c myregex.c bytearray.c -lz -I"../SDL2/include/" && ./a.out ~/sound/sound.zip
  gcc -D test_zip zip.c bytearray.c inflate.c crc32.c uncompr.c adler32.c inffast.c inftrees.c zutil.c && ./a.out ~/sound/sound.zip
  * @author db0@qq.com
  * @version 1.0.1
@@ -8,6 +9,7 @@
 
 
 #include "zip.h"
+
 
 typedef struct ZipDirHead{
 	unsigned int sig;//must be 0x02014b50
@@ -247,22 +249,6 @@ ZipDataDesc * ZipDataDesc_read(ByteArray * bytearray)
 	return zipdatadesc;
 }
 
-typedef struct ZipHeader{
-	unsigned int sig;//must be 0x04034b50
-	unsigned short verNeed;
-	unsigned short flag;
-	unsigned short method;
-	unsigned short modifytime;
-	unsigned short modifydate;
-	unsigned int crc32;
-	unsigned int size;
-	unsigned int unCompressedSize;
-	unsigned short filenameLen;
-	unsigned short extraFieldLen;
-	char * fileName;
-	char * extraField;
-	char * data;
-}ZipHeader;
 void ZipHeader_free(ZipHeader * header)
 {
 	if(header)
@@ -366,10 +352,6 @@ ZipHeader * ZipHeader_read(ByteArray * bytearray,char * out)
 	return header;
 }
 
-typedef struct ZipFile{
-	ZipHeader * header;
-	ByteArray * bytearray;
-}ZipFile;
 void ZipFile_free(ZipFile * file)
 {
 	if(file)
@@ -437,13 +419,11 @@ ZipFile * ZipFile_unzipAll(ByteArray * bytearray,char * path)
 	ZipFile * zipfile = malloc(sizeof(ZipFile));
 	memset(zipfile,0,sizeof(ZipFile));
 	zipfile->bytearray = bytearray;
-	int len = bytearray->length*10;
-	char out[len];
+	char * out = malloc(0x2000000);//32m
 	char fileName[1024];
 	while(bytearray->position<bytearray->length-4)
 	{
 		int sig = ByteArray_readInt32(bytearray);
-		//sprintf(out+strlen(out),"sig:0x%x\n",sig);
 		switch(sig)
 		{
 			case 0x04034b50:
@@ -458,10 +438,12 @@ ZipFile * ZipFile_unzipAll(ByteArray * bytearray,char * path)
 					strcat(fileName,header->fileName);
 
 					uLong len = header->unCompressedSize;
+					printf("%s:%s:%d\r\n",fileName,header->fileName,len);
+					fflush(stdout);
 					if(len>0)
 					{
 						uncompress((Bytef*)out,&len,(const Bytef*)header->data,(uLong)header->size+2);
-						//writefile(fileName,out,len);
+						writefile(fileName,out,len);
 					}
 				}
 				break;
@@ -506,10 +488,13 @@ int main(int argc,char ** argv)
 	fread(bytearray->data,1,fileLen,_file);
 	fclose(_file);
 
-	char * out = malloc(fileLen*10);
-	memset(out,0,fileLen*10);
-	int outlen=0;
-	ZipFile_free(ZipFile_parser(bytearray,"",out,&outlen));
+	/*
+	   char * out = malloc(fileLen*10);
+	   memset(out,0,fileLen*10);
+	   int outlen=0;
+	   ZipFile_free(ZipFile_parser(bytearray,"",out,&outlen));
+	   */
+	ZipFile_free(ZipFile_unzipAll(bytearray,"sdcard/"));
 	//printf("\n%s",out);
 
 	//memset(out,0,fileLen*10);

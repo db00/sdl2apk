@@ -1,7 +1,7 @@
 /**
  *
- gcc -Wall -I"../SDL2_image/" -I"../SDL2_ttf" -I"." -I"include" regex.c urlcode.c utf8.c mysurface.c myregex.c textfield.c files.c array.c matrix.c tween.c ease.c base64.c ipstring.c sprite.c httploader.c mystring.c -L"lib" -liconv -lssl -lcrypto -lws2_32 -lgdi32 -lSDL2_image -lSDL2_ttf -lmingw32 -lSDL2main -lSDL2 -I"../SDL2/include/" -lm -D debug_httploader && a
  gcc -Wall -g urlcode.c array.c base64.c ipstring.c httploader.c mystring.c -lssl -lcrypto -lm -D debug_httploader &&./a.out
+ gcc -Wall -I"../SDL2_image/" -I"../SDL2_ttf" -I"." -I"include" regex.c urlcode.c utf8.c mysurface.c myregex.c textfield.c files.c array.c matrix.c tween.c ease.c base64.c ipstring.c sprite.c httploader.c mystring.c -L"lib" -liconv -lssl -lcrypto -lws2_32 -lgdi32 -lSDL2_image -lSDL2_ttf -lmingw32 -lSDL2main -lSDL2 -I"../SDL2/include/" -lm -D debug_httploader && a
  gcc -Wall -D SDL2 -I"../SDL2_image/" -I"../SDL2_ttf" textfield.c utf8.c mysurface.c myregex.c urlcode.c files.c array.c matrix.c base64.c ipstring.c sprite.c httploader.c mystring.c  -lssl -lcrypto  -lSDL2_image -lSDL2_ttf -lSDL2 -I"../SDL2/include/" -lm -D debug_httploader &&./a.out
  > a.txt
  */
@@ -22,7 +22,9 @@ char * ssls(int fd,char* sendStr,int* contentLength)
 	SSL_CTX *contex;
 	SSL_load_error_strings();
 	SSL_library_init();
-	contex = SSL_CTX_new(SSLv3_client_method());
+	//contex = SSL_CTX_new(SSLv3_client_method());
+	//contex = SSL_CTX_new(SSLv2_client_method());
+	contex = SSL_CTX_new(SSLv23_client_method());
 	if ( contex == NULL ){
 		printf("SDL init SSL contex failed:%s\n", ERR_reason_error_string(ERR_get_error()));
 	}
@@ -532,7 +534,10 @@ char * loadUrl(char * url,size_t* len)
 #endif
 int main(int argc, char *argv[]) 
 {
-	loadUrl("http://fanyi.baidu.com/gettts?lan=uk&spd=2&source=alading&text=masquerade",NULL);
+	//loadUrl("http://fanyi.baidu.com/gettts?lan=uk&spd=2&source=alading&text=masquerade",NULL);
+	char * s = loadUrl("https://raw.githubusercontent.com/db00/sdl2apk/master/AndroidManifest.xml",NULL);
+	if(s)
+		printf("------->%s",s);
 	return 0;
 
 	URLRequest * urlrequest = NULL;
@@ -573,13 +578,14 @@ int main(int argc, char *argv[])
 	//URLRequest_setAuthorization(urlrequest,"test","test");
 	//urlrequest = URLRequest_new("http://xh.5156edu.com/xhzdmp3abc/nü3.mp3");
 	//urlrequest = URLRequest_new("http://www.baidu.com/s?wd=hello");
-	urlrequest = URLRequest_new("https://www.baidu.com/s");
+	//urlrequest = URLRequest_new("https://www.baidu.com/s");
+	urlrequest = URLRequest_new("https://raw.githubusercontent.com/db00/sdl2apk/master/AndroidManifest.xml");
 	urlrequest = Httploader_request(urlrequest);
 	statusCode = urlrequest->statusCode;
 	if((statusCode >= 200 && statusCode<300) || statusCode==304){
 		if(urlrequest->respond->contentLength == strlen(urlrequest->data))
 		{
-			//printf("repond data:\n%s\n",urlrequest->data);
+			printf("repond data:\n%s\n",urlrequest->data);
 			printf("SDL: repond datalength:%d\n",urlrequest->respond->contentLength);
 			fflush(stdout);
 		}

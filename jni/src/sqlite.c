@@ -189,7 +189,7 @@ void DataBase_result_print(DataBase * db)
 	printf("|");
 	while(i<nameArr->length)
 	{
-		printf("%s|",Array_getByIndex(nameArr,i));
+		printf("%s|",(char*)Array_getByIndex(nameArr,i));
 		++i;
 	}
 	printf("\n");
@@ -203,7 +203,7 @@ void DataBase_result_print(DataBase * db)
 		while(j<nameArr->length)
 		{
 			Array * varr = Array_getByIndex(db->result_arr,j+1);
-			printf("%s|",Array_getByIndex(varr,i));
+			printf("%s|",(char*)Array_getByIndex(varr,i));
 			++j;
 		}
 		printf("\n");

@@ -1,5 +1,6 @@
 /*
  * Various utilities for command line tools
+ gcc cmdutils.c ffplay.c -lSDL2 -I"/usr/include/ffmpeg/" -L"/usr/lib" -I"/usr/include/SDL2/" -l"avformat" -l"avcodec" -l"avdevice" -l"avutil" -l"avfilter" -l"swresample" -l"swscale" -lm && ./a.out  http://live.cgtn.com/500d/prog_index.m3u8 
  * Copyright (c) 2000-2003 Fabrice Bellard
  *
  * This file is part of FFmpeg.
@@ -34,17 +35,17 @@
 #include "libavformat/avformat.h"
 #include "libavfilter/avfilter.h"
 #include "libavdevice/avdevice.h"
-#include "libavresample/avresample.h"
+//#include "libavresample/avresample.h"
 #include "libswscale/swscale.h"
 #include "libswresample/swresample.h"
-#include "libpostproc/postprocess.h"
+//#include "libpostproc/postprocess.h"
 #include "libavutil/avassert.h"
 #include "libavutil/avstring.h"
 #include "libavutil/bprint.h"
 #include "libavutil/display.h"
 #include "libavutil/mathematics.h"
 #include "libavutil/imgutils.h"
-#include "libavutil/libm.h"
+//#include "libavutil/libm.h"
 #include "libavutil/parseutils.h"
 #include "libavutil/pixdesc.h"
 #include "libavutil/eval.h"
@@ -74,12 +75,6 @@ AVDictionary *format_opts, *codec_opts, *resample_opts;
 static FILE *report_file;
 static int report_file_level = AV_LOG_DEBUG;
 int hide_banner = 0;
-
-enum show_muxdemuxers {
-    SHOW_DEFAULT,
-    SHOW_DEMUXERS,
-    SHOW_MUXERS,
-};
 
 void init_opts(void)
 {
@@ -231,6 +226,7 @@ static const OptionDef *find_option(const OptionDef *po, const char *name)
  * by default. HAVE_COMMANDLINETOARGVW is true on cygwin, while
  * it doesn't provide the actual command line via GetCommandLineW(). */
 #if HAVE_COMMANDLINETOARGVW && defined(_WIN32)
+#include <windows.h>
 #include <shellapi.h>
 /* Will be leaked on exit */
 static char** win32_argv_utf8 = NULL;
@@ -1096,6 +1092,7 @@ static int warned_cfg = 0;
 
 static void print_all_libs_info(int flags, int level)
 {
+	/*
     PRINT_LIB_INFO(avutil,     AVUTIL,     flags, level);
     PRINT_LIB_INFO(avcodec,    AVCODEC,    flags, level);
     PRINT_LIB_INFO(avformat,   AVFORMAT,   flags, level);
@@ -1105,10 +1102,12 @@ static void print_all_libs_info(int flags, int level)
     PRINT_LIB_INFO(swscale,    SWSCALE,    flags, level);
     PRINT_LIB_INFO(swresample, SWRESAMPLE, flags, level);
     PRINT_LIB_INFO(postproc,   POSTPROC,   flags, level);
+	*/
 }
 
 static void print_program_info(int flags, int level)
 {
+	/*
     const char *indent = flags & INDENT? "  " : "";
 
     av_log(NULL, level, "%s version " FFMPEG_VERSION, program_name);
@@ -1119,10 +1118,12 @@ static void print_program_info(int flags, int level)
     av_log(NULL, level, "%sbuilt with %s\n", indent, CC_IDENT);
 
     av_log(NULL, level, "%sconfiguration: " FFMPEG_CONFIGURATION "\n", indent);
+	*/
 }
 
 static void print_buildconf(int flags, int level)
 {
+	/*
     const char *indent = flags & INDENT ? "  " : "";
     char str[] = { FFMPEG_CONFIGURATION };
     char *conflist, *remove_tilde, *splitconf;
@@ -1145,6 +1146,7 @@ static void print_buildconf(int flags, int level)
         av_log(NULL, level, "%s%s%s\n", indent, indent, splitconf);
         splitconf = strtok(NULL, "~");
     }
+	*/
 }
 
 void show_banner(int argc, char **argv, const OptionDef *options)
@@ -1256,7 +1258,7 @@ static int is_device(const AVClass *avclass)
     return AV_IS_INPUT_DEVICE(avclass->category) || AV_IS_OUTPUT_DEVICE(avclass->category);
 }
 
-static int show_formats_devices(void *optctx, const char *opt, const char *arg, int device_only, int muxdemuxers)
+static int show_formats_devices(void *optctx, const char *opt, const char *arg, int device_only)
 {
     AVInputFormat *ifmt  = NULL;
     AVOutputFormat *ofmt = NULL;
@@ -1274,33 +1276,29 @@ static int show_formats_devices(void *optctx, const char *opt, const char *arg, 
         const char *name      = NULL;
         const char *long_name = NULL;
 
-        if (muxdemuxers !=SHOW_DEMUXERS) {
-            while ((ofmt = av_oformat_next(ofmt))) {
-                is_dev = is_device(ofmt->priv_class);
-                if (!is_dev && device_only)
-                    continue;
-                if ((!name || strcmp(ofmt->name, name) < 0) &&
-                    strcmp(ofmt->name, last_name) > 0) {
-                    name      = ofmt->name;
-                    long_name = ofmt->long_name;
-                    encode    = 1;
-                }
+        while ((ofmt = av_oformat_next(ofmt))) {
+            is_dev = is_device(ofmt->priv_class);
+            if (!is_dev && device_only)
+                continue;
+            if ((!name || strcmp(ofmt->name, name) < 0) &&
+                strcmp(ofmt->name, last_name) > 0) {
+                name      = ofmt->name;
+                long_name = ofmt->long_name;
+                encode    = 1;
             }
         }
-        if (muxdemuxers != SHOW_MUXERS) {
-            while ((ifmt = av_iformat_next(ifmt))) {
-                is_dev = is_device(ifmt->priv_class);
-                if (!is_dev && device_only)
-                    continue;
-                if ((!name || strcmp(ifmt->name, name) < 0) &&
-                    strcmp(ifmt->name, last_name) > 0) {
-                    name      = ifmt->name;
-                    long_name = ifmt->long_name;
-                    encode    = 0;
-                }
-                if (name && strcmp(ifmt->name, name) == 0)
-                    decode = 1;
+        while ((ifmt = av_iformat_next(ifmt))) {
+            is_dev = is_device(ifmt->priv_class);
+            if (!is_dev && device_only)
+                continue;
+            if ((!name || strcmp(ifmt->name, name) < 0) &&
+                strcmp(ifmt->name, last_name) > 0) {
+                name      = ifmt->name;
+                long_name = ifmt->long_name;
+                encode    = 0;
             }
+            if (name && strcmp(ifmt->name, name) == 0)
+                decode = 1;
         }
         if (!name)
             break;
@@ -1317,22 +1315,12 @@ static int show_formats_devices(void *optctx, const char *opt, const char *arg, 
 
 int show_formats(void *optctx, const char *opt, const char *arg)
 {
-    return show_formats_devices(optctx, opt, arg, 0, SHOW_DEFAULT);
-}
-
-int show_muxers(void *optctx, const char *opt, const char *arg)
-{
-    return show_formats_devices(optctx, opt, arg, 0, SHOW_MUXERS);
-}
-
-int show_demuxers(void *optctx, const char *opt, const char *arg)
-{
-    return show_formats_devices(optctx, opt, arg, 0, SHOW_DEMUXERS);
+    return show_formats_devices(optctx, opt, arg, 0);
 }
 
 int show_devices(void *optctx, const char *opt, const char *arg)
 {
-    return show_formats_devices(optctx, opt, arg, 1, SHOW_DEFAULT);
+    return show_formats_devices(optctx, opt, arg, 1);
 }
 
 #define PRINT_CODEC_SUPPORTED(codec, field, type, list_name, term, get_name) \
@@ -1941,6 +1929,7 @@ int read_yesno(void)
     return yesno;
 }
 
+/*
 FILE *get_preset_file(char *filename, size_t filename_size,
                       const char *preset_name, int is_path,
                       const char *codec_name)
@@ -1990,6 +1979,7 @@ FILE *get_preset_file(char *filename, size_t filename_size,
 
     return f;
 }
+*/
 
 int check_stream_specifier(AVFormatContext *s, AVStream *st, const char *spec)
 {
@@ -2097,10 +2087,18 @@ void *grow_array(void *array, int elem_size, int *size, int new_size)
 
 double get_rotation(AVStream *st)
 {
+    AVDictionaryEntry *rotate_tag = av_dict_get(st->metadata, "rotate", NULL, 0);
     uint8_t* displaymatrix = av_stream_get_side_data(st,
                                                      AV_PKT_DATA_DISPLAYMATRIX, NULL);
     double theta = 0;
-    if (displaymatrix)
+
+    if (rotate_tag && *rotate_tag->value && strcmp(rotate_tag->value, "0")) {
+        char *tail;
+        theta = av_strtod(rotate_tag->value, &tail);
+        if (*tail)
+            theta = 0;
+    }
+    if (displaymatrix && !theta)
         theta = -av_display_rotation_get((int32_t*) displaymatrix);
 
     theta -= 360*floor(theta/360 + 0.9/360);

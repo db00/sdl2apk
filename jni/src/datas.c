@@ -131,8 +131,7 @@ char * get_remembered_history(int remembered)
 
 Array * get_history_list(int numWords,char * word,char * compare)
 {
-	if(word==NULL||strlen(word)==0)
-		word="";
+	//if(word==NULL||strlen(word)==0) word="";
 	char sql[300];
 	memset(sql,0,300);
 	char *s;

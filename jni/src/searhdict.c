@@ -91,6 +91,7 @@ char * showExplain(char *explain)
 		explain = regex_replace_all(tmp,"([^a-zA-Z,;\r\n])( [\\*0-9]{1,2} )","$1\n$2");
 		//explain = tmp;
 		TextField_setText(textfield,explain);
+		explainContainer->visible = SDL_TRUE;
 	}
 	if(curlistSprite)
 	{
@@ -121,7 +122,8 @@ static void show_copied(char * word,int r)
 		int success = SDL_ShowSimpleMessageBox(
 				SDL_MESSAGEBOX_ERROR,
 				word,
-				"copied",
+				//"copied",
+				"已复制",
 				NULL);
 		if (success == -1) {
 			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Error Presenting MessageBox: %s\n", SDL_GetError());
@@ -222,28 +224,33 @@ int searchWord(char* _word)
 }
 
 
-static int button_messagebox(char * word)
+static Sprite * removeWordBtn(Word * word);
+static int button_messagebox(Word * _word)
 {
+	char * word = _word->word;
 	if (word == NULL || strlen(word)==0) {
 		return 1;
 	}
 	const SDL_MessageBoxButtonData buttons[] = {
 		{
-			SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
+			(STATS==NEW)?SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT:SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
 			0,
-			"remembered"
+			//"remembered"
+			"加入熟词"
 		},
 		{
-			SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,
+			(STATS==REMEMBERED)?SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT:SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
 			1,
-			"not remebered"
+			//"not remebered"
+			"加入生词"
 		},
 	};
 
 	SDL_MessageBoxData data = {
 		SDL_MESSAGEBOX_INFORMATION,
 		NULL, /* no parent window */
-		"change rememeber status",
+		//"change rememeber status",
+		"改变单词状态",
 		word,//data.message = word;
 		2,
 		buttons,
@@ -262,8 +269,14 @@ static int button_messagebox(char * word)
 
 	if(button==0){
 		add_remembered_word(word,1);
-	}else{
+		if(STATS==NEW){
+			removeWordBtn(_word);
+		}
+	}else if(button==1){
 		add_remembered_word(word,0);
+		if(STATS==REMEMBERED){
+			removeWordBtn(_word);
+		}
 	}
 
 	return button;
@@ -303,7 +316,7 @@ void selectedEvent(SpriteEvent*e)
 			}
 			if(sprite->parent->obj)
 				return;
-			if(abs(stageMouseY - event->button.y)>2)
+			if(abs(stageMouseY - event->button.y)>20)
 				return;
 			break;
 	}
@@ -318,7 +331,7 @@ void selectedEvent(SpriteEvent*e)
 		getMean(word);
 	}else{
 		//printf("time_diff:%d\n",time_diff);fflush(stdout);
-		button_messagebox(word->word);
+		button_messagebox(word);
 	}
 }
 
@@ -344,6 +357,47 @@ Sprite * makeWordBtn(Word * word)
 	   btn->y = fontSize/4;
 	   */
 	return sprite;
+}
+
+static Sprite * removeWordBtn(Word * word)
+{
+	printf("\r\n remembered:%s\r\n",word->word);fflush(stdout);
+	if(curlistSprite->children && curlistSprite->children->length>0)
+	{
+		int i = 0;
+		while(i<curlistSprite->children->length)
+		{
+			Sprite * lastSprite = Sprite_getChildByIndex(curlistSprite,i);
+			if(lastSprite->obj==word)
+			{
+				int n = Array_getIndexByStringValue(history_str_arr,word->word);
+				history_str_arr = Array_removeByIndex(history_str_arr,n);
+
+				int j=curlistSprite->children->length-1;
+				Sprite * cur = NULL;
+				while(j>i)
+				{
+					if(cur==NULL)
+						cur = Sprite_getChildByIndex(curlistSprite,j);
+					Sprite * pre = Sprite_getChildByIndex(curlistSprite,j-1);
+					//SDL_Log("(%d,%d)(%d,%d)\r\n",cur->x,cur->y,pre->x,pre->y);
+					cur->y = pre->y;
+					cur = pre;
+					--j;
+				}
+
+				lastSprite = Sprite_removeChild(curlistSprite,lastSprite);
+				Redraw(NULL);
+
+				return lastSprite;
+
+				break;
+			}
+			++i;
+		}
+	}
+	Redraw(NULL);
+	return NULL;
 }
 
 Sprite * appendWordBtn(Word * word,int end)
@@ -763,6 +817,7 @@ static void showHistory()
 		curlistSprite->y = input->sprite->h;
 	}
 	curlistSprite->visible = 1;
+	explainContainer->visible = SDL_FALSE;
 	changeHistoryList();
 	Redraw(NULL);
 }
@@ -839,7 +894,6 @@ void show_history_list(SpriteEvent*e)
 
 	showHistory();
 
-
 	UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//Stage_redraw
 }
 
@@ -876,6 +930,7 @@ void mouseMoves(SpriteEvent*e)
 				changeHistoryList();
 			}
 		}
+		SDL_StopTextInput();
 		Redraw(NULL);
 	}
 }
@@ -905,6 +960,7 @@ void textChangFunc(Input * input){
 	{
 		SDL_Log("text input changed!");
 		curlistSprite->visible = 1;
+		explainContainer->visible = SDL_FALSE;
 		makeWordlist(input->value);
 		Redraw(NULL);
 	}
@@ -1036,6 +1092,7 @@ void *uiThread(void *ptr){
 		Sprite_addChildAt(explainContainer,textfield->sprite,0);
 		textfield->y = enBtn->h;
 		textfield->h = stage->stage_h - explainContainer->y - textfield->y;
+		explainContainer->visible = SDL_FALSE;
 
 
 		if(curlistSprite==NULL){
@@ -1101,6 +1158,9 @@ void stageMouseEvent(SpriteEvent* e){
 		return;
 	Sprite*target = e->target;
 	SDL_Event* event = e->e;
+	int w = 90;
+	if(sideBtns && sideBtns->Bounds)
+		w = sideBtns->Bounds->w;
 	switch(event->type)
 	{
 		case SDL_MOUSEBUTTONDOWN:
@@ -1112,52 +1172,147 @@ void stageMouseEvent(SpriteEvent* e){
 			Sprite_removeEventListener(stage->sprite,SDL_MOUSEMOTION,stageMouseEvent); 
 			break;
 		case SDL_MOUSEMOTION:
+			//printf("\r\n%d",sideBtns->Bounds->w); fflush(stdout);
 			if(startx<stage->stage_w/10){
 				if(event->button.x>stage->stage_w*2/10)
 				{
 					sideBtns->visible = SDL_FALSE;
-					//printf("\r\nfrom left"); fflush(stdout);
+					printf("\r\nfrom left"); fflush(stdout);
 					Redraw(NULL);
 					Sprite_removeEventListener(stage->sprite,SDL_MOUSEMOTION,stageMouseEvent); 
 				}
-			}else if(startx>stage->stage_w*9/10){
-				if(event->button.x<stage->stage_w*8/10)
+			}else if(startx>stage->stage_w-w/2){//show sideBtns
+				if(event->button.x<stage->stage_w-w)
 				{
 					sideBtns->visible = SDL_TRUE;
-					//printf("\r\nfrom right"); fflush(stdout);
+					printf("\r\nfrom right"); fflush(stdout);
 					Redraw(NULL);
 					Sprite_removeEventListener(stage->sprite,SDL_MOUSEMOTION,stageMouseEvent); 
 				}
 				/*
-			}else if(starty<stage->stage_h/10){
-				if(event->button.y>stage->stage_h*2/10)
-				{
-					printf("\r\nfrom top\r\n"); fflush(stdout);
-					sideBtns->visible = SDL_FALSE;
-					Redraw(NULL);
-					Sprite_removeEventListener(stage->sprite,SDL_MOUSEMOTION,stageMouseEvent); 
+				   }else if(starty<stage->stage_h/10){
+				   if(event->button.y>stage->stage_h*2/10)
+				   {
+				//printf("\r\nfrom top\r\n"); fflush(stdout);
+				//sideBtns->visible = SDL_FALSE;
+				//Redraw(NULL);
+				Sprite_removeEventListener(stage->sprite,SDL_MOUSEMOTION,stageMouseEvent); 
 				}
-			}else if(starty>stage->stage_h*9/10){
+				}else if(starty>stage->stage_h*9/10){
 				if(event->button.y<stage->stage_h*8/10)
 				{
-					sideBtns->visible = SDL_TRUE;
-					Redraw(NULL);
-					printf("\r\nfrom bottom\r\n"); fflush(stdout);
-					Sprite_removeEventListener(stage->sprite,SDL_MOUSEMOTION,stageMouseEvent); 
+				//sideBtns->visible = SDL_TRUE;
+				//Redraw(NULL);
+				//printf("\r\nfrom bottom\r\n"); fflush(stdout);
+				Sprite_removeEventListener(stage->sprite,SDL_MOUSEMOTION,stageMouseEvent); 
 				}
 				*/
-			}else if(stage->stage_w*5/10 < startx && startx<stage->stage_w*8.5/10){
-				if(event->button.x>stage->stage_w*9/10)
-				{
-					sideBtns->visible = SDL_FALSE;
-					//printf("\r\n to right"); fflush(stdout);
-					Redraw(NULL);
-					Sprite_removeEventListener(stage->sprite,SDL_MOUSEMOTION,stageMouseEvent); 
-				}
-			}
-			break;
+	}else if(stage->stage_w*5/10 < startx && startx<stage->stage_w-w){
+		if(event->button.x>stage->stage_w-w/2)
+		{
+			sideBtns->visible = SDL_FALSE;
+			printf("\r\n to right"); fflush(stdout);
+			Redraw(NULL);
+			Sprite_removeEventListener(stage->sprite,SDL_MOUSEMOTION,stageMouseEvent); 
+		}
+	}
+	break;
 	}
 
+}
+static void * update(void *ptr)
+{
+	char * s = loadUrl("https://raw.githubusercontent.com/db00/sdl2apk/master/AndroidManifest.xml",NULL);
+	if(s)
+	{
+		//android:versionName="
+		char * versionName = getStrBtw(s,"android:versionName=\"","\"",0);
+
+		if(versionName)
+		{
+			char * curVersion = ".0";
+			printf("\r\nversionName========= %s\r\n",versionName);
+
+			Array* curVersionArr = string_split(curVersion,".");
+			Array* versionArr = string_split(versionName,".");
+			int i = 0;
+			int hasNewVersion = 0;
+			while(i<versionArr->length)
+			{
+				if(curVersionArr->length<=i)
+				{
+					hasNewVersion = 1;
+					break;
+				}
+				if(atoi(Array_getByIndex(versionArr,i))>atoi(Array_getByIndex(curVersionArr,i)))
+				{
+					hasNewVersion = 1;
+					break;
+				}
+				++i;
+			}
+			if(!hasNewVersion)
+			{
+				return;
+			}else{
+				const SDL_MessageBoxButtonData buttons[] = {
+					{
+						SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,
+						0,
+						//"remembered"
+						"下载"
+					},
+					{
+						SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
+						1,
+						//"not remebered"
+						"取消"
+					},
+				};
+
+				SDL_MessageBoxData data = {
+					SDL_MESSAGEBOX_INFORMATION,
+					NULL, /* no parent window */
+					//"change rememeber status",
+					"发现新版本",
+					"发现新版本内容",//data.message = word;
+					2,
+					buttons,
+					NULL /* Default color scheme */
+				};
+
+				int button = -1;
+				int success = 0;
+
+				success = SDL_ShowMessageBox(&data, &button);
+				if (success == -1) {
+					SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Error Presenting MessageBox: %s\n", SDL_GetError());
+					return NULL;
+				}
+				SDL_Log("Pressed button: %d, %s\n", button, button == 0 ? "熟" : "生");
+
+				if(button==0){//下载
+#if defined(__ANDROID__)
+					system("am start --user 0 -a android.intent.action.VIEW -d https://www.pgyer.com/jEjl");
+#elif defined(linux)
+					system("xdg-open https://www.pgyer.com/jEjl");
+#elif defined(__MACOS__)
+					system("open https://www.pgyer.com/jEjl");
+#elif defined(__WIN32__) || defined(WIN64)
+					system("cmd /c start https://www.pgyer.com/jEjl");
+#else
+					system("open https://www.pgyer.com/jEjl");
+#endif
+
+				}else if(button==1){//取消
+				}
+			}
+
+		}
+		fflush(stdout);
+
+	}
+	return NULL;
 }
 
 void showSearchDict(int b)
@@ -1172,6 +1327,16 @@ void showSearchDict(int b)
 	}
 	Sprite_addEventListener(stage->sprite,SDL_MOUSEBUTTONDOWN,stageMouseEvent); 
 	//Sprite_roundRect2D(0,0,100,100,30,30);
+
+
+	pthread_t thread1;
+	if(pthread_create(&thread1, NULL, update, NULL)!=0)//创建子线程  
+	{  
+		perror("pthread_create");  
+	}else{
+		pthread_detach(thread1);// do not know why uncommit this line , will occur an ERROR !
+		//pthread_join(thread1,NULL);
+	}
 }
 
 
@@ -1181,6 +1346,8 @@ int main()
 	Stage_init(1);
 	if(stage==NULL)return 0;
 	showSearchDict(1);
+
+
 	Stage_loopEvents();
 	return 0;
 }

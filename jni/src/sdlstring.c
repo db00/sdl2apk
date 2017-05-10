@@ -72,8 +72,9 @@ char * getClipboardText(int showAlert)
 	}else if(showAlert){
 		int success = SDL_ShowSimpleMessageBox(
 				SDL_MESSAGEBOX_ERROR,
-				"no text in clipboard",
-				"no text in clipboard",
+				"Error",
+				//"no text in clipboard",
+				"剪切版无文本",
 				NULL);
 		if (success == -1) {
 			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Error Presenting MessageBox: %s\n", SDL_GetError());

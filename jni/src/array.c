@@ -183,6 +183,27 @@ int Array_getIndexByValue(Array *array,void * value)
 	}
 	return -1;
 }
+int Array_getIndexByStringValue(Array *array,void * value)
+{
+	if(array && value){
+		int i = 0;
+		while(i<array->length)
+		{
+			if(strcmp(Array_getByIndex(array,i),value)==0)
+				return i;
+			++i;
+		}
+	}
+	return -1;
+}
+Array * Array_removeByValue(Array *array,void * value)
+{
+	int i = Array_getIndexByValue(array,value);
+	if(i>=0){
+		return Array_removeByIndex(array,i);
+	}
+	return array;
+}
 Array * Array_getByIndexs(Array * array,int start,int end)
 {
 	if(start>=array->length)

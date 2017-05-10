@@ -1,5 +1,7 @@
 /*
  * Copyright (c) 2003 Fabrice Bellard
+ gcc cmdutils.c ffplay.c -lSDL2 -I"/usr/include/ffmpeg/" -L"/usr/lib" -I"../SDL2/include/" -l"avformat" -l"avcodec" -l"avdevice" -l"avutil" -l"avfilter" -l"swresample" -l"swscale" -lm && ./a.out  http://live.cgtn.com/500d/prog_index.m3u8 
+ffplay http://125.88.92.166:30001/PLTV/88888956/224/3221227704/1.m3u8
  *
  * This file is part of FFmpeg.
  *
@@ -3512,7 +3514,7 @@ static int opt_codec(void *optctx, const char *opt, const char *arg)
 static int dummy;
 
 static const OptionDef options[] = {
-#include "cmdutils_common_opts.h"
+    //CMDUTILS_COMMON_OPTIONS
     { "x", HAS_ARG, { .func_arg = opt_width }, "force displayed width", "width" },
     { "y", HAS_ARG, { .func_arg = opt_height }, "force displayed height", "height" },
     { "s", HAS_ARG | OPT_VIDEO, { .func_arg = opt_frame_size }, "set frame size (WxH or abbreviation)", "size" },

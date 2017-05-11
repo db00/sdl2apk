@@ -121,7 +121,7 @@ Array * Font_getlist()
 			return NULL;
 		}
 	}
-	//char * file = decodePath(DEFAULT_TTF_FILE); Font_push(file,0);
+	char * file = decodePath(DEFAULT_TTF_FILE); Font_push(file,0);
 
 	const char *ttfDir = "c:/WINDOWS/Fonts";
 #if defined(__ANDROID__)

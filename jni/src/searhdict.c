@@ -72,16 +72,16 @@ void open_dict()
 	{
 		ec_dict = Dict_new();
 		ec_dict->name = "oxford-gb";
+		if(!fileExists("~/sound/oxford-gb/"))
+			loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/oxford.zip","~/sound/");
 	}
-	if(!fileExists("~/sound/oxford-gb/"))
-		loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/oxford.zip","~/sound/");
 	if(ce_dict==NULL)
 	{
 		ce_dict = Dict_new();
 		ce_dict->name = "ce";
+		if(!fileExists("~/sound/ce/"))
+			loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/ce.zip","~/sound/");
 	}
-	if(!fileExists("~/sound/ce/"))
-		loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/ce.zip","~/sound/");
 }
 
 char * showExplain(char *explain)

@@ -15,47 +15,12 @@
 #ifndef _MY_TTF_H
 #define _MY_TTF_H
 
-#include <stdio.h>
-#include <math.h>
-#include <stdlib.h>
-#include "sprite.h"
-#include "files.h"
-#include "utf8.h"
-#include "mystring.h"
-#include "SDL_platform.h"
-#include "SDL_ttf.h"
+#include "myfont.h"
+
 
 #ifndef max
 #define max(x,y) ((x)<(y))?(y):(x)
 #endif
-
-typedef struct TextFormat
-{
-	TTF_Font * font;
-	char * fontpath;
-	char * fontfamilyname;
-	char * fontfacestyle;
-
-	/*
-	   int align;//表示段落的对齐方式。
-	   int blockIndent ;// 表示块缩进，以像素为单位。
-	   int bold ;// 指定文本是否为粗体字。
-	   int bullet;// 表示文本为带项目符号的列表的一部分。
-	   SDL_Color *color;// 表示文本的颜色。
-	   int indent; // 表示从左边距到段落中第一个字符的缩进。
-	   int italic;// 表示使用此文本格式的文本是否为斜体。
-	   int kerning;// 一个布尔值，表示是启用 (true) 还是禁用 (false) 字距调整。
-	   int leading;// 一个整数，表示行与行之间的垂直间距（称为前导）量。
-	   int leftMargin;// 段落的左边距，以像素为单位。
-	   int letterSpacing;// 一个数字，表示在所有字符之间均匀分配的空间量。
-	   int rightMargin;// 段落的右边距，以像素为单位。
-	   int size;// 使用此文本格式的文本的大小（以像素为单位）。
-	   int tabStops;// 将自定义 Tab 停靠位指定为一个非负整数的数组。
-	   int target;// 表示显示超链接的目标窗口。
-	   int underline;// 表示使用此文本格式的文本是带下划线 (true) 还是不带下划线 (false)。
-	   char*url;//表示使用此文本格式的文本的目标 URL
-	   */
-}TextFormat;
 
 
 //单个字符
@@ -77,7 +42,8 @@ typedef struct TextLine{
 
 
 typedef struct TextField{
-	TextFormat * format;//字体
+	//TextFormat * format;//字体
+	TTF_Font * font;
 	TextLine*lines;//
 	TextLine*lastLine;//最后一行
 	int numLines ;// [只读] 定义多行文本字段中的文本行数。
@@ -154,33 +120,18 @@ typedef struct TextField{
 
 
 
-TTF_Font * getFontByName(const char * fontName,int fontSize);
+
 TextField * TextField_appendText(TextField*textfield,char *s);// 将字符串追加到文本字段的文本的末尾。
 TextField * TextField_setText(TextField*textfield,char *s);
 
 TextField * TextField_new();
 TextLine * TextLine_new();
-TextWord * Textword_new(TextFormat*font,Uint8*);
+TextWord * Textword_new(TTF_Font*font,Uint8*);
 void TextField_clear();
 void TextLine_clear();
 void TextWord_clear();
-void mouseWheels(SpriteEvent*e);
 void TextField_setScrollV(TextField* textfield,int i);
 int TextField_getMaxScrollV(TextField *textfield);
-TTF_Font * getFontByPath(char * path,int fontSize);
-TTF_Font * getDefaultFont(int fontSize);
 
-#ifdef __ANDROID__
-//#define	DEFAULT_TTF_FILE "/system/fonts/DroidSansFallback.ttf"
-#define	DEFAULT_TTF_FILE "~/sound/DroidSansFallback.ttf"
-#elif __MACOSX__
-#define	DEFAULT_TTF_FILE "/System/Library/Fonts/STHeiti Light.ttc"
-//#elif __IPHONEOS__
-//#define	DEFAULT_TTF_FILE "/System/Library/Fonts/"
-//#elif defined(linux)
-//#define	DEFAULT_TTF_FILE "/usr/share/fonts/adobe-source-han-sans-cn/SourceHanSansCN-Normal.otf"
-#else
-#define	DEFAULT_TTF_FILE "~/sound/DroidSansFallback.ttf"
-#endif
 
 #endif

@@ -209,27 +209,34 @@ static int toBrowser(char * title,char * content,char * url)
 	return 0;
 }
 
-
-void * update(void *ptr)
+int loadAndunzip(char * url,char * toDir)
 {
-	char * oxford_info = loadUrl("https://raw.githubusercontent.com/db00/sdl2apk/master/oxford-gb.ifo",NULL);
+	int len = 0;
+	char * dict_zip = loadUrl(url,(size_t*)&len);
+	if(dict_zip)
+	{
+		ByteArray * bytearray = ByteArray_new(len);
+		bytearray->data = dict_zip;
+
+		char * dir = decodePath(toDir);
+		ZipFile_free(ZipFile_unzipAll(bytearray,dir));
+		free(dir);
+		ByteArray_free(bytearray);
+		//free(dict_zip);//bytearray 已经free掉了 dict_zip
+		return 0;
+	}
+	return 1;
+}
+
+void compareWebAndLocal(char * url , char * local_path)
+{
+	char * oxford_info = loadUrl(url,NULL);
 	if(oxford_info)
 	{
 		char * newVersion = getStrBtw(oxford_info,"version=","\x0a",0);
-		//while(newVersion[strlen(newVersion)-1]=='\x0d'||newVersion[strlen(newVersion)-1]=='\x0a') newVersion[strlen(newVersion)-1]=='\0';
 		SDL_Log("oxford version: %s\r\n",newVersion);
 		char * path = NULL;
-#if defined(__ANDROID__)
-		path = "/sdcard/sound/oxford-gb/oxford-gb.ifo";
-#elif defined(linux)
-		path = decodePath("~/sound/oxford-gb/oxford-gb.ifo");
-#elif defined(__MACOS__)
-		path = decodePath("~/sound/oxford-gb/oxford-gb.ifo");
-#elif defined(__WIN32__) || defined(WIN64)
-		path = decodePath("~/sound/oxford-gb/oxford-gb.ifo");
-#else
-		path = decodePath("~/sound/oxford-gb/oxford-gb.ifo");
-#endif
+		path = decodePath(local_path);
 		int hasNewVersion = 0;
 		char * f = readfile(path,NULL);
 		char * curVersion = NULL;
@@ -243,35 +250,11 @@ void * update(void *ptr)
 			}
 			hasNewVersion = compareVersion(curVersion,newVersion);
 			free(f);
-		}else{
-			hasNewVersion = 1;
 		}
 
 		if(hasNewVersion){
 			SDL_Log("has new oxford version: %s\r\n",newVersion);
-			//https://pan.baidu.com/s/1jH76fv4
-			//toBrowser("发现新字典版本","请下载新字典sound.zip并解压","https://git.oschina.net/db0/kodi/raw/master/sound.zip");//https://pan.baidu.com/s/1jH76fv4");
-
-			int len = 0;
-			char * dict_zip = loadUrl("https://git.oschina.net/db0/kodi/raw/master/sound.zip",(size_t*)&len);
-			if(dict_zip)
-			{
-				//int r= writefile("/sdcard/dict.zip",dict_zip,len);
-
-				ByteArray * bytearray = ByteArray_new(len);
-				bytearray->data = dict_zip;
-
-				/*
-				   char * out = malloc(fileLen*10);
-				   memset(out,0,fileLen*10);
-				   int outlen=0;
-				   ZipFile_free(ZipFile_parser(bytearray,"",out,&outlen));
-				   */
-				ZipFile_free(ZipFile_unzipAll(bytearray,"/sdcard/"));
-
-
-				free(dict_zip);
-			}
+			loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/oxford.zip","~/sound/");
 		}else{
 			SDL_Log("no newer than oxford version: %s\r\n",curVersion);
 		}
@@ -279,10 +262,16 @@ void * update(void *ptr)
 			free(curVersion);
 		free(oxford_info);
 	}
+}
+
+void * update(void *ptr)
+{
+	compareWebAndLocal("https://raw.githubusercontent.com/db00/sdl2apk/master/oxford-gb.ifo","~/sound/oxford-gb/oxford-gb.ifo");
+	compareWebAndLocal("https://raw.githubusercontent.com/db00/sdl2apk/master/ce.ifo","~/sound/ce/langdao-ce-gb.ifo");
+
 	char * s = loadUrl("https://raw.githubusercontent.com/db00/sdl2apk/master/AndroidManifest.xml",NULL);
 	if(s)
 	{
-		//android:versionName="
 		char * versionName = getStrBtw(s,"android:versionName=\"","\"",0);
 		SDL_Log("\r\n app versionName:%s\r\n",versionName);
 		if(versionName)

@@ -262,7 +262,6 @@ int draw_line(SDL_Renderer*renderer,TxtLine * txtline,TextField*txt)
 	//text = TTF_RenderUNICODE_Shaded(txtline->font, txtline->text, *(txtline->textColor),*(txtline->backgroundColor));
 	//text = TTF_RenderText_Shaded(txtline->font, txtline->text, *(txtline->textColor),*(txtline->backgroundColor));
 	//text = TTF_RenderGlyph_Shaded(txtline->font, *txtline->text, *(txtline->textColor),*(txtline->backgroundColor));
-	//TTF_CloseFont(txtline->font);
 	//printf("draw_line:%s\n",txtline->text);
 	if(text){
 		SDL_Rect rect;

@@ -269,7 +269,7 @@ int Dict_getWordIndex(Dict *dict,char * target_word)
 	return -1;
 }
 
-Word*Dict_contains(Dict *dict,char *word)
+Word * Dict_contains(Dict *dict,char *word)
 {
 	int id = Dict_getWordIndex(dict,word);
 	if(id>=0){
@@ -280,7 +280,7 @@ Word*Dict_contains(Dict *dict,char *word)
 }
 
 
-Word*Dict_getWord(Dict *dict,char * target_word)
+Word * Dict_getWord(Dict *dict,char * target_word)
 {
 	int id = abs(Dict_getWordIndex(dict,target_word));
 	if(id>dict->wordcount)

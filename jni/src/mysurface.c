@@ -161,10 +161,12 @@ Sprite * Sprite_newText(char *s,int fontSize,Uint32 fontColor,Uint32 bgColor)
 		}else{
 			sprite->surface = TTF_RenderUTF8_Solid(font,s,*color);
 		}
-		sprite->w = sprite->surface->w;
-		sprite->h = sprite->surface->h;
+		if(sprite->surface)
+		{
+			sprite->w = sprite->surface->w;
+			sprite->h = sprite->surface->h;
+		}
 		//SDL_Log("text size:%dx%d",sprite->surface->w,sprite->surface->h);
-		TTF_CloseFont(font);
 	}else{
 		SDL_Log("font ERROR!");
 	}
@@ -173,6 +175,7 @@ Sprite * Sprite_newText(char *s,int fontSize,Uint32 fontColor,Uint32 bgColor)
 	free(color2);
 	return sprite;
 }
+
 Sprite * Sprite_newImg(char *url)
 {
 	Sprite * sprite = Sprite_new();

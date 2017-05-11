@@ -264,7 +264,8 @@ ZipHeader * ZipHeader_read(ByteArray * bytearray,char * out)
 	//if("\x50\x4b\x3\x4",4))
 	if(header->sig!=0x04034b50)
 	{
-		sprintf(out+strlen(out),"not a zip file");
+		if(out)
+			sprintf(out+strlen(out),"not a zip file");
 		ZipHeader_free(header);
 		return NULL;
 	}
@@ -419,7 +420,6 @@ ZipFile * ZipFile_unzipAll(ByteArray * bytearray,char * path)
 	ZipFile * zipfile = malloc(sizeof(ZipFile));
 	memset(zipfile,0,sizeof(ZipFile));
 	zipfile->bytearray = bytearray;
-	char * out = malloc(0x2000000);//32m
 	char fileName[1024];
 	while(bytearray->position<bytearray->length-4)
 	{
@@ -428,7 +428,7 @@ ZipFile * ZipFile_unzipAll(ByteArray * bytearray,char * path)
 		{
 			case 0x04034b50:
 				bytearray->position-= 4;
-				ZipHeader * header = ZipHeader_read(bytearray,out);
+				ZipHeader * header = ZipHeader_read(bytearray,NULL);
 				if(header==0)
 					break;
 				if(header->data && header->fileName)
@@ -438,12 +438,14 @@ ZipFile * ZipFile_unzipAll(ByteArray * bytearray,char * path)
 					strcat(fileName,header->fileName);
 
 					uLong len = header->unCompressedSize;
-					printf("%s:%s:%d\r\n",fileName,header->fileName,len);
+					printf("%s:%d\r\n",header->fileName,(int)len);
 					fflush(stdout);
 					if(len>0)
 					{
+						char * out = malloc(len+1);
 						uncompress((Bytef*)out,&len,(const Bytef*)header->data,(uLong)header->size+2);
 						writefile(fileName,out,len);
+						free(out);
 					}
 				}
 				break;
@@ -499,6 +501,7 @@ int main(int argc,char ** argv)
 
 	//memset(out,0,fileLen*10);
 	//ZipFile_free(ZipFile_parser(bytearray,"word/document.xml",out,&outlen)); printf("\n%s",out);
+	ByteArray_free(bytearray);
 
 	return 0;
 }

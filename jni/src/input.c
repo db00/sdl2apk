@@ -131,9 +131,9 @@ Input * Input_new(int w,int h)
 	memset(input,0,sizeof(Input));
 	TextField * textfield = TextField_new();
 #ifdef __ANDROID__
-	textfield->format->font = getFontByPath("/sdcard/DroidSansFallback.ttf",h);
+	textfield->font = getFontByPath("/sdcard/DroidSansFallback.ttf",h);
 #else
-	textfield->format->font = getFontByPath("DroidSansFallback.ttf",h);
+	textfield->font = getFontByPath("DroidSansFallback.ttf",h);
 #endif
 	//textfield->textColor = uintColor(0x330000ff);
 	input->textfield = textfield;

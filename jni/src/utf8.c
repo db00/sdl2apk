@@ -28,6 +28,73 @@ int UTF8_numByte(char * utf8)
 	return 0;
 }
 
+unsigned short int utf8_to_u16(char * s)//utf8 -> Unicode
+{
+	if(s==NULL)
+		return 0;
+	unsigned int w = 0;
+	int len = UTF8_numByte(s);
+	switch(len)
+	{
+		case 1:
+			w += s[0];
+			break;
+		case 2:
+			//110X XXXX
+			w += (s[0] & 0x1f)<<6;
+			//10XX XXXX
+			w += (s[1] & 0x3f);
+			break;
+		case 3:
+			//1110 XXXX
+			w += (s[0] & 0x0f)<<12;
+			//10XX XXXX
+			w += (s[1] & 0x3f)<<6;
+			//10XX XXXX
+			w += (s[2] & 0x3f);
+			break;
+		case 4:
+			//1111 0XXX
+			w += (s[0] & 0x07)<<18;
+			//10XX XXXX
+			w += (s[1] & 0x3f)<<12;
+			//10XX XXXX
+			w += (s[2] & 0x3f)<<6;
+			//10XX XXXX
+			w += (s[3] & 0x3f);
+			break;
+		case 5:
+			//1111 10XX
+			w += (s[0] & 0x03)<<24;
+			//10XX XXXX
+			w += (s[1] & 0x3f)<<18;
+			//10XX XXXX
+			w += (s[2] & 0x3f)<<12;
+			//10XX XXXX
+			w += (s[3] & 0x3f)<<6;
+			//10XX XXXX
+			w += (s[4] & 0x3f);
+			break;
+		case 6:
+			//1111 110X
+			w += (s[0] & 0x01)<<30;
+			//10XX XXXX
+			w += (s[1] & 0x3f)<<24;
+			//10XX XXXX
+			w += (s[2] & 0x3f)<<18;
+			//10XX XXXX
+			w += (s[3] & 0x3f)<<12;
+			//10XX XXXX
+			w += (s[4] & 0x3f)<<6;
+			//10XX XXXX
+			w += (s[5] & 0x3f);
+			break;
+	}
+	//printf("from utf8 to Unicode : %s->%d\r\n",s,w);
+	return (unsigned short)w;
+}
+
+
 //num charactor of a utf8 string 
 size_t UTF8_length(char * utf8)
 {

@@ -12,6 +12,7 @@
 int UTF8_numByte(char * utf8);
 size_t UTF8_length(char * utf8);
 Array * UTF8_each(const char * utf8);
+unsigned short int utf8_to_u16(char * s);//utf8 -> Unicode
 #ifndef __ANDROID__
 #include <iconv.h>
 char * UTF8_readFrom(char* inbuf,size_t * outlen,char * coding);

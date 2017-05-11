@@ -1,6 +1,6 @@
 /**
  * @file textfield.c
- gcc -Wall -I"../SDL2/include/"  -I"../SDL2_ttf/"  array.c utf8.c files.c myregex.c sdlstring.c textfield.c matrix.c sprite.c mystring.c  -lSDL2_ttf -lm -lSDL2 -D debugtext  && ./a.out
+ gcc -Wall -I"../SDL2/include/"  -I"../SDL2_ttf/" myfont.c array.c utf8.c files.c myregex.c sdlstring.c textfield.c matrix.c sprite.c mystring.c  -lSDL2_ttf -lm -lSDL2 -D debugtext  && ./a.out
  gcc -g -Wall -I"../SDL2/include/" -I"../SDL2_image/" -I"../SDL2_ttf/" array.c tween.c ease.c textfield.c matrix.c sprite.c sdlstring.c mystring.c files.c -lSDL2_ttf -lmingw32 -lSDL2main -lSDL2 -D debugtext && a
  *  
  * @author db0@qq.com
@@ -9,175 +9,7 @@
  */
 #include "textfield.h"
 
-static Array * fontFileList = NULL;
-Array * fontList = NULL;
-
-TextFormat * Font_new()
-{
-	TextFormat * font = malloc(sizeof(TextFormat));
-	memset(font,0,sizeof(TextFormat));
-	return font;
-}
-void TextFormat_clear(TextFormat * font)
-{
-	if(font)
-	{
-		if(font->fontpath)
-			free(font->fontpath);
-		if(font->font)
-			TTF_CloseFont(font->font);
-		free(font);
-	}
-}
-void Font_clearList()
-{
-	if(fontList)
-	{
-		int i = 0;
-		while(i<fontList->length)
-		{
-			TextFormat * font = Array_getByIndex(fontList,i);
-			TextFormat_clear(font);
-			++i;
-		}
-		Array_clear(fontList);
-		fontList = NULL;
-	}
-}
-
-TextFormat * Font_push(char *path,int fontSize)
-{
-	TTF_Font * ttf = TTF_OpenFont(path, fontSize);
-	if(ttf){
-		char *fontfamilyname = TTF_FontFaceFamilyName(ttf);
-		char* fontfacestyle = TTF_FontFaceStyleName(ttf);
-		TextFormat * font = Font_new();
-		font->fontpath = path;
-		font->fontfamilyname = fontfamilyname;
-		font->fontfacestyle = fontfacestyle;
-		fontList = Array_push(fontList,font);
-		if(ttf){
-			TTF_CloseFont(ttf);
-		}
-		return font;
-	}
-	return NULL;
-}
-
-Array * Font_getlist()
-{
-	if(fontList)
-		return fontList;
-	if(!TTF_WasInit())
-	{
-		if ( TTF_Init() < 0 ) {
-			fprintf(stderr, "Couldn't initialize TTF: %s\n",SDL_GetError());
-			SDL_Quit();
-			return NULL;
-		}
-	}
-
-	const char *ttfDir = "c:/WINDOWS/Fonts";
-#if defined(__ANDROID__)
-	//ttfDir ="/system/fonts";	
-	ttfDir ="/system/fonts";	
-#elif defined(linux)
-	ttfDir ="/usr/share/fonts";	
-#elif defined(__MACOSX__)
-	ttfDir ="/Library/Fonts";	
-#elif defined(__IPHONEOS__)
-	return NULL;
-	ttfDir ="/System/Library/Fonts/Cache";	
-#endif
-	int fontSize = 12;
-	if(fontFileList == NULL){
-		Array * suffixs = Array_new();
-		suffixs = Array_push(suffixs,".ttf");
-		//suffixs = Array_push(suffixs,".otf");
-		fontFileList = listDir2(ttfDir,suffixs);
-		if(fontFileList){
-			int i = 0;
-			while(i<fontFileList->length)
-			{
-				char * path = Array_getByIndex(fontFileList,i);
-				//printf("===>%s,",path);
-				if(path){
-					Font_push(path,fontSize);
-				}
-				++i;
-			}
-		}
-		Array_clear(suffixs);
-	}
-	return fontList;
-}
-
-TTF_Font * getFontByPath(char * path,int fontSize)
-{
-	fontList = Font_getlist();
-	if(fontList){
-		int i=0;
-		while(i<fontList->length)
-		{
-			TextFormat * font = Array_getByIndex(fontList,i);
-			if(font && strcmp(font->fontpath,path)==0){
-				SDL_Log("%s in fontList\n",font->fontpath);
-				return TTF_OpenFont(font->fontpath, fontSize);
-			}
-			++i;
-		}
-	}
-	{
-		TextFormat * font = Font_push(path,fontSize);
-		if(font){
-			SDL_Log("%s push",font->fontpath);
-			return TTF_OpenFont(font->fontpath, fontSize);
-		}
-	}
-	//return NULL;
-	return getDefaultFont(fontSize);
-}
-
-TTF_Font * getDefaultFont(int fontSize)
-{
-	if(!TTF_WasInit())
-	{
-		if ( TTF_Init() < 0 ) {
-			fprintf(stderr, "Couldn't initialize TTF: %s\n",SDL_GetError());
-			SDL_Quit();
-			return NULL;
-		}
-	}
-
-	char * file = decodePath(DEFAULT_TTF_FILE);
-	//SDL_Log("SDL TTF: %s\n",file);
-
-	TTF_Font * font = TTF_OpenFont(file, fontSize);
-	free(file);
-	return font;
-}
-
-
-TTF_Font * getFontByName(const char * fontName,int fontSize)
-{
-	fontList = Font_getlist();
-	if(fontList)
-	{
-		int i = 0;
-		while(i<fontList->length)
-		{
-			TextFormat * font = Array_getByIndex(fontList,i);
-			char *fontfamilyname = font->fontfamilyname;
-			if(fontfamilyname && strncasecmp(fontfamilyname,fontName,strlen(fontName))==0)
-			{
-				SDL_Log("%s",font->fontpath);
-				return TTF_OpenFont(font->fontpath, fontSize);
-			}
-			++i;
-		}
-	}
-	return getDefaultFont(fontSize);
-}
+static void mouseWheels(SpriteEvent*e);
 
 void TextWord_clear(TextWord*textword)
 {
@@ -215,10 +47,9 @@ void TextField_clear(TextField*textfield)
 
 	SDL_DestroyMutex(textfield->mutex);
 
-	if(textfield->format)
+	if(textfield->font)
 	{
-		TextFormat_clear(textfield->format);
-		textfield->format = NULL;
+		textfield->font= NULL;
 	}
 
 	TextLine* line = textfield->lines;
@@ -263,7 +94,7 @@ int TextField_getMoreDrawHeight(TextField*textfield)
 	return stage->stage_h/2;
 }
 
-TextWord * Textword_new(TextFormat*format, Uint8 * curChar)
+TextWord * Textword_new(TTF_Font * font, Uint8 * curChar)
 {
 	TextWord* textword = (TextWord*)malloc(sizeof(TextWord));
 	memset(textword,0,sizeof(TextWord));
@@ -282,7 +113,7 @@ TextWord * Textword_new(TextFormat*format, Uint8 * curChar)
 	memset(word,0,textword->numbyte + 1);
 	memcpy(word,curChar,textword->numbyte);
 
-	TTF_SizeUTF8(format->font,word,&(textword->w),&(textword->h));
+	TTF_SizeUTF8(font,word,&(textword->w),&(textword->h));
 	return textword;
 }
 
@@ -350,12 +181,12 @@ void setLineTexture(TextField*textfield,TextLine*line)
 		SDL_Surface * surface = NULL;
 		if(textfield->backgroundColor)
 		{
-			surface= TTF_RenderUTF8_Shaded(textfield->format->font, line->text, *(textfield->textColor),*(textfield->backgroundColor));
+			surface= TTF_RenderUTF8_Shaded(textfield->font, line->text, *(textfield->textColor),*(textfield->backgroundColor));
 		}
 		else
 		{
-			//surface= TTF_RenderUTF8_Blended(textfield->format->font, line->text, *(textfield->textColor));
-			surface= TTF_RenderUTF8_Solid(textfield->format->font, line->text, *(textfield->textColor));
+			//surface= TTF_RenderUTF8_Blended(textfield->font, line->text, *(textfield->textColor));
+			surface= TTF_RenderUTF8_Solid(textfield->font, line->text, *(textfield->textColor));
 		}
 
 		if(surface){
@@ -386,7 +217,7 @@ void setLineTexture(TextField*textfield,TextLine*line)
 
 int TextField_getMaxScrollV(TextField *textfield)
 {
-	if(textfield && textfield->format && textfield->format->font)
+	if(textfield && textfield->font)
 		if(textfield->textHeight > textfield->h)
 			return (textfield->h - textfield->textHeight);
 	return 0;
@@ -482,7 +313,7 @@ int drawLines(TextField*textfield)
 		Sprite_destroyTexture(sprite);
 	}
 
-	int fontheight = TTF_FontHeight(textfield->format->font);
+	int fontheight = TTF_FontHeight(textfield->font);
 
 	if((stage->renderer && sprite->surface == NULL && sprite->texture==NULL)// 2d 初始化
 			|| (stage->GLEScontext && (sprite->surface==NULL && sprite->data3d==NULL)) //3d 初始化
@@ -548,7 +379,7 @@ int drawLines(TextField*textfield)
 }
 
 
-void mouseWheels(SpriteEvent*e)
+static void mouseWheels(SpriteEvent*e)
 {
 	SDL_Event *event  = e->e;
 	/*
@@ -577,7 +408,7 @@ void mouseWheels(SpriteEvent*e)
 	}
 
 
-	int fontheight = TTF_FontHeight(textfield->format->font);
+	int fontheight = TTF_FontHeight(textfield->font);
 	if(textfield && textfield->lines){
 		if(textfield->staticHeight){
 			//SDL_Log("drag staticHeight---------------\n");fflush(stdout);
@@ -675,7 +506,7 @@ TextField *TextField_appendText(TextField*textfield,char*s)
 
 	while(dealedlen < strlen(textfield->text))
 	{
-		TextWord* textword = Textword_new(textfield->format,(Uint8*)(textfield->text+dealedlen));
+		TextWord* textword = Textword_new(textfield->font,(Uint8*)(textfield->text+dealedlen));
 
 		if(TextField_lineFull(textfield,line,textword)){//行满,另起一行
 			//SDL_Log("--------------------------------------------------TextField_lineFull\n");
@@ -747,15 +578,12 @@ TextField* TextField_new()
 	if(textfield->textColor==NULL)
 		textfield->textColor = uintColor(0x00ff0000);
 
-	if(textfield->format == NULL) {
-		textfield->format = Font_new();
-	}
-	if(textfield->format->font==NULL){
+	if(textfield->font==NULL){
 		int stageSize = max(stage->stage_w,stage->stage_h);
 		int textSize = 6 * stageSize/320;
 		if(textSize<12)
 			textSize = 12;
-		textfield->format->font = getDefaultFont(textSize);
+		textfield->font = getDefaultFont(textSize);
 	}
 
 
@@ -866,8 +694,8 @@ int main(int argc, char *argv[])
 	TextField* txt = TextField_new();//txt = TextField_setText(txt,getLinkedVersionString());
 	//txt->x = stage->stage_w/4;
 	//txt->y = stage->stage_h/4;
-	//txt->format->font = getFontByPath("DroidSansFallback.ttf",24);
-	txt->format->font = getDefaultFont(24);
+	//txt->font = getFontByPath("DroidSansFallback.ttf",24);
+	txt->font = getDefaultFont(24);
 	txt->w = stage->stage_w;
 	txt->h = stage->stage_h;
 	txt->sprite->canDrag = 1;

@@ -1,7 +1,8 @@
-#ifndef input_h
-#define input_h
+#ifndef input__h
+#define input__h
 
 #include "textfield.h"
+
 typedef struct Input
 {
     TextField * textfield;
@@ -13,4 +14,5 @@ typedef struct Input
 Input * Input_new(int w,int h);
 void Input_clear(Input * input);
 char * Input_setText(Input * input,char * s);
+
 #endif

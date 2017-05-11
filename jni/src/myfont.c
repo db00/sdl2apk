@@ -132,7 +132,7 @@ Array * Font_getlist()
 #elif defined(__MACOSX__)
 	ttfDir ="/Library/Fonts";	
 #elif defined(__IPHONEOS__)
-	return NULL;
+	return fontList;
 	ttfDir ="/System/Library/Fonts/Cache";	
 #endif
 	int fontSize = 12;

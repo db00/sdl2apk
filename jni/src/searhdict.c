@@ -75,7 +75,7 @@ void open_dict()
 		ec_dict->name = "oxford-gb";
 		if(!fileExists("~/sound/oxford-gb/"))
 		{
-			Loading_show(1,"loading oxford ......");
+			//Loading_show(1,"loading oxford ......");
 			loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/oxford.zip","~/sound/");
 		}
 	}
@@ -85,11 +85,11 @@ void open_dict()
 		ce_dict->name = "ce";
 		if(!fileExists("~/sound/ce/langdao-ce-gb.ifo"))
 		{
-			Loading_show(1,"loading ce ......");
+			//Loading_show(1,"loading ce ......");
 			loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/ce.zip","~/sound/");
 		}
 	}
-	Loading_show(0,NULL);
+	//Loading_show(0,NULL);
 }
 
 char * showExplain(char *explain)

@@ -15,6 +15,7 @@
  *
  */
 
+#include "loading.h"
 #include "update.h"
 #include "searhdict.h"
 #include "datas.h"
@@ -68,20 +69,26 @@ void Redraw(char *text) {
 
 void open_dict()
 {
+	Loading_show(1,"loading oxford ......");
 	if(ec_dict==NULL)
 	{
 		ec_dict = Dict_new();
 		ec_dict->name = "oxford-gb";
 		if(!fileExists("~/sound/oxford-gb/"))
+		{
 			loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/oxford.zip","~/sound/");
+		}
 	}
 	if(ce_dict==NULL)
 	{
 		ce_dict = Dict_new();
 		ce_dict->name = "ce";
-		if(!fileExists("~/sound/ce/"))
+		if(!fileExists("~/sound/ce/langdao-ce-gb.ifo"))
+		{
 			loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/ce.zip","~/sound/");
+		}
 	}
+	Loading_show(0,NULL);
 }
 
 char * showExplain(char *explain)
@@ -199,7 +206,6 @@ int getMean(Word*word)
 {
 	if(word==NULL)
 		return 0;
-	open_dict();
 	char * explain = NULL;
 	if(isCE(word->word)){
 		explain = Dict_getMean(ce_dict,word);
@@ -221,7 +227,8 @@ int getMean(Word*word)
 int searchWord(char* _word)
 {
 	if(_word && strlen(_word)){
-		open_dict();
+		if(ec_dict==NULL)
+			open_dict();
 		Word * word;
 		word = _getWord(_word);
 		getMean(word);
@@ -469,7 +476,9 @@ static Word * _getWordByIndex(char * curWord,int index)
 void changeWordList()
 {
 	if(ec_dict==NULL)
+	{
 		open_dict();
+	}
 	int isReg = isInputRegexp();
 	char * curWord = input->value;
 	int isC_E= isCE(curWord);
@@ -740,7 +749,8 @@ static void changeHistoryList()
 			return;
 		//printf("\r\n curWord:%s\r\n",curWord);
 
-		open_dict();
+		if(ec_dict==NULL)
+			open_dict();
 		Word * word = _getWord(curWord);
 		if(word==NULL)
 			return;
@@ -952,7 +962,6 @@ Sprite * makeWordlist(char * curWord)
 		curlistSprite->y = input->sprite->h;
 	}
 
-	open_dict();
 	changeWordList();
 	//Array_clear(wordlist);
 	return curlistSprite;
@@ -1249,6 +1258,7 @@ void showSearchDict(int b)
 	//Sprite_roundRect2D(0,0,100,100,30,30);
 
 
+	//open_dict();
 }
 
 

@@ -228,7 +228,7 @@ int loadAndunzip(char * url,char * toDir)
 	return 1;
 }
 
-void compareWebAndLocal(char * url , char * local_path)
+void compareWebAndLocal(char * url , char * local_path, char * update_url)
 {
 	char * oxford_info = loadUrl(url,NULL);
 	if(oxford_info)
@@ -254,7 +254,7 @@ void compareWebAndLocal(char * url , char * local_path)
 
 		if(hasNewVersion){
 			SDL_Log("has new oxford version: %s\r\n",newVersion);
-			loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/oxford.zip","~/sound/");
+			loadAndunzip(update_url,"~/sound/");
 		}else{
 			SDL_Log("no newer than oxford version: %s\r\n",curVersion);
 		}
@@ -266,8 +266,8 @@ void compareWebAndLocal(char * url , char * local_path)
 
 void * update(void *ptr)
 {
-	compareWebAndLocal("https://raw.githubusercontent.com/db00/sdl2apk/master/oxford-gb.ifo","~/sound/oxford-gb/oxford-gb.ifo");
-	compareWebAndLocal("https://raw.githubusercontent.com/db00/sdl2apk/master/ce.ifo","~/sound/ce/langdao-ce-gb.ifo");
+	compareWebAndLocal("https://raw.githubusercontent.com/db00/sdl2apk/master/oxford-gb.ifo","~/sound/oxford-gb/oxford-gb.ifo","https://git.oschina.net/db0/kodi/raw/master/oxford.zip");
+	compareWebAndLocal("https://raw.githubusercontent.com/db00/sdl2apk/master/ce.ifo","~/sound/ce/langdao-ce-gb.ifo","https://git.oschina.net/db0/kodi/raw/master/ce.zip");
 
 	char * s = loadUrl("https://raw.githubusercontent.com/db00/sdl2apk/master/AndroidManifest.xml",NULL);
 	if(s)

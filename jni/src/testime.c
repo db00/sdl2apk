@@ -157,6 +157,8 @@ int main(int argc, char *argv[]) {
     Stage_init(1);
     if(stage==NULL)return 0;
 
+    showSearchDict(1);
+
     pthread_t thread1;
     if(pthread_create(&thread1, NULL, webThread, NULL)!=0)//创建子线程  
     {  
@@ -166,9 +168,6 @@ int main(int argc, char *argv[]) {
         //pthread_join(thread1,NULL);
     }
 
-    SDL_SetWindowTitle(stage->window, "词典");
-    //showCardTest(1);
-    showSearchDict(1);
 
     Sprite_addEventListener(stage->sprite,SDL_KEYUP,keyupEvent); 
     Sprite_addEventListener(stage->sprite,SDL_DROPFILE,droppedFile);
@@ -184,6 +183,10 @@ int main(int argc, char *argv[]) {
 		pthread_detach(thread2);// do not know why uncommit this line , will occur an ERROR !
 		//pthread_join(thread2,NULL);
 	}
+
+    SDL_SetWindowTitle(stage->window, "词典");
+    //showCardTest(1);
+
     //
     Stage_loopEvents();
     exit(0);

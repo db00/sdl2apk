@@ -15,9 +15,11 @@ TweenObj * TweenObj_new(Sprite*sprite)
 	if(sprite == NULL)
 		return NULL;
 	Stage_redraw();
-	TweenObj* tweenObj = (TweenObj*)malloc(sizeof(TweenObj));
+	int len = sizeof(TweenObj);
+	TweenObj * tweenObj = (TweenObj*)malloc(len);
+	memset(tweenObj,0,len);
 
-	tweenObj->start= (SpriteStatus*)storeStatus(sprite,NULL);
+	tweenObj->start = (SpriteStatus*)storeStatus(sprite,NULL);
 	tweenObj->cur = (SpriteStatus*)malloc(sizeof(SpriteStatus));
 	tweenObj->end = (SpriteStatus*)malloc(sizeof(SpriteStatus));
 	memcpy(tweenObj->cur,tweenObj->start,sizeof(SpriteStatus));
@@ -30,12 +32,15 @@ void TweenObj_clear(TweenObj * tweenObj)
 	if(tweenObj){
 		if(tweenObj->start){
 			free(tweenObj->start);
+			tweenObj->start = NULL;
 		}
 		if(tweenObj->end){
 			free(tweenObj->end);
+			tweenObj->end=NULL;
 		}
 		if(tweenObj->cur){
 			free(tweenObj->cur);
+			tweenObj->cur= NULL;
 		}
 		free(tweenObj);
 	}
@@ -45,18 +50,24 @@ void Tween_clear(Tween *tween)
 {
 	if(tween)
 	{
-		if(tween->obj){
-			TweenObj_clear(tween->obj);
-			tween->obj = NULL;
-		}
-		if(tween->sprite)
-			tween->sprite->tween = NULL;
 		if(tween->timer){
 			SDL_bool b = SDL_RemoveTimer(tween->timer);
 			if(b){
-				SDL_Log("SDL_RemoveTimer success!");
+				SDL_Log("SDL_RemoveTimer success!");fflush(stdout);
+			}else{
+				return;
 			}
 			tween->timer = 0;
+		}
+		if(tween->sprite)
+		{
+			tween->sprite->tween = NULL;
+		}
+		if(tween->obj){
+			//SDL_Log("TweenObj_clear start!");fflush(stdout);
+			TweenObj_clear(tween->obj);
+			//SDL_Log("TweenObj_clear success!");fflush(stdout);
+			tween->obj = NULL;
 		}
 		free(tween);
 	}
@@ -111,22 +122,24 @@ int setSpriteStatus(Sprite*sprite,SpriteStatus*status)
 }
 
 
-void Tween_kill(void *tweenobj,int toEnd)
+void Tween_kill(void * tweenobj,int toEnd)
 {
 	Tween * tween = tweenobj;
-	TweenObj*obj = tween->obj;
+	TweenObj * obj = tween->obj;
 	if(toEnd){
 		memcpy(obj->cur,obj->end,sizeof(SpriteStatus));//结束值
 		setSpriteStatus(tween->sprite,obj->cur);
 	}
-	if(tween->onComplete)
+	if(tween->onComplete){
 		tween->onComplete(tween->onCompleteParas);
+	}
 
 	Tween_clear(tween);
 }
 
 
-static Uint32 my_callbackfunc(Uint32 interval, void *param) {
+static Uint32 my_callbackfunc(Uint32 interval, void *param)
+{
 	Uint32 then = SDL_GetTicks();//当前时间;
 	Tween*tween = (Tween*)param;
 	Sprite *sprite = tween->sprite;
@@ -307,6 +320,7 @@ int main(int argc, char *argv[])
 	Tween * tween = tween_to(sprite,1000 ,tweenObj);
 	tween->ease = easeInOut_bounce;
 	tween->loop = 1;
+	Tween_kill(tween,1);
 
 	Stage_loopEvents();
 	return 0;

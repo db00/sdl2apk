@@ -6,6 +6,7 @@
  * @version 1.0.1
  * @date 2017-05-11
  */
+#include "update.h"
 #include "myfont.h"
 
 #ifndef DEFAULT_TTF_FILE
@@ -195,11 +196,19 @@ TTF_Font * getDefaultFont(int fontSize)
 		}
 	}
 	//if(!fileExists(DEFAULT_TTF_FILE))
-	//default_font = getFontByContainString("历əʊs1",fontSize);
-	default_font = getFontByContainString("史",fontSize);
+	default_font = getFontByContainString("历əʊs1",fontSize);
+	//default_font = getFontByContainString("史",fontSize);
 	if(default_font==NULL)
 	{
 		fprintf(stderr, "Couldn't initialize TTF: %s\n",DEFAULT_TTF_FILE);
+
+		if(!fileExists("~/sound/DroidSansFallback.ttf"))
+		{
+			loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/font.zip","~/sound/");
+			char * file = decodePath("~/sound/DroidSansFallback.ttf");
+			Font_push(file,12);
+			return TTF_OpenFont(file, fontSize);
+		}
 	}
 	return default_font;
 }

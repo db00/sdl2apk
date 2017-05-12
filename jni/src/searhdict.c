@@ -420,9 +420,9 @@ Sprite * appendWordBtn(Word * word,int end)
 		if(lastSprite)
 		{
 			if(end){
-				sprite->y = lastSprite->y + lastSprite->h + 4;
+				sprite->y = lastSprite->y + lastSprite->h + 1;
 			}else{
-				sprite->y = lastSprite->y - sprite->h - 4;
+				sprite->y = lastSprite->y - sprite->h - 1;
 			}
 		}
 	}
@@ -1038,7 +1038,7 @@ static void keyupEvent(SpriteEvent* e){
 
 static Sprite * makeSideBtn(char * name,int y, void (*func)(SpriteEvent*))
 {
-	Sprite * btn = Sprite_newText(name,45,0x0,0xffffffff);
+	Sprite * btn = Sprite_newText(name,45*stage->stage_h/800,0x0,0xffffffff);
 	btn->y = y;
 	Sprite_addEventListener(btn,SDL_MOUSEBUTTONUP,func);
 	//printf("btn:(%s)\n",btn->obj);
@@ -1086,7 +1086,7 @@ void *uiThread(void *ptr){
 
 
 		//Sprite * clearbtn = Sprite_newText("×",40,0x0,0x00000000);
-		Sprite * clearbtn = Sprite_newText("⊗",40,0x0,0x00000000);
+		Sprite * clearbtn = Sprite_newText("⊗",input->sprite->h*.7,0x0,0x00000000);
 		clearbtn->x = stage->stage_w-clearbtn->w*1.3;
 		Sprite_addChild(input->sprite,clearbtn);
 
@@ -1133,7 +1133,7 @@ void *uiThread(void *ptr){
 		Sprite_addChild(dictContainer,sideBtns);
 
 
-		gap=12;
+		gap=2;
 		int y = input->sprite->h;
 		//enBtn = makeSideBtn("清除",y,read_out);
 		//y = enBtn->y + enBtn->h + gap;

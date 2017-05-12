@@ -204,7 +204,7 @@ String * String_printf(String * string,const char*fmt, ...)
 	return string;
 }
 
-char * contact_str(char*s1,char*s2)
+char * contact_str(const char*s1,const char*s2)//needfree
 {
 	char * s=NULL;
 	int len;

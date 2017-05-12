@@ -28,7 +28,7 @@ char * memstr(char* full_data, int full_data_len, char* substr);
 char * String_sprintf(const char *fmt,...);
 char * getSubString(char * s,int start,int end);
 char * getSubStr(char * s,int start,int len);
-char * contact_str(char*s1,char*s2);
+char * contact_str(const char*s1,const char*s2);//needfree
 char * getStrBtw(char*s,char*s0,char*s1,int include);
 
 String * String_new(int size);

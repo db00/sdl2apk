@@ -1,42 +1,38 @@
 /**
  *
- gcc -g -I"../SDL2/include/" files.c myregex.c mystring.c array.c -lm  -D debug_files -lSDL2_image && ./a.out
+ gcc -g -I"../SDL2/include/" files.c myregex.c mystring.c array.c -lm  -D debug_files -lSDL2_image -lSDL2 && ./a.out
  gcc files.c  -D debug_files && a
  */
 #include "files.h"
 #include "SDL_platform.h"
+#include "SDL_stdinc.h"
 
 char * decodePath(char * path)
 {
 	if(path==NULL)
 		return NULL;
 	char * p = path;
+	int needfree = 0;
 	if(*p=='~'){
-		char * home = NULL;
+		char * home = SDL_getenv("HOME");
 #if defined(__ANDROID__)
-		home = contact_str("","/sdcard");
+		home = "/sdcard";
 #elif defined(__IPHONEOS__)
-//		home = contact_str("",".");
+		home = NULL;
 #else
-#if defined(WIN64) || defined(WIN32)
-		char * _home = mysystem("echo %HOME%",NULL);
-#else
-//#if defined(linux) || defined(__MACOSX__) || defined(__WIN32__)
-		char * _home = mysystem("echo $HOME",NULL);
-#endif
-		if(_home==NULL)
-			return contact_str("",path);
-		home = regex_replace_all(_home,"/[\r\n]/g","");
-		free(_home);
+		//home = mysystem("echo %HOME%",NULL);
+		//home = mysystem("echo $HOME",NULL);
 #endif
 		if(home){
 			p = contact_str(home,path+1);
-			free(home);
+			needfree = 1;
 		}else{
 			p+=2;
 		}
 	}
 	path = regex_replace_all(p,"/[\\\\/]+/g","/");
+	if(needfree)
+		free(p);
 	return path;
 }
 
@@ -267,6 +263,9 @@ int writefile(char * path,char *data,size_t data_length)
 #ifdef debug_files
 int main(int argc, char *argv[])
 {
+	char * _home = SDL_getenv("HOME");
+	printf("HOME:%s\r\n",_home);
+	//return 0;
 	char* filename="~//hello//hi/test/dd////test";
 	printf("decodePath:%s\n",decodePath(filename));
 	/*

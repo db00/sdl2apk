@@ -1,6 +1,7 @@
 #ifndef update_h__
 #define update_h__
 
+#include "loading.h"
 #include "bytearray.h"
 #include "files.h"
 #include "httploader.h"

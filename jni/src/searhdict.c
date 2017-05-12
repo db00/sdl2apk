@@ -69,13 +69,13 @@ void Redraw(char *text) {
 
 void open_dict()
 {
-	Loading_show(1,"loading oxford ......");
 	if(ec_dict==NULL)
 	{
 		ec_dict = Dict_new();
 		ec_dict->name = "oxford-gb";
 		if(!fileExists("~/sound/oxford-gb/"))
 		{
+			Loading_show(1,"loading oxford ......");
 			loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/oxford.zip","~/sound/");
 		}
 	}
@@ -85,6 +85,7 @@ void open_dict()
 		ce_dict->name = "ce";
 		if(!fileExists("~/sound/ce/langdao-ce-gb.ifo"))
 		{
+			Loading_show(1,"loading ce ......");
 			loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/ce.zip","~/sound/");
 		}
 	}

@@ -220,7 +220,7 @@ int loadAndunzip(char * url,char * toDir)
 
 		char * dir = decodePath(toDir);
 		ZipFile_free(ZipFile_unzipAll(bytearray,dir));
-		free(dir);
+		//free(dir);
 		ByteArray_free(bytearray);
 		//free(dict_zip);//bytearray 已经free掉了 dict_zip
 		return 0;
@@ -266,8 +266,9 @@ void compareWebAndLocal(char * url , char * local_path, char * update_url)
 
 void * update(void *ptr)
 {
+    //Loading_show(1,"start check update");
 	compareWebAndLocal("https://raw.githubusercontent.com/db00/sdl2apk/master/oxford-gb.ifo","~/sound/oxford-gb/oxford-gb.ifo","https://git.oschina.net/db0/kodi/raw/master/oxford.zip");
-	compareWebAndLocal("https://raw.githubusercontent.com/db00/sdl2apk/master/ce.ifo","~/sound/ce/langdao-ce-gb.ifo","https://git.oschina.net/db0/kodi/raw/master/ce.zip");
+	compareWebAndLocal("https://raw.githubusercontent.com/db00/sdl2apk/master/langdao-ce-gb.ifo","~/sound/ce/langdao-ce-gb.ifo","https://git.oschina.net/db0/kodi/raw/master/ce.zip");
 
 	char * s = loadUrl("https://raw.githubusercontent.com/db00/sdl2apk/master/AndroidManifest.xml",NULL);
 	if(s)
@@ -290,6 +291,7 @@ void * update(void *ptr)
 		}
 		free(s);
 	}
+    //Loading_show(0,"updated");
 	fflush(stdout);
 	return NULL;
 }

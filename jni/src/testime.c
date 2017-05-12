@@ -157,7 +157,7 @@ int main(int argc, char *argv[]) {
     Stage_init(1);
     if(stage==NULL)return 0;
 
-    showSearchDict(1);
+    //Loading_show(1,"");
 
     pthread_t thread1;
     if(pthread_create(&thread1, NULL, webThread, NULL)!=0)//创建子线程  
@@ -186,7 +186,11 @@ int main(int argc, char *argv[]) {
 
     SDL_SetWindowTitle(stage->window, "词典");
     //showCardTest(1);
+    showSearchDict(1);
 
+    //update(NULL);
+
+    //Loading_show(0,"");
     //
     Stage_loopEvents();
     exit(0);

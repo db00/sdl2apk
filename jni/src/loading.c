@@ -10,74 +10,74 @@
 
 extern Data3d * data2D;
 static Tween * tween = NULL;
-static Sprite * contener=NULL;
-static Sprite * _sprite=NULL;
+static Sprite * earth_contener=NULL;
+static Sprite * earth_sprite=NULL;
 
 void Loading_show(int boolean,char * s)
 {
 	if(s){
 		printf("%s\r\n",s);
 	}
-	if(_sprite==NULL)
+	if(earth_sprite==NULL)
 	{
 		char * path = decodePath("~/sound/1.bmp");
 		if(!fileExists("~/sound/1.bmp"))
 		{
 			loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/earth.zip","~/sound/");
 		}
-		_sprite = Sprite_new();
-		_sprite->is3D = 1;
-		_sprite->surface = (SDL_LoadBMP(path));
-		SDL_Log("surface size:%dx%d",_sprite->surface->w,_sprite->surface->h);
-		Data3d*_data3D = _sprite->data3d;
+		earth_sprite = Sprite_new();
+		earth_sprite->is3D = 1;
+		earth_sprite->surface = (SDL_LoadBMP(path));
+		SDL_Log("surface size:%dx%d",earth_sprite->surface->w,earth_sprite->surface->h);
+		Data3d*_data3D = earth_sprite->data3d;
 		if(_data3D==NULL){
 			_data3D = Data3D_new();
 			if(_data3D->programObject==0){
 				Data3D_init();
 				Data3d_set(_data3D,data2D);
 			}
-			_sprite->data3d = _data3D;
+			earth_sprite->data3d = _data3D;
 			_data3D->numIndices = esGenSphere ( 20, .75f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
 		}
-		//_sprite->alpha = 0.5;
+		//earth_sprite->alpha = 0.5;
 	}
-	if(contener == NULL)
+	if(earth_contener == NULL)
 	{
-		contener = Sprite_new();
-		Sprite_addChild(contener,_sprite);
-		contener->x = stage->stage_w/2;
-		contener->y = stage->stage_h/2;
-		contener->w = stage->stage_w;
-		contener->h = stage->stage_h;
+		earth_contener = Sprite_new();
+		Sprite_addChild(earth_contener,earth_sprite);
+		earth_contener->x = stage->stage_w/2;
+		earth_contener->y = stage->stage_h/2;
+		earth_contener->w = stage->stage_w;
+		earth_contener->h = stage->stage_h;
 	}
 
 	if(boolean)
 	{
-		char * path = decodePath("~/sound/1.bmp");
-		_sprite->surface = (SDL_LoadBMP(path));
-		Sprite_addChild(stage->sprite,contener);
-		contener->visible = SDL_TRUE;
+		//char * path = decodePath("~/sound/1.bmp");
+		//earth_sprite->surface = (SDL_LoadBMP(path));
+		Sprite_addChild(stage->sprite,earth_contener);
+		earth_contener->visible = SDL_TRUE;
 		if(tween == NULL)
 		{
-			_sprite->rotationY = 0;
-			TweenObj * tweenObj = (TweenObj*)TweenObj_new(_sprite);
+			earth_sprite->rotationY = 0;
+			TweenObj * tweenObj = (TweenObj*)TweenObj_new(earth_sprite);
 			//tweenObj->end->scaleX = 8.0;
 			//tweenObj->end->scaleY = 4.0;
-			//tweenObj->end->x=240-_sprite->w;
-			//tweenObj->end->y=320-_sprite->h;
+			//tweenObj->end->x=240-earth_sprite->w;
+			//tweenObj->end->y=320-earth_sprite->h;
 			//tweenObj->end->alpha=1.0;
 			//tweenObj->end->rotationX=(double)360.0*4;//度数
 			//tweenObj->end->rotationY=(double)360.0*4;//度数
 			tweenObj->end->rotationY=(double)360.0;//度数
-			tween = tween_to(_sprite,3000 ,tweenObj);
+			tween = tween_to(earth_sprite,3000 ,tweenObj);
 			//tween->ease = easeInOut_bounce;
 			tween->loop = 1;
 		}
 	}else{
-		if(contener)
-		contener->visible = SDL_FALSE;
+		if(earth_contener)
+			earth_contener->visible = SDL_FALSE;
 		//Stage_redraw();
-		//if(Sprite_contains(stage->sprite,contener)) Sprite_removeChild(stage->sprite,contener);
+		//if(Sprite_contains(stage->sprite,earth_contener)) Sprite_removeChild(stage->sprite,earth_contener);
 		if(tween)
 		{
 			Tween_kill(tween,1);

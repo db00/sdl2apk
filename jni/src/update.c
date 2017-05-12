@@ -291,8 +291,8 @@ void * update(void *ptr)
 		}
 		free(s);
 	}
-    //Loading_show(0,"updated");
 	fflush(stdout);
+    //Loading_show(0,"updated");
 	return NULL;
 }
 

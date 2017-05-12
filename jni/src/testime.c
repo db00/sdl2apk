@@ -34,6 +34,7 @@ static enum STATS {
 
 void showCardTest(int b)
 {
+    return;
     if(cardContainer)
         cardContainer->visible = b;
     if(b){
@@ -121,7 +122,7 @@ static void keyupEvent(SpriteEvent* e){
                 break;
         }
     }
-    //Redraw(NULL);
+    Redraw(NULL);
 }
 
 

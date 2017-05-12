@@ -1,6 +1,6 @@
 /**
  *
- gcc -g -D debug_kodi -I"../SDL2/include/" -I"../SDL2_image" -I"../SDL2_ttf/" -lSDL2_ttf -lSDL2_image -lSDL2 utf8.c textfield.c httpserver.c array.c filetypes.c urlcode.c dict.c sqlite.c tween.c ease.c sprite.c matrix.c myregex.c kodi.c jsonrpc.c files.c httploader.c ipstring.c mystring.c cJSON.c base64.c -lssl -lsqlite3 -lpthread -ldl -lcrypto -lm && ./a.out  
+ gcc -g -D debug_kodi -I"../SDL2/include/" -I"../SDL2_image" -I"../SDL2_ttf/" -lSDL2_ttf -lSDL2_image -lSDL2 utf8.c textfield.c httpserver.c array.c filetypes.c urlcode.c dict.c sqlite.c myfont.c zip.c -lz bytearray.c update.c tween.c ease.c sprite.c matrix.c myregex.c mysurface.c kodi.c jsonrpc.c files.c httploader.c ipstring.c mystring.c cJSON.c base64.c -lssl -lsqlite3 -lpthread -ldl -lcrypto -lm && ./a.out  
  gcc -g -D debug_kodi -Wall -I"../SDL2/include/" -I"../SDL2_image" -I"../SDL2_ttf/" -I"include" -L"lib" textfield.c httpserver.c array.c filetypes.c urlcode.c dict.c tween.c ease.c sprite.c matrix.c myregex.c regex.c -D STDC_HEADERS kodi.c jsonrpc.c files.c httploader.c ipstring.c mystring.c cJSON.c base64.c lib/libssl32.dll.a lib/libeay32.dll.a -lgdi32 -lwsock32 -lssl -lpthread -lopengl32 -lcrypto -lm  -lSDL2_ttf -lSDL2_image -lmingw32 -lSDL2main -lSDL2 && a  
 http://kodi.wiki/view/JSON-RPC_API/v6
 */
@@ -21,7 +21,11 @@ static char * host = NULL;
 static char *getHost()
 {
 	if(host)return host;
-	char *url = decodePath("~/sound/icons/host");
+	char * file = "~/sound/host";
+	char * ip = "192.168.1.118";
+	if(!fileExists(file))
+		writefile(file,ip,strlen(ip));
+	char *url = decodePath("~/sound/host");
 	SDL_Log("%s\n",url);
 	if(url){
 		size_t len;
@@ -174,7 +178,7 @@ void mouseDown(SpriteEvent * e)
 		   );
 
 	pthread_t thread1;
-	if(pthread_create(&thread1, NULL, sendK, e)!=0)//�������߳�  
+	if(pthread_create(&thread1, NULL, sendK, e)!=0)//创建子线程  
 	{  
 		perror("pthread_create");  
 	}else{
@@ -187,21 +191,16 @@ int curX = 0;
 int curY = 0;
 int curW = 0;
 int curH = 0;
-Sprite * makeBtn(char* _url)
+Sprite * makeBtn(char* _url,char * s)
 {
-	Sprite * sprite = Sprite_new();
-	//sprite->surface = Httploader_loadimg("http://res1.huaien.com/images/tx.jpg");
-	char *url1 = decodePath("~/sound/");
-	char * url = contact_str(url1,_url);
-	free(url1);
-	printf("%s\n",url);
-	sprite->surface = IMG_Load(url);
+	printf("%s\n",_url);
+
+	Sprite * sprite = Sprite_newText(s,stage->stage_w/7,0xffffffff,0x0);
 	if(sprite->surface)
 	{
 		sprite->w = sprite->surface->w;
-		//sprite->h = sprite->surface->h;
 		if(sprite->w<= stage->stage_w/8.0)
-			sprite->w = stage->stage_w/7.0;
+			sprite->w = stage->stage_w/7.3;
 		sprite->h = sprite->w;
 		if(curX + sprite->w > stage->stage_w)
 		{
@@ -212,7 +211,7 @@ Sprite * makeBtn(char* _url)
 		sprite->y = curY;
 		curX += sprite->w;
 	}
-	sprite->name = url;
+	sprite->name = _url;
 	Sprite_addChild(container,sprite);
 	Sprite_addEventListener(sprite,SDL_MOUSEBUTTONDOWN,mouseDown);
 	return sprite;
@@ -236,7 +235,7 @@ static void sendMove()
 		url = append_str(NULL,"http://%s:8809/?f=system&p1=xdotool%smousemove_relative%s%d%s%d",host,"%20","%20", deltaX*2,"%20", deltaY*2);
 	else
 		url = append_str(NULL,"http://%s:8809/?f=system&p1=xdotool%smousemove_relative%s--%s%d%s%d",host,"%20","%20", "%20", deltaX*2,"%20", deltaY*2);
-	if(pthread_create(&thread1, NULL, sendUrl, url)!=0)//�������߳�  
+	if(pthread_create(&thread1, NULL, sendUrl, url)!=0)//创建子线程  
 	{  
 		perror("pthread_create");  
 	}else{
@@ -275,7 +274,7 @@ static void mousehandl(SpriteEvent*e)
 					url = append_str(NULL,"http://%s:8809/?f=system&p1=xdotool%sclick%s3",host, "%20","%20");
 				//char * url = append_str(NULL,"http://%s:8809/bin/xdotool?click&1",host);
 				//sendUrl(url); return;
-				if(pthread_create(&thread1, NULL, sendUrl, url)!=0)//�������߳�  
+				if(pthread_create(&thread1, NULL, sendUrl, url)!=0)//创建子线程  
 				{  
 					perror("pthread_create");  
 				}else{
@@ -367,28 +366,37 @@ int Kodi_initBtns(int v)
 		container->w= stage->stage_w;
 		container->h= stage->stage_h;
 
-		makeBtn("icons/actions/media-playback-pause.png");
-		makeBtn("icons/actions/go-up.png");
-		makeBtn("icons/stock/gtk-no.png");
-		makeBtn("icons/status/audio-volume-muted.png");
-		makeBtn("icons/actions/open-menu.png");
-		makeBtn("icons/apps/preferences-system-time.png");
-		makeBtn("icons/actions/system-shutdown.png");
-		makeBtn("icons/actions/go-previous.png");
-		makeBtn("icons/stock/gtk-ok.png");
-		makeBtn("icons/actions/go-next.png");
-		makeBtn("icons/status/audio-volume-low.png");
-		makeBtn("icons/actions/media-playback-start.png");
-		makeBtn("icons/actions/media-record.png");
-		makeBtn("icons/apps/applets-screenshooter.png");
-		makeBtn("icons/actions/media-playback-stop.png");
-		makeBtn("icons/actions/go-down.png");
-		makeBtn("icons/actions/view-fullscreen.png");
-		makeBtn("icons/status/audio-volume-high.png");
-		makeBtn("icons/kodi.png");
-		makeBtn("icons/actions/process-stop.png");
-		makeBtn("icons/actions/go-first.png");
-		makeBtn("icons/actions/go-last.png");
+		//↑↓←→
+		//⇐⇑⇒⇓
+		//↑↓←→↖↗↘↙↔↕➻➼➽➸➳➺➻➴➵➶➷➹▶►▷◁◀◄«»➩➪➫➬➭➮➯➱⏎➲➾➔➘➙➚➛➜➝➞➟➠➡➢➣➤➥➦➧➨↚↛↜↝↞↟↠↠↡↢↣↤↤↥↦↧↨⇄⇅⇆⇇⇈⇉⇊⇋⇌⇍⇎⇏⇐⇑⇒⇓⇔⇖⇗⇘⇙⇜↩↪↫↬↭↮↯↰↱↲↳↴↵↶↷↸↹☇☈↼↽↾↿⇀⇁⇂⇃⇞⇟⇠⇡⇢⇣⇤⇥⇦⇧⇨⇩⇪↺↻⇚⇛
+		//▂▃▄▅▆▇█▉▊▋▌▍▎▏
+		//♚　♛　♝　♞　♜　♟　♔　♕　♗　♘　♖　♙
+		//㊣㊎㊍㊌㊋㊏㊐㊊㊚㊛㊤㊥㊦㊧㊨㊒㊞㊑㊓㊔㊕㊖㊗㊘㊜㊝㊟㊠㊡㊢㊩㊪㊫㊬㊭㊮㊯㊰㊙㉿囍
+
+
+
+		makeBtn("media-playback-pause.png","║");
+		makeBtn("go-up.png","⇧");
+		makeBtn("gtk-no.png","×");
+		makeBtn("audio-volume-muted.png","♬");
+		makeBtn("open-menu.png","▤");
+		makeBtn("preferences-system-time.png","Ⅷ");
+		makeBtn("system-shutdown.png","×");
+		makeBtn("go-previous.png","↞");
+		makeBtn("gtk-ok.png","√");
+		makeBtn("go-next.png","↠");
+		makeBtn("audio-volume-low.png","➷");
+		makeBtn("media-playback-start.png","▶");
+		makeBtn("media-record.png","✍");
+		makeBtn("applets-screenshooter.png","✄");
+		makeBtn("media-playback-stop.png","◎");
+		makeBtn("go-down.png","⇩");
+		makeBtn("view-fullscreen.png","✠");
+		makeBtn("audio-volume-high.png","➹");
+		makeBtn("kodi.png","㊣");
+		makeBtn("process-stop.png","✘");
+		makeBtn("go-first.png","⇤");
+		makeBtn("go-last.png","⇥");
 
 		showEearth();
 	}
@@ -432,7 +440,7 @@ int main(int argc, char *argv[])
 
 
 	pthread_t thread1;
-	if(pthread_create(&thread1, NULL, webThreadk, NULL)!=0)//�������߳�  
+	if(pthread_create(&thread1, NULL, webThreadk, NULL)!=0)//创建子线程  
 	{  
 		perror("pthread_create");  
 	}else{

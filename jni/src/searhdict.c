@@ -52,7 +52,19 @@ int isCE(char * value)
 {
 	//if(value && 0==regex_match(value,"/^[a-z0-9()\\\/-]*[\r\n]*$/i"))
 	if(value && strlen(value) && 0==regex_match(value,"/^[\x1-\x7f]*[\r\n]*$/i"))
+	{
+		if(ce_dict==NULL)
+		{
+			ce_dict = Dict_new();
+			ce_dict->name = "ce";
+			if(!fileExists("~/sound/ce/langdao-ce-gb.ifo"))
+			{
+				//Loading_show(1,"loading ce ......");
+				loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/ce.zip","~/sound/");
+			}
+		}
 		return 1;
+	}
 	return 0;
 }
 
@@ -77,16 +89,6 @@ void open_dict()
 		{
 			//Loading_show(1,"loading oxford ......");
 			loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/oxford.zip","~/sound/");
-		}
-	}
-	if(ce_dict==NULL)
-	{
-		ce_dict = Dict_new();
-		ce_dict->name = "ce";
-		if(!fileExists("~/sound/ce/langdao-ce-gb.ifo"))
-		{
-			//Loading_show(1,"loading ce ......");
-			loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/ce.zip","~/sound/");
 		}
 	}
 	//Loading_show(0,NULL);

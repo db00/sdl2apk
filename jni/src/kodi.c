@@ -316,6 +316,10 @@ static void showEearth()
 	sprite->is3D = 1;
 
 	char * earthPath = decodePath("~/sound/1.bmp");
+	if(!fileExists("~/sound/1.bmp"))
+	{
+		loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/earth.zip","~/sound/");
+	}
 	sprite->surface = IMG_Load(earthPath);
 	free(earthPath);
 	Data3d*_data3D = sprite->data3d;

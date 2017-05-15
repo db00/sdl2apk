@@ -163,8 +163,7 @@ void * sendK(void * event)
 		sendUrl(url);
 	}
 #ifdef __ANDROID__
-	if(action)
-		Sprite_alertText(action);
+	//if(action) Sprite_alertText(action);
 #endif
 	pthread_exit(NULL);
 	return NULL;

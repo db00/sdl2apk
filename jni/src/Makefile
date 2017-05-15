@@ -16,7 +16,8 @@ PACKAGE:=my.test
 PACKAGE2:=$(subst .,_,$(PACKAGE))#将"."替换成"_"
 PACKAGE3:=$(subst .,/,$(PACKAGE))#将"."替换成"_"
 CLASS_NAME:=Test
-APK:= $(APK_DIR)/$(APP_NAME)-debug.apk
+APK:=$(APK_DIR)/$(APP_NAME).apk
+DEBUG_APK:=$(APK_DIR)/$(APP_NAME)-debug.apk
 CC:=gcc
 SRC_DIR:=.
 LIB:= -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lm -lSDL2 -lssl -lcrypto -lpthread
@@ -38,7 +39,15 @@ INCLUDE:=-I"../SDL2/include/" -I"." -I"../SDL2_image/" -I"../SDL2_mixer/" -I"../
 SRC:= $(SRC) regex.c sqlite3.c
 endif
 # -D debug_sprite
-KEY:=$(PROJ_PATH)/my.keystore
+P12:=./my.p12
+KEY:=./test.keystore
+#.p12 pass
+KEYPASS:=android
+#.keystore pass
+STOREPASS:=android
+KEYALIAS:=1
+KEYALIAS:=androiddebugkey
+DNAME:="CN=db0@qq.com, OU=biao, O=biao, L=hengyang, ST=hunane, C=cn"
 #SRC:= $(foreach x,${SRC_DIR}, $(wildcard $(addprefix ${x}/*,.c)))
 OBJS:= $(patsubst %.c,%.o,$(SRC))
 
@@ -72,39 +81,47 @@ endif
 	rm -rf $(PROJ_PATH)/bin
 	$(SDK_HOME)/android --clear-cache update project --name $(APP_NAME) --path $(PROJ_PATH) --target "android-14"  --subprojects
 
-upload: $(APK)
-	scp $(APK) p@p:/sdcard/
+$(DEBUG_APK): $(KEY) *.c
+	$(NDK_HOME)/ndk-build NDK_DEBUG=1 -C $(PROJ_PATH) && ant debug -f $(PROJ_PATH)/build.xml
 
-install:
-	adb shell pm uninstall $(PACKAGE)
-	adb install -r $(APK) && adb shell am start -a android.intenon.MAIN -n $(PACKAGE)/.$(CLASS_NAME)
-#	adb shell logcat SDL:V *:I | grep sdl
+debug:$(DEBUG_APK)
+#	adb shell pm uninstall $(PACKAGE)
+	adb install -r $(DEBUG_APK) 
+	adb shell am start -a android.intenon.MAIN -n $(PACKAGE)/.$(CLASS_NAME)
+#	adb shell logcat SDL:V *:I
+#	rm $(DEBUG_APK) &&\
 
-apk:
+$(P12):
+	keytool -alias $(KEYALIAS) -genkeypair -keystore $(P12) -storetype pkcs12 -validity 8050 -storepass $(KEYPASS) -dname $(DNAME)
+#	rm -f $(PROJ_PATH)/my.keystore
+
+
+$(KEY):$(P12)
+#	keytool -v -genkey -alias $(KEYALIAS) -keyalg RSA -validity 8050 -keystore $(KEY) -keypass $(KEYPASS) -storepass $(STOREPASS) -dname $(DNAME)
+	keytool -importkeystore -srckeystore $(P12) -srcstoretype PKCS12 -srcstorepass $(KEYPASS) -destkeystore $(KEY) -deststoretype JKS -storepass $(STOREPASS)
+	keytool -list -keystore $(P12) -storetype pkcs12 -storepass $(KEYPASS) -v
+#修改test.keystore的 并替换 ~/.android/debug.keystore
+#①修改test.keystore的别名
+#	keytool -changealias -keystore test.keystore -alias android -destalias androiddebugkey -storepass $(KEYPASS)
+#②修改test.keystore的别名密码
+#	keytool -keypasswd -keystore test.keystore -storepass $(KEYPASS) -new android -alias androiddebugkey
+#③修改test.keystore的密码
+#	keytool -storepasswd -keystore test.keystore -storepass $(KEYPASS) -new android
+	cp -r $(KEY) ~/.android/debug.keystore
+
+$(APK):$(KEY) *.c
 #	$(SDK_HOME)/tools/android create project -n $(APP_NAME) -t 14 -p $(PROJ_PATH) -k $(PACKAGE) -a $(APP_NAME)
 #	$(SDK_HOME)/tools/dx -dex --dump-to=out.dex --core-library $(PROJ_PATH)/bin
 #	$(SDK_HOME)/tools/aapt -A assets -S res -M AndroidManifest.xml -I $(SDK_HOME)/platforms/android-10/android.jar -F $(PROJ_PATH)/bin/out.ap_
-	$(NDK_HOME)/ndk-build NDK_DEBUG=1 -C $(PROJ_PATH) && ant debug -f $(PROJ_PATH)/build.xml
+	$(NDK_HOME)/ndk-build NDK_DEBUG=1 -C $(PROJ_PATH) && ant release -f $(PROJ_PATH)/build.xml
 #	scp $(APK) p@p:/sdcard/
-#	adb install -r -s $(APK) && adb shell am start -a android.intenon.MAIN -n $(PACKAGE)/.$(CLASS_NAME)
+#	adb push $(APK) /sdcard/
+#	jarsigner -verbose -keystore $(P12) -storepass $(KEYPASS) -signedjar $(APK) $(PROJ_PATH)/bin/$(APP_NAME)-release-unsigned.apk $(KEYALIAS)
+	jarsigner -verbose -keystore $(KEY) -storepass $(STOREPASS) -keypass $(KEYPASS) -signedjar $(APK) $(PROJ_PATH)/bin/$(APP_NAME)-release-unsigned.apk $(KEYALIAS)
+
+apk:$(APK)
 	adb install -r $(APK) && adb shell am start -a android.intenon.MAIN -n $(PACKAGE)/.$(CLASS_NAME)
 	adb push $(APK) /sdcard/
-#	adb shell logcat SDL:V *:I
-
-push:
-	adb push $(APK) /sdcard/
-#scp $(APK) p@p:/sdcard/test.apk
-
-debug:
-	adb shell am start -a android.intenon.MAIN -n $(PACKAGE)/.$(CLASS_NAME) && \
-		adb shell logcat SDL:V *:I
-
-key:
-	keytool -v -genkey -alias my -keyalg RSA -validity 40000 -keystore $(KEY) -storepass 123456  -dname "CN=db0@qq.com, OU=biao, O=biao, L=hengyang, ST=hunane, C=cn"
-#	rm -f $(PROJ_PATH)/my.keystore
-
-sign: $(KEY) $(PROJ_PATH)/bin/$(APP_NAME)-release-unsigned.apk
-	jarsigner -verbose -keystore $(KEY) -storepass 123456 -keypass 123456 -signedjar $(PROJ_PATH)/bin/$(APP_NAME).apk $(PROJ_PATH)/bin/$(APP_NAME)-release-unsigned.apk my
 
 .c.o:
 	$(CC) $(CFLAGS) -c $<

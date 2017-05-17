@@ -2083,7 +2083,7 @@ int main(int argc, char *argv[])
 		if(_data3D==NULL){
 			_data3D = Data3D_new();
 			if(_data3D->programObject==0){
-				Data3D_init();
+				data2D = Data3D_init();
 				Data3d_set(_data3D,data2D);
 			}
 			sprite->data3d = _data3D;

@@ -5,6 +5,7 @@
 http://kodi.wiki/view/JSON-RPC_API/v6
 */
 #include "kodi.h"
+#include "update.h"
 
 static Sprite * container = NULL;
 

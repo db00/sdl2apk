@@ -122,7 +122,7 @@ static void keyupEvent(SpriteEvent* e){
                 break;
         }
     }
-    Redraw(NULL);
+	UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//Stage_redraw
 }
 
 
@@ -146,7 +146,7 @@ static void slideEvent(SpriteEvent* e){
             break;
 
     }
-    //Redraw(NULL);
+	//UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//Stage_redraw
 }
 
 
@@ -158,7 +158,7 @@ int main(int argc, char *argv[]) {
     Stage_init(1);
     if(stage==NULL)return 0;
 
-    //Loading_show(1,"");
+    Loading_show(1,"");
 
     pthread_t thread1;
     if(pthread_create(&thread1, NULL, webThread, NULL)!=0)//创建子线程  
@@ -191,7 +191,7 @@ int main(int argc, char *argv[]) {
 
     //update(NULL);
 
-    //Loading_show(0,"");
+    Loading_show(0,"");
     //
     Stage_loopEvents();
     exit(0);

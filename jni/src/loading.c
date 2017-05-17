@@ -8,7 +8,7 @@
  */
 #include "loading.h"
 
-extern Data3d * data2D;
+static Data3d * data2D = NULL;
 static Tween * tween = NULL;
 static Sprite * earth_contener=NULL;
 static Sprite * earth_sprite=NULL;
@@ -25,6 +25,8 @@ void Loading_show(int boolean,char * s)
 		{
 			loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/earth.zip","~/sound/");
 		}
+		if(!fileExists("~/sound/1.bmp"))
+			return;
 		earth_sprite = Sprite_new();
 		earth_sprite->is3D = 1;
 		earth_sprite->surface = (SDL_LoadBMP(path));
@@ -32,12 +34,13 @@ void Loading_show(int boolean,char * s)
 		Data3d*_data3D = earth_sprite->data3d;
 		if(_data3D==NULL){
 			_data3D = Data3D_new();
-			if(_data3D->programObject==0){
-				Data3D_init();
+			if(_data3D->programObject==0)
+			{
+				data2D = Data3D_init();
 				Data3d_set(_data3D,data2D);
 			}
 			earth_sprite->data3d = _data3D;
-			_data3D->numIndices = esGenSphere ( 20, .75f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
+			_data3D->numIndices = esGenSphere ( 20, .5f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
 		}
 		//earth_sprite->alpha = 0.5;
 	}

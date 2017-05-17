@@ -13,7 +13,6 @@
 GLES2_Context gles2;
 Stage * stage = NULL;
 static SDL_mutex *mutex = NULL;
-Data3d * data2D;
 
 static int LoadContext(GLES2_Context * data)
 {
@@ -46,6 +45,7 @@ static int LoadContext(GLES2_Context * data)
 #undef SDL_PROC
 	return 0;
 }
+static Data3d * data2D;
 
 void quit(int rc)
 {
@@ -486,6 +486,7 @@ Stage * Stage_init(int is3D)
 				//GL_CHECK(gles2.glViewport(0, 0, stage->stage_w , stage->stage_h));
 				//return NULL;
 				stage->is3D = is3D;
+				Data3D_init();
 			}
 			else
 			{
@@ -1785,7 +1786,7 @@ Data3d* Data3D_new()
 	return data3D;
 }
 
-Data3d* Data3D_init()
+Data3d * Data3D_init()
 {
 	if(data2D==NULL){
 		data2D = Data3D_new();

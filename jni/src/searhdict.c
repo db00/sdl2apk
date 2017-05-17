@@ -68,7 +68,7 @@ int isCE(char * value)
 	return 0;
 }
 
-void Redraw(char *text) {
+static void Redraw(char *text) {
 	if(text){
 		textfield = TextField_setText(textfield,text);
 		//TextField_setScrollV(textfield,TextField_getMaxScrollV(textfield));
@@ -79,7 +79,7 @@ void Redraw(char *text) {
 
 
 
-void open_dict()
+static void open_dict()
 {
 	if(ec_dict==NULL)
 	{
@@ -94,7 +94,7 @@ void open_dict()
 	//Loading_show(0,NULL);
 }
 
-char * showExplain(char *explain)
+static char * showExplain(char *explain)
 {
 	if(explain){
 		//char *tmp = regex_replace_all(explain,"([^a-zA-Z,;])( [\\*0-9]+ )","$1\n$2");
@@ -1261,7 +1261,7 @@ void showSearchDict(int b)
 	//Sprite_roundRect2D(0,0,100,100,30,30);
 
 
-	//open_dict();
+	open_dict();
 }
 
 

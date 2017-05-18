@@ -21,17 +21,18 @@
 #include "datas.h"
 #include "besier.h"
 #include "sdlstring.h"
+#include "testwords.h"
 
 
-Sprite * curlistSprite = NULL;
-Sprite * dictContainer= NULL;
-Sprite * sideBtns= NULL;
-Input * input = NULL;
-TextField * textfield = NULL;
-Dict * ec_dict = NULL;
-Dict * ce_dict = NULL;
-Array * history_str_arr;
-Sprite * explainContainer;
+static Sprite * curlistSprite = NULL;
+static Sprite * dictContainer= NULL;
+static Sprite * sideBtns= NULL;
+static Input * input = NULL;
+static TextField * textfield = NULL;
+static Dict * ec_dict = NULL;
+static Dict * ce_dict = NULL;
+static Array * history_str_arr;
+static Sprite * explainContainer;
 
 static enum DICT_STATS {
 	DICT,
@@ -162,6 +163,14 @@ static void read_out(SpriteEvent*e)
 			Input_setText(input,s);
 			//searchWord(s);
 		}
+		return;
+	}else if(strcmp(target->obj,"测试")==0){
+		SDL_SetWindowTitle(stage->window,"测试");
+
+		dictContainer->visible = SDL_FALSE;
+
+		startTest();
+
 		return;
 	}
 
@@ -1157,8 +1166,9 @@ void *uiThread(void *ptr){
 		y = enBtn->y + enBtn->h + gap;
 		enBtn = makeSideBtn("熟词",y,show_history_list);
 		y = enBtn->y + enBtn->h + gap;
-		//enBtn = makeSideBtn("正则查询",enBtn->y + enBtn->h + gap,read_out);
-		//enBtn = makeSideBtn("测试",enBtn->y + enBtn->h + gap,read_out);
+		enBtn = makeSideBtn("测试",y,read_out);
+		y = enBtn->y + enBtn->h + gap;
+		//enBtn = makeSideBtn("正则查询",y,read_out);
 		/*
 		   enBtn = makeSideBtn("英汉",enBtn->y + enBtn->h + 5,read_out);
 		   enBtn = makeSideBtn("测试",enBtn->y + enBtn->h + 5,read_out);

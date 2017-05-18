@@ -43,6 +43,21 @@ int add_remembered_word(char * word,int remembered)
 	return id;
 }
 
+int change_word_rights(char * word,int num)
+{
+	int id = add_new_word(word);
+	if(id>0)
+	{
+		char * s ="update list set numTest=%d where wordid=%d;";
+		char sql[100];
+		memset(sql,0,100);
+		sprintf(sql,s,num,id);
+		int rc = DataBase_exec(history_db,sql);
+		if(!rc)printf("\n update sql_result_str:%s",history_db->result_str);
+	}
+	return id;
+}
+
 int get_word_id(char * word)
 {
 	char * s = "select wordid from list where word=\"%s\";";
@@ -150,6 +165,20 @@ Array * get_history_list(int numWords,char * word,char * compare)
 	printf("\n%s\n",sql);fflush(stdout);
 	return datas_query2(sql);
 }
+Array * get_test_list(int startIndex,int numWords)
+{
+	init_db();
+	int len = 300;
+	char sql[len];
+	memset(sql,0,len);
+	char *s=NULL;
+	s = "select * from list where remembered==0 order by wordid desc limit %d,%d";
+	sprintf(sql,s,startIndex,numWords);
+
+	printf("\n%s\n",sql);fflush(stdout);
+	return datas_query2(sql);
+}
+
 Array * get_remembered_list(int remembered,int numWords,char * word,char * compare)
 {
 	int len = 300;
@@ -162,9 +191,9 @@ Array * get_remembered_list(int remembered,int numWords,char * word,char * compa
 	{
 		//s = ("select * from list where remembered=%d group by wordid ORDER BY date desc;");
 		if(compare[0]=='<')
-			s = "select *  from list where wordid %s (select wordid from list where word==\"%s\") and remembered==%d order by wordid desc limit 0,%d";
+			s = "select * from list where wordid %s (select wordid from list where word==\"%s\") and remembered==%d order by wordid desc limit 0,%d";
 		else
-			s = "select *  from list where wordid %s (select wordid from list where word==\"%s\") and remembered==%d order by wordid limit 0,%d";
+			s = "select * from list where wordid %s (select wordid from list where word==\"%s\") and remembered==%d order by wordid limit 0,%d";
 		sprintf(sql,s,compare,word,remembered,numWords);
 	}else{
 		s = "select *  from list where remembered==%d order by wordid desc limit 0,%d";
@@ -191,12 +220,18 @@ int add_to_test(int wordid,int result)
 
 int init_db()
 {
+	if(history_db)
+		return 0;
+
 	history_db = DataBase_new(decodePath("~/sound/test.db"));
 	int rc=0;
 	rc = DataBase_exec(history_db,"create table if not exists list(wordid INTEGER primary key asc,word varchar(50), date real, remembered char(1), numAccess INTEGER, numTest INTEGER);");
 	//if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
 	rc = DataBase_exec(history_db,"create table if not exists history(id INTEGER primary key asc, wordid INTEGER, status varchar(1), date real);");
 	//if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
+	rc = DataBase_exec(history_db,"delete from list where remembered=0 and word like \"%×%\" or \"%√%\";");
+	rc = DataBase_exec(history_db,"delete from list where remembered=0 and word not like \"___%\";");
+	rc = DataBase_exec(history_db,"delete from list where remembered=0 and word=\"drafman\";");
 	return 0;
 }
 

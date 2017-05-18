@@ -142,16 +142,17 @@ static void check_word(char * s)
 	}
 	if(strlen(s)<2)
 		return;
+	char * curWord = Array_getByIndex(test_array,numIndex);
 	int numRight = (int)atoi(Array_getByIndex(right_array,numIndex));
 	printf("numRight:%d\r\n",numRight);
-	if(strcmp(s,Array_getByIndex(test_array,numIndex))==0)
+	if(strcmp(s,curWord)==0)
 	{
 		++numRight;
 		Input_setText(input," √");
-		change_wordRight(s,numRight);
+		change_wordRight(curWord,numRight);
 		printf("right!\r\n");
 		if(numRight>=minToPass){
-			add_remembered_word(s,1);
+			add_remembered_word(curWord,1);
 			Array_removeByIndex(test_array,numIndex);
 			Array_removeByIndex(right_array,numIndex);
 			int len = test_array->length;
@@ -161,7 +162,7 @@ static void check_word(char * s)
 		}
 	}else{
 		numRight = 0;
-		change_wordRight(s,numRight);
+		change_wordRight(curWord,numRight);
 		//TextField_setText(textfield,"");
 		printf("wrong!\r\n");
 		printf("%s\r\n",input->value);

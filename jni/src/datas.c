@@ -230,8 +230,11 @@ int init_db()
 	rc = DataBase_exec(history_db,"create table if not exists history(id INTEGER primary key asc, wordid INTEGER, status varchar(1), date real);");
 	//if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
 	rc = DataBase_exec(history_db,"delete from list where remembered=0 and word like \"%×%\" or \"%√%\";");
+	/*
 	rc = DataBase_exec(history_db,"delete from list where remembered=0 and word not like \"___%\";");
 	rc = DataBase_exec(history_db,"delete from list where remembered=0 and word=\"drafman\";");
+	rc = DataBase_exec(history_db,"delete from list where remembered=0 and word=\"rountine\";");
+	*/
 	return 0;
 }
 

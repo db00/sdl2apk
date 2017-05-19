@@ -22,6 +22,18 @@ static char * full_explain = NULL;
 
 static void test_word(char * word);
 
+static void write_config()
+{
+	char * s = "words=%d,pass=%d";
+	int len = strlen(s)+20;
+	char content[len];
+	memset(content,0,len);
+	sprintf(content,s,numWords,minToPass);
+	char * file= decodePath("~/sound/test_config.txt");
+	printf("%s\r\n",content);
+	writefile(file,content,strlen(content));
+}
+
 static int get_test_config()
 {
 	char * file = "~/sound/test_config.txt";
@@ -53,6 +65,7 @@ static int get_test_config()
 		Array_clear(arr);
 		free(url);
 		url = NULL;
+		printf("%d,%d\r\n",numWords,minToPass);
 		return 0;
 	}
 	return -1;
@@ -118,10 +131,12 @@ static char * starStrings(int i)
 
 static void test_next()
 {
+	++numIndex;
 	if(numIndex>=test_array->length)
 		numIndex=0;
 	char * _s = Array_getByIndex(test_array,numIndex);
 	test_word(_s);
+	Input_setText(input,"");
 }
 
 static void change_wordRight(char *s,int i)
@@ -137,7 +152,23 @@ static void change_wordRight(char *s,int i)
 
 static void check_word(char * s)
 {
-	if(regex_match(input->value,"/ [×√]/")){
+	if(regex_match(s,"/^[0-9]{1,}[wp]$/i")){
+		int len = strlen(s);
+		if(input->value[len-1]=='w'){
+			numWords = atoi(s);
+			if(numWords>100)
+				numWords=100;
+			else if(numWords<5)
+				numWords = 5;
+		}else{
+			minToPass = atoi(s);
+			if(minToPass>10)
+				minToPass = 10;
+			else if(numWords<1)
+				minToPass = 1;
+		}
+		Input_setText(input,"");
+		write_config();
 		return;
 	}
 	if(strlen(s)<2)
@@ -145,10 +176,12 @@ static void check_word(char * s)
 	char * curWord = Array_getByIndex(test_array,numIndex);
 	int numRight = (int)atoi(Array_getByIndex(right_array,numIndex));
 	printf("numRight:%d\r\n",numRight);
-	if(strcmp(s,curWord)==0)
+	if(strcasecmp(s,curWord)==0)
 	{
 		++numRight;
-		Input_setText(input," √");
+		char * right_s = contact_str(s," √");
+		Input_setText(input,right_s);
+		free(right_s);
 		change_wordRight(curWord,numRight);
 		printf("right!\r\n");
 		if(numRight>=minToPass){
@@ -157,8 +190,7 @@ static void check_word(char * s)
 			Array_removeByIndex(right_array,numIndex);
 			int len = test_array->length;
 			get_test_array(len,numWords-len);
-		}else{
-			++numIndex;
+			--numIndex;
 		}
 	}else{
 		numRight = 0;
@@ -171,7 +203,6 @@ static void check_word(char * s)
 		Input_setText(input,tmp);
 		free(wrong_s);
 		free(tmp);
-		++numIndex;
 	}
 	TextField_setText(textfield,full_explain);
 }
@@ -185,6 +216,10 @@ static void keyupEvent(SpriteEvent* e){
 	const char * kname = SDL_GetKeyName(event->key.keysym.sym);
 	if(!strcmp(kname,"Menu"))
 		return;
+	if(regex_match(input->value,"/ [×√]/")){
+		test_next();
+		return;
+	}
 	switch (event->key.keysym.sym)
 	{
 		case SDLK_MENU:
@@ -194,7 +229,6 @@ static void keyupEvent(SpriteEvent* e){
 			if(strlen(input->value)>1){
 				if(regex_match(input->value,"/ [×√]/")){
 					test_next();
-					Input_setText(input,"");
 				}else{
 					int l= strlen(input->value);
 					char v[l];

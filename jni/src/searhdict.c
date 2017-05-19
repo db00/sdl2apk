@@ -123,10 +123,9 @@ int add_history(char *word)
 {
 	if(history_db && strlen(word)>1 && regex_match(word,"/^[a-z-]*$/i")) 
 	{
-		int rc=0;
-		rc = add_new_word(word);
+		add_new_word(word);
 		//printf("\r\n-------------------id:%d\r\n",rc);
-		rc = add_to_history(rc);
+		//rc = add_to_history(rc);
 		//if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
 	}
 	return 0;

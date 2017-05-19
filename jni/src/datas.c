@@ -1,26 +1,17 @@
 /***
  *
- gcc cJSON.c sqlite.c datas.c files.c array.c mystring.c myregex.c -lm -lsqlite3 -D debug_datas -I"../SDL2/include/" && ./a.out
+ gcc cJSON.c -I"../SDL2/include/" -lSDL2 sqlite.c datas.c files.c array.c mystring.c myregex.c -lm -lsqlite3 -D debug_datas -I"../SDL2/include/" && ./a.out
  */
 #include "datas.h"
 
-int add_new_word(char * word)
+void add_new_word(char * word)
 {
-	int id=get_word_id(word);
-	if(id>0)
-	{
-		printf("\r\nin list\r\n");
-	}else{
-		printf("\r\nnot in list\r\n");
-		char * s ="insert into list(word,date,remembered,numAccess,numTest) values (\"%s\",%d,0,1,0);";
-		char sql[256];
-		memset(sql,0,256);
-		sprintf(sql,s,word,time(NULL));
-		int rc = DataBase_exec(history_db,sql);
-		//if(!rc)printf("\n insert sql_result_str:%s",history_db->result_str);
-		id = get_word_id(word);
-	}
-	return id;
+	char * s ="replace into list(word,date) values (\"%s\",%d);";
+	char sql[256];
+	memset(sql,0,256);
+	sprintf(sql,s,word,time(NULL));
+	int rc = DataBase_exec(history_db,sql);
+	//if(!rc)printf("\n insert sql_result_str:%s",history_db->result_str);
 }
 
 /**
@@ -28,34 +19,24 @@ int add_new_word(char * word)
  * 把word加入熟词（1）/生词（0）
  *
  */
-int add_remembered_word(char * word,int remembered)
+void add_remembered_word(char * word,int remembered)
 {
-	int id = add_new_word(word);
-	if(id>0)
-	{
-		char * s ="update list set remembered=%d where wordid=%d;";
-		char sql[100];
-		memset(sql,0,100);
-		sprintf(sql,s,remembered,id);
-		int rc = DataBase_exec(history_db,sql);
-		if(!rc)printf("\n update sql_result_str:%s",history_db->result_str);
-	}
-	return id;
+	char * s ="update list set remembered=%d,date=%d where word=\"%s\";";
+	char sql[100];
+	memset(sql,0,100);
+	sprintf(sql,s,remembered,time(NULL),word);
+	int rc = DataBase_exec(history_db,sql);
+	if(!rc)printf("\n update sql_result_str:%s",history_db->result_str);
 }
 
-int change_word_rights(char * word,int num)
+void change_word_rights(char * word,int num)
 {
-	int id = add_new_word(word);
-	if(id>0)
-	{
-		char * s ="update list set numTest=%d where wordid=%d;";
-		char sql[100];
-		memset(sql,0,100);
-		sprintf(sql,s,num,id);
-		int rc = DataBase_exec(history_db,sql);
-		if(!rc)printf("\n update sql_result_str:%s",history_db->result_str);
-	}
-	return id;
+	char * s ="update list set numTest=%d,date=%d where word=\"%s\";";
+	char sql[100];
+	memset(sql,0,100);
+	sprintf(sql,s,num,time(NULL),word);
+	int rc = DataBase_exec(history_db,sql);
+	if(!rc)printf("\n update sql_result_str:%s",history_db->result_str);
 }
 
 int get_word_id(char * word)
@@ -76,28 +57,8 @@ int get_word_id(char * word)
 	return 0;
 }
 
-int add_to_history(int wordid)
-{
-
-	char * s ="insert into history(wordid,status,date) values (%d,\"-\",%d);";
-	char sql[200];
-	memset(sql,0,200);
-	sprintf(sql,s,wordid,time(NULL));
-	int rc = DataBase_exec(history_db,sql);
-	return rc;
-}
-
-void clear_result_str()
-{
-	if(history_db->result_str){
-		free(history_db->result_str);
-		history_db->result_str=NULL;
-	}
-}
-
 char * datas_query(char * sql)
 {
-	clear_result_str();
 	int rc;
 	rc = DataBase_exec(history_db,sql);
 	if(!rc){
@@ -109,7 +70,6 @@ char * datas_query(char * sql)
 
 Array * datas_query2(char * sql)
 {
-	clear_result_str();
 	int rc = DataBase_exec2array(history_db,sql);
 	if(!rc){
 		DataBase_result_print(history_db);
@@ -123,7 +83,6 @@ char * get_history()
 {
 	return datas_query("select * from list group by wordid ORDER BY date desc;");
 	/*
-	   clear_result_str();
 	   int rc;
 	   rc = DataBase_exec(history_db,"select * from list group by wordid ORDER BY date desc;");
 	   if(!rc){
@@ -136,9 +95,10 @@ char * get_history()
 }
 char * get_remembered_history(int remembered)
 {
-	char sql[200];
-	memset(sql,0,200);
 	char * s = ("select * from list where remembered=%d group by wordid ORDER BY date desc;");
+	int len = strlen(s)+5;
+	char sql[len];
+	memset(sql,0,len);
 	sprintf(sql,s,remembered);
 	//printf("\n%s\n",sql);fflush(stdout);
 	return datas_query(sql);
@@ -147,32 +107,38 @@ char * get_remembered_history(int remembered)
 Array * get_history_list(int numWords,char * word,char * compare)
 {
 	//if(word==NULL||strlen(word)==0) word="";
-	char sql[300];
-	memset(sql,0,300);
 	char *s;
 	if(word && compare)
 	{
 		//s = ("select * from list where group by wordid ORDER BY date desc;");
 		if(compare[0]=='<')
-			s = "select *  from list where wordid %s (select wordid from list where word==\"%s\") order by wordid desc limit 0,%d";
+			s = "select *  from list where wordid %s (select wordid from list where word==\"%s\") order by wordid desc limit 0,%d;";
 		else
-			s = "select *  from list where wordid %s (select wordid from list where word==\"%s\") order by wordid limit 0,%d";
+			s = "select *  from list where wordid %s (select wordid from list where word==\"%s\") order by wordid limit 0,%d;";
+		int len = strlen(s)+strlen(word)+strlen(compare)+10;
+		char sql[len];
+		memset(sql,0,len);
 		sprintf(sql,s,compare,word,numWords);
+		printf("\n%s\n",sql);fflush(stdout);
+		return datas_query2(sql);
 	}else{
-		s = "select *  from list order by wordid desc limit 0,%d";
+		s = "select *  from list order by wordid desc limit 0,%d;";
+		int len = strlen(s)+10;
+		char sql[len];
+		memset(sql,0,len);
 		sprintf(sql,s,numWords);
+		printf("\n%s\n",sql);fflush(stdout);
+		return datas_query2(sql);
 	}
-	printf("\n%s\n",sql);fflush(stdout);
-	return datas_query2(sql);
 }
 Array * get_test_list(int startIndex,int numWords)
 {
 	init_db();
-	int len = 300;
+	char *s=NULL;
+	s = "select * from list where remembered==0 order by wordid desc limit %d,%d;";
+	int len = strlen(s)+20;
 	char sql[len];
 	memset(sql,0,len);
-	char *s=NULL;
-	s = "select * from list where remembered==0 order by wordid desc limit %d,%d";
 	sprintf(sql,s,startIndex,numWords);
 
 	printf("\n%s\n",sql);fflush(stdout);
@@ -181,42 +147,35 @@ Array * get_test_list(int startIndex,int numWords)
 
 Array * get_remembered_list(int remembered,int numWords,char * word,char * compare)
 {
-	int len = 300;
-	if(word)
-		len += strlen(word);
-	char sql[len];
-	memset(sql,0,len);
 	char *s=NULL;
 	if(word && compare)
 	{
 		//s = ("select * from list where remembered=%d group by wordid ORDER BY date desc;");
 		if(compare[0]=='<')
-			s = "select * from list where wordid %s (select wordid from list where word==\"%s\") and remembered==%d order by wordid desc limit 0,%d";
+			s = "select * from list where wordid %s (select wordid from list where word==\"%s\") and remembered==%d order by wordid desc limit 0,%d;";
 		else
-			s = "select * from list where wordid %s (select wordid from list where word==\"%s\") and remembered==%d order by wordid limit 0,%d";
+			s = "select * from list where wordid %s (select wordid from list where word==\"%s\") and remembered==%d order by wordid limit 0,%d;";
+		int len = strlen(s)+10;
+		len += strlen(word);
+		char sql[len];
+		memset(sql,0,len);
 		sprintf(sql,s,compare,word,remembered,numWords);
+		return datas_query2(sql);
 	}else{
-		s = "select *  from list where remembered==%d order by wordid desc limit 0,%d";
+		s = "select *  from list where remembered==%d order by wordid desc limit 0,%d;";
+		int len = strlen(s)+10;
+		char sql[len];
+		memset(sql,0,len);
 		sprintf(sql,s,remembered,numWords);
+		return datas_query2(sql);
 	}
 
 	//select *  from list where wordid <= (select wordid from list where word=="good") order by wordid desc limit 0,20;
 	//char * s = ("select * from list where remembered=%d group by wordid ORDER BY date desc;");
 	//sprintf(sql,s,remembered);
-	printf("\n%s\n",sql);fflush(stdout);
-	return datas_query2(sql);
+	//printf("\n%s\n",sql);fflush(stdout);
 }
 
-
-int add_to_test(int wordid,int result)
-{
-	char * s ="insert into history(wordid,status,date) values (%d,%d,%d);";
-	char sql[128];
-	memset(sql,0,128);
-	sprintf(sql,s,wordid,result,time(NULL));
-	int rc = DataBase_exec(history_db,sql);
-	return rc;
-}
 
 int init_db()
 {
@@ -225,23 +184,134 @@ int init_db()
 
 	history_db = DataBase_new(decodePath("~/sound/test.db"));
 	int rc=0;
-	rc = DataBase_exec(history_db,"create table if not exists list(wordid INTEGER primary key asc,word varchar(50), date real, remembered char(1), numAccess INTEGER, numTest INTEGER);");
+	rc = DataBase_exec(history_db,"create table if not exists list(wordid INTEGER primary key asc,word text UNIQUE, date INTEGER, remembered char(1) default(0), numAccess INTEGER default(0),numTest INTEGER default(0));");
+	//rc = DataBase_exec(history_db,"create table if not exists list(wordid INTEGER primary key asc,word varchar(50), date real, remembered char(1), numAccess INTEGER, numTest INTEGER);");
 	//if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
-	rc = DataBase_exec(history_db,"create table if not exists history(id INTEGER primary key asc, wordid INTEGER, status varchar(1), date real);");
 	//if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
-	rc = DataBase_exec(history_db,"delete from list where remembered=0 and word like \"%×%\" or \"%√%\";");
 	/*
-	rc = DataBase_exec(history_db,"delete from list where remembered=0 and word not like \"___%\";");
-	rc = DataBase_exec(history_db,"delete from list where remembered=0 and word=\"drafman\";");
-	rc = DataBase_exec(history_db,"delete from list where remembered=0 and word=\"rountine\";");
-	*/
+	   rc = DataBase_exec(history_db,"DROP TABLE IF EXISTS history");
+	   rc = DataBase_exec(history_db,"delete from list where remembered=0 and word like \"%×%\" or \"%√%\";");
+	   rc = DataBase_exec(history_db,"create table if not exists history(id INTEGER primary key asc, wordid INTEGER, status varchar(1), date real);");
+	   rc = DataBase_exec(history_db,"delete from list where remembered=0 and word not like \"___%\";");
+	   rc = DataBase_exec(history_db,"delete from list where remembered=0 and word=\"drafman\";");
+	   rc = DataBase_exec(history_db,"delete from list where remembered=0 and word=\"rountine\";");
+	   */
 	return 0;
 }
 
 
+
+
 #ifdef debug_datas
+
+static int inserts(sqlite3 * conn,sqlite3_stmt * stmt3,char * word,int date,char * remembered,int numAccess,int numTest)
+{
+	/*
+	   word text,
+	   date INTEGER,
+	   remembered char(1)
+	   numAccess INTEGER
+	   numTest INTEGER
+	   */
+	//在绑定时，最左面的变量索引值是1。
+	//sqlite3_bind_int(stmt3,1,i);
+	//sqlite3_bind_double(stmt3,2,i * 1.0);
+	sqlite3_bind_text(stmt3,1,word,strlen(word),SQLITE_TRANSIENT);
+	sqlite3_bind_int(stmt3,2,date);
+	sqlite3_bind_text(stmt3,3,remembered,strlen(remembered),SQLITE_TRANSIENT);
+	sqlite3_bind_int(stmt3,4,numAccess);
+	sqlite3_bind_int(stmt3,5,numTest);
+	if (sqlite3_step(stmt3) != SQLITE_DONE) {
+		sqlite3_finalize(stmt3);
+		sqlite3_close(conn);
+		return 1;
+	}
+	//重新初始化该sqlite3_stmt对象绑定的变量。
+	sqlite3_reset(stmt3);
+	//printf("Insert Succeed.\n");
+	return 0;
+}
+
+static void _backup()
+{
+	system("rm ~/sound/test.db");
+	system("adb pull /sdcard/sound/test.db ~/");
+	DataBase * db = DataBase_new(decodePath("~/test.db"));
+	char * sql = "select * from list;";
+	DataBase_exec2array(db,sql);
+	Array * data = db->result_arr;
+	if(data)
+	{
+		Array * names = Array_getByIndex(data,0);
+		if(names==NULL){
+			printf("no names Array");
+			return ;
+		}
+		int nCount = names->length;
+		int i = 0;
+		Array * words = NULL;
+		Array * dates = NULL;
+		Array * remembereds = NULL;
+		Array * numAccesses = NULL;
+		Array * numTests = NULL;
+		while(i<nCount)
+		{
+			char * curName =Array_getByIndex(names,i);
+			if(strcmp(curName,"word")==0){
+				words = Array_getByIndex(data,i+1);
+			}else if(strcmp(curName,"date")==0){
+				dates = Array_getByIndex(data,i+1);
+			}else if(strcmp(curName,"remembered")==0){
+				remembereds = Array_getByIndex(data,i+1);
+			}else if(strcmp(curName,"numAccess")==0){
+				numAccesses = Array_getByIndex(data,i+1);
+			}else if(strcmp(curName,"numTest")==0){
+				numTests = Array_getByIndex(data,i+1);
+			}
+			++i;
+		}
+		if(history_db==NULL){
+			init_db();
+		}
+
+		const char* insertSQL = "replace into list(word,date,remembered,numAccess,numTest) values(?,?,?,?,?);";
+		sqlite3_stmt* stmt3 = NULL;
+		sqlite3 * conn = history_db->db;
+		if (sqlite3_prepare_v2(conn,insertSQL,strlen(insertSQL),&stmt3,NULL) != SQLITE_OK) {
+			if (stmt3)
+				sqlite3_finalize(stmt3);
+			sqlite3_close(conn);
+			printf("stmt3 Error\r\n");
+			return;
+		}
+		i = 0;
+		while(i<words->length)
+		{
+			int rc = inserts(conn,stmt3,
+					Array_getByIndex(words,i),
+					atoi(Array_getByIndex(dates,i)),
+					Array_getByIndex(remembereds,i),
+					atoi(Array_getByIndex(numAccesses,i)),
+					atoi(Array_getByIndex(numTests,i)));
+			if(!rc){
+				printf("%d: %s\r\n",i,Array_getByIndex(words,i));fflush(stdout);
+				//printf("\nsql_result_str:%s",db->result_str);
+			}else{
+				printf("%d: %s\r\n",i,Array_getByIndex(words,i));fflush(stdout);
+				printf("insert Error\r\n");
+				return ;
+			}
+			++i;
+		}
+		sqlite3_finalize(stmt3);
+	}
+}
+
 int main()
 {
+	_backup();
+	return 0;
+
 	unsigned int i = -1;
 	unsigned int j = -1;
 	//printf("%d\r\n",-(((unsigned int)-1)/4));
@@ -250,9 +320,8 @@ int main()
 	if(history_db){
 		int rc=0;
 		/*
-		   rc = add_new_word("test");
+		   add_new_word("test");
 		   printf("\r\n-------------------id:%d\r\n",rc);
-		   rc = add_to_history(rc);
 		   if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
 		//printf("\r\n-------------------id:%d\r\n",rc);
 		rc = DataBase_exec(history_db,"select * from sqlite_master;");

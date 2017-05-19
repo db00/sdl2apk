@@ -36,13 +36,12 @@ int init_db();
 int get_word_id(char * word);
 int add_to_history(int wordid);
 char * get_remembered_history(int remembered);
-int add_to_test(int wordid,int result);
-int add_new_word(char * word);
+void add_new_word(char * word);
 char * datas_query(char * sql);
-int add_remembered_word(char * word,int remembered);
+void add_remembered_word(char * word,int remembered);
 Array * get_test_list(int startIndex,int numWords);
 
 Array * get_history_list(int numWords,char * word,char * compare);
 Array * get_remembered_list(int remembered,int numWords,char * word,char * compare);
-int change_word_rights(char * word,int num);//change word right number of test
+void change_word_rights(char * word,int num);//change word right number of test
 #endif

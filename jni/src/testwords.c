@@ -152,6 +152,8 @@ static void change_wordRight(char *s,int i)
 
 static void check_word(char * s)
 {
+	if(strlen(s)<2)
+		return;
 	if(regex_match(s,"/^[0-9]{1,}[wp]$/i")){
 		int len = strlen(s);
 		if(input->value[len-1]=='w'){
@@ -171,15 +173,14 @@ static void check_word(char * s)
 		write_config();
 		return;
 	}
-	if(strlen(s)<2)
-		return;
-	char * curWord = Array_getByIndex(test_array,numIndex);
+	char * curWord = regex_replace_all(Array_getByIndex(test_array,numIndex),"/-/gi","");
+	char * right_answer = regex_replace_all(s,"/-/gi","");
 	int numRight = (int)atoi(Array_getByIndex(right_array,numIndex));
 	printf("numRight:%d\r\n",numRight);
-	if(strcasecmp(s,curWord)==0)
+	if(strcasecmp(right_answer,curWord)==0)
 	{
 		++numRight;
-		char * right_s = contact_str(s," √");
+		char * right_s = contact_str(s," √ ");
 		Input_setText(input,right_s);
 		free(right_s);
 		change_wordRight(curWord,numRight);
@@ -198,16 +199,22 @@ static void check_word(char * s)
 		//TextField_setText(textfield,"");
 		printf("wrong!\r\n");
 		printf("%s\r\n",input->value);
-		char * wrong_s = contact_str(s," ×");
+		char * wrong_s = contact_str(s," × ");
 		char * tmp = regex_replace_all(wrong_s,"/[\r\n]/img","");
 		Input_setText(input,tmp);
 		free(wrong_s);
 		free(tmp);
 	}
+	free(right_answer);
+	free(curWord);
 	TextField_setText(textfield,full_explain);
 }
 
 static void keyupEvent(SpriteEvent* e){
+	if(regex_match(input->value,"/ [×√]/")){
+		test_next();
+		return;
+	}
 	if(strlen(input->value)==0)
 		return;
 	if(testContainer==NULL || testContainer->visible==0)
@@ -216,10 +223,6 @@ static void keyupEvent(SpriteEvent* e){
 	const char * kname = SDL_GetKeyName(event->key.keysym.sym);
 	if(!strcmp(kname,"Menu"))
 		return;
-	if(regex_match(input->value,"/ [×√]/")){
-		test_next();
-		return;
-	}
 	switch (event->key.keysym.sym)
 	{
 		case SDLK_MENU:
@@ -274,7 +277,11 @@ static void test_word(char * word)
 		full_explain = regex_replace_all(tmp,"([^a-zA-Z,;\r\n])( [\\*0-9]{1,2} )","$1\n$2");
 		free(tmp);
 		char * numStars = starStrings(strlen(word));
-		tmp = regex_replace_all(full_explain,word,numStars);
+		int len = strlen(word+5);
+		char patt[len];
+		memset(patt,0,len);
+		sprintf(patt,"/%s?/i",word);
+		tmp = regex_replace_all(full_explain,patt,numStars);
 		free(numStars);
 		char * test_explain = regex_replace_all(tmp,"/\\/[^\\/]*\\//g"," ");
 		printf("test_explain:%s\r\n",test_explain);

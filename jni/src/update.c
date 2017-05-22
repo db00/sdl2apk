@@ -273,8 +273,8 @@ void * update(void *ptr)
 	//compareWebAndLocal("https://raw.githubusercontent.com/db00/sdl2apk/master/langdao-ce-gb.ifo","~/sound/ce/langdao-ce-gb.ifo","https://git.oschina.net/db0/kodi/raw/master/ce.zip");
 	compareWebAndLocal("https://git.oschina.net/db0/kodi/raw/master/oxford-gb.ifo","~/sound/oxford-gb/oxford-gb.ifo","https://git.oschina.net/db0/kodi/raw/master/oxford.zip");
 
-	//char * s = loadUrl("https://raw.githubusercontent.com/db00/sdl2apk/master/AndroidManifest.xml",NULL);
-	char * s = loadUrl("https://git.oschina.net/db0/kodi/raw/master/AndroidManifest.xml",NULL);
+	char * s = loadUrl("https://raw.githubusercontent.com/db00/sdl2apk/master/AndroidManifest.xml",NULL);
+	//char * s = loadUrl("https://git.oschina.net/db0/kodi/raw/master/AndroidManifest.xml",NULL);
 	if(s)
 	{
 		char * versionName = getStrBtw(s,"android:versionName=\"","\"",0);

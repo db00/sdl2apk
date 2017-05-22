@@ -16,8 +16,8 @@ int inserts(sqlite3*  conn,sqlite3_stmt * stmt3,char * word,char * explain)
 	//在绑定时，最左面的变量索引值是1。
 	//sqlite3_bind_int(stmt3,1,i);
 	//sqlite3_bind_double(stmt3,2,i * 1.0);
-	sqlite3_bind_text(stmt3,1,word,strlen(word),SQLITE_TRANSIENT);
-	sqlite3_bind_text(stmt3,2,explain,strlen(explain),SQLITE_TRANSIENT);
+	sqlite3_bind_text(stmt3,2,word,strlen(word),SQLITE_TRANSIENT);
+	sqlite3_bind_text(stmt3,1,explain,strlen(explain),SQLITE_TRANSIENT);
 	if (sqlite3_step(stmt3) != SQLITE_DONE) {
 		sqlite3_finalize(stmt3);
 		sqlite3_close(conn);
@@ -149,7 +149,7 @@ int make_dict(char * db_path,char * dict_name)
 
 	int idxfilesize = idx_p - idx;
 
-	char * ifo_s = ifo(dict_name,"2.4.3",wordsArr->length,idxfilesize,dict_name);
+	char * ifo_s = ifo(dict_name,"2.4.4",wordsArr->length,idxfilesize,dict_name);
 	char filename[128];
 	memset(filename,0,sizeof(filename));
 	sprintf(filename,"%s.ifo",dict_name);
@@ -183,14 +183,16 @@ int update_word(char * db_path,char * word,char * explain)
 	DataBase *db = DataBase_new(db_path);
 	if(db){
 		int rc=0;
-		rc = DataBase_exec(db,"create table if not exists dict(id INTEGER primary key asc,word varchar(200) UNIQUE,explain text);");
+		rc = DataBase_exec(db,"create table if not exists dict(id INTEGER primary key asc,word text UNIQUE,explain text);");
 		if(!rc){
 			//printf("\nsql_result_str:%s",db->result_str);
 		}else{
 			return 1;
 		}
 
-		const char* insertSQL = "replace into dict(word,explain) values(?,?);";
+		//const char* insertSQL = "replace into dict(explain,word) values(?,?);";
+		//const char* insertSQL = "replace dict(explain,word) values(?,?);";
+		const char* insertSQL = "update dict set explain=? where word=?;";
 		sqlite3_stmt* stmt3 = NULL;
 		sqlite3 * conn = db->db;
 		if (sqlite3_prepare_v2(conn,insertSQL,strlen(insertSQL),&stmt3,NULL) != SQLITE_OK) {
@@ -326,7 +328,7 @@ int addirregularverb()
 						int _index = Dict_getWordIndex(dict,_pt);
 						if(_index<0)
 						{
-							int len = strlen(_pt)+10;
+							int len = strlen(_pt)+16;
 							char explain[len];
 							memset(explain,0,len);
 							sprintf(explain,"pt of %s",verb);
@@ -346,10 +348,14 @@ int addirregularverb()
 						int _index = Dict_getWordIndex(dict,_pp);
 						if(_index<0)
 						{
-							int len = strlen(_pp)+10;
+							int len = strlen(_pp)+16;
 							char explain[len];
 							memset(explain,0,len);
-							sprintf(explain,"pp of %s",verb);
+							if(Array_getIndexByStringValue(pts,_pp)>=0){
+								sprintf(explain,"pt,pp of %s",verb);
+							}else{
+								sprintf(explain,"pp of %s",verb);
+							}
 							update_word("/home/libiao/dict.db",_pp,explain);
 							printf("%s:%s\r\n",_pp,explain);
 						}

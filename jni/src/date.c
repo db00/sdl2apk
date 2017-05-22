@@ -36,7 +36,7 @@ Date * Date_newFrom1970(time_t days)// 1900.1.1=-25569;1904.1.2=-24106
 	return date;
 }
 
-Date*Date_now()// 返回一个当前时间的数据结构
+Date * Date_now()// 返回一个当前时间的数据结构
 {
 	time_t timer = Date_getTime();
 	Date* date = localtime(&timer);
@@ -53,7 +53,7 @@ double Date_getTimer()
 	return (double)clock()/CLOCKS_PER_SEC;
 }
 
-Date*Date_new(time_t *t)//根据秒数来设定时间
+Date * Date_new(time_t *t)//根据秒数来设定时间
 {
 	Date *_date;
 	Date * date = (Date*) malloc(sizeof(Date));

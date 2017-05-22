@@ -1,6 +1,6 @@
 /**
  * @file sqldict.c
- gcc -ldl -lpthread -lsqlite3 array.c myregex.c mystring.c files.c -I"../SDL2/include/" sqldict.c sqlite.c dict.c  && ./a.out
+ gcc -ldl -lpthread -lsqlite3 -lSDL2 date.c array.c myregex.c mystring.c files.c -I"../SDL2/include/" sqldict.c sqlite.c dict.c  && ./a.out
  gcc regex.c array.c sqlite3.c myregex.c mystring.c files.c -I"../SDL2/include/" sqldict.c sqlite.c dict.c  && a
  * @author db0@qq.com
  * @version 1.0.1
@@ -8,6 +8,7 @@
  */
 
 #include "sqlite.h"
+#include "date.h"
 #include "dict.h"
 
 int inserts(sqlite3*  conn,sqlite3_stmt * stmt3,char * word,char * explain)
@@ -34,9 +35,10 @@ char * ifo(char * name,char * version,int wordcount,int idxfilesize,char * bookn
 {
 	int len = 1024;
 	char * str = malloc(len);
-	char s[] = "%s\r\nversion=%s\r\nwordcount=%d\r\nidxfilesize=%d\r\nbookname=%s\r\nauthor=xx\r\ndescription=xxxxx。\r\ndate=2003.08.26\r\nsametypesequence=m";
+	Date * date = Date_new(NULL);
+	char s[] = "%s\r\nversion=%s\r\nwordcount=%d\r\nidxfilesize=%d\r\nbookname=%s\r\nauthor=xx\r\ndescription=db0@qq.com modified\r\ndate=%d.%d.%d\r\nsametypesequence=m";
 	memset(str,0,len);
-	sprintf(str,s,name,version,wordcount,idxfilesize,bookname);
+	sprintf(str,s,name,version,wordcount,idxfilesize,bookname,date->tm_year+1900,date->tm_mon,date->tm_mday);
 	return str;
 }
 char * idx_item(char * p,char * word,int offset,int len)
@@ -132,7 +134,7 @@ int make_dict(char * db_path,char * dict_name)
 			explain = Array_getByIndex(explainsArr,i);
 			if(word == NULL || explain == NULL)
 				break;
-			//if(i%1000==0)
+			if(i%1000==0)
 			{
 				printf("\r\n %d,%s,",i,word);
 			}
@@ -147,7 +149,7 @@ int make_dict(char * db_path,char * dict_name)
 
 	int idxfilesize = idx_p - idx;
 
-	char * ifo_s = ifo(dict_name,"1.0",wordsArr->length,idxfilesize,dict_name);
+	char * ifo_s = ifo(dict_name,"2.4.3",wordsArr->length,idxfilesize,dict_name);
 	char filename[128];
 	memset(filename,0,sizeof(filename));
 	sprintf(filename,"%s.ifo",dict_name);
@@ -182,8 +184,11 @@ int update_word(char * db_path,char * word,char * explain)
 	if(db){
 		int rc=0;
 		rc = DataBase_exec(db,"create table if not exists dict(id INTEGER primary key asc,word varchar(200) UNIQUE,explain text);");
-		if(!rc)printf("\nsql_result_str:%s",db->result_str);
-		else return 1;
+		if(!rc){
+			//printf("\nsql_result_str:%s",db->result_str);
+		}else{
+			return 1;
+		}
 
 		const char* insertSQL = "replace into dict(word,explain) values(?,?);";
 		sqlite3_stmt* stmt3 = NULL;
@@ -196,7 +201,7 @@ int update_word(char * db_path,char * word,char * explain)
 		}
 		rc = inserts(db->db,stmt3,word,explain);
 		if(!rc){
-			printf("\r\n %s",word);fflush(stdout);
+			//printf("\r\n %s",word);fflush(stdout);
 			//printf("\nsql_result_str:%s",db->result_str);
 		}else{
 			printf("\n ERROR:%s,%s\r\n",explain,word);
@@ -215,7 +220,8 @@ int make_db(char * dict_name,char * db_path)
 	DataBase *db = DataBase_new(db_path);
 	if(db){
 		int rc=0;
-		rc = DataBase_exec(db,"create table if not exists dict(id INTEGER primary key asc,word varchar(200) UNIQUE,explain text);");
+		//rc = DataBase_exec(db,"create table if not exists dict(id INTEGER primary key asc,word varchar(200) UNIQUE,explain text);");
+		rc = DataBase_exec(db,"create table if not exists dict(id INTEGER primary key asc,word text UNIQUE,explain text);");
 		if(!rc)printf("\nsql_result_str:%s",db->result_str);
 		else return 1;
 		//rc = DataBase_exec(db,"CREATE UNIQUE INDEX unique_index_word ON dict(word);");
@@ -284,10 +290,86 @@ int make_db(char * dict_name,char * db_path)
 }
 //REPLACE INTO dict(word, explain) VALUES (?, ?);
 
+int addirregularverb()
+{
+	char *s = readfile("irregularVerbs.txt",NULL);
+	Array * arr = string_split(s,"\n");
+	int i = 0;
+	Dict * dict = Dict_new();
+	dict->name = "oxford-gb";
+	while(i<arr->length)
+	{
+		char * s2 = (char*)Array_getByIndex(arr,i);
+		//printf("%d:%s\r\n",i,s2);
+		Array * arr2 = string_split(s2," ");
+		//if(arr2) printf("%d:%s\r\n",arr2->length,s2);
+		//pt pp
+		if(arr2 && arr2->length==3)
+		{
+			//printf("%d:%s\r\n",i,s2);
+			char * verb = (char*)Array_getByIndex(arr2,0);
+			char * pt = (char*)Array_getByIndex(arr2,1);
+			char * pp = (char*)Array_getByIndex(arr2,2);
+			if(strcmp(pp,"-")==0){
+				printf("%d:%s\r\n",i,s2);
+			}else{
+
+				Array * pts = string_split(pt,",");
+				Array * pps = string_split(pp,",");
+
+				if(pts && pts->length>0)
+				{
+					int j=0;
+					while(j<pts->length)
+					{
+						char * _pt = (char*)Array_getByIndex(pts,j);
+						int _index = Dict_getWordIndex(dict,_pt);
+						if(_index<0)
+						{
+							int len = strlen(_pt)+10;
+							char explain[len];
+							memset(explain,0,len);
+							sprintf(explain,"pt of %s",verb);
+							update_word("/home/libiao/dict.db",_pt,explain);
+							printf("%s:%s\r\n",_pt,explain);
+						}
+						++j;
+					}
+				}
+
+				if(pps && pps->length>0)
+				{
+					int j=0;
+					while(j<pps->length)
+					{
+						char * _pp = (char*)Array_getByIndex(pps,j);
+						int _index = Dict_getWordIndex(dict,_pp);
+						if(_index<0)
+						{
+							int len = strlen(_pp)+10;
+							char explain[len];
+							memset(explain,0,len);
+							sprintf(explain,"pp of %s",verb);
+							update_word("/home/libiao/dict.db",_pp,explain);
+							printf("%s:%s\r\n",_pp,explain);
+						}
+						++j;
+					}
+				}
+			}
+			//Array * arr2 = string_split(s2," ");
+
+		}
+		++i;
+	}
+	return 0;
+}
+
 int main()
 {
 	//return update_word("/home/libiao/dict.db","hello","has long mean");
-	//return make_dict("/home/libiao/dict.db","oxford");// from sqlite3 to stardict
-	return make_db("oxford-gb","/home/libiao/dict.db");//from stardict to sqlite3
+	//make_db("oxford-gb","/home/libiao/dict.db");//from stardict to sqlite3
+	addirregularverb();
+	return make_dict("/home/libiao/dict.db","oxford-gb");// from sqlite3 to stardict
 	return 0;
 }

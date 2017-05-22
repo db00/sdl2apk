@@ -6,6 +6,9 @@
 
 void add_new_word(char * word)
 {
+	int id = get_word_id(word);
+	if(id>0)
+		return;
 	char * s ="replace into list(word,date) values (\"%s\",%d);";
 	char sql[256];
 	memset(sql,0,256);
@@ -21,10 +24,19 @@ void add_new_word(char * word)
  */
 void add_remembered_word(char * word,int remembered)
 {
-	char * s ="update list set remembered=%d,date=%d where word=\"%s\";";
-	char sql[100];
-	memset(sql,0,100);
-	sprintf(sql,s,remembered,time(NULL),word);
+	int id = get_word_id(word);
+	int len = strlen(word)+50;
+	char sql[len];
+	memset(sql,0,len);
+	if(id>0)
+	{
+		char * s ="update list set remembered=%d,date=%d where word=\"%s\";";
+		sprintf(sql,s,remembered,time(NULL),word);
+	}else{
+		char * s ="insert into list(remembered,date,word) values (%d,%d,\"%s\");";
+		//char * s ="update list set remembered=%d,date=%d where word=\"%s\";";
+		sprintf(sql,s,remembered,time(NULL),word);
+	}
 	int rc = DataBase_exec(history_db,sql);
 	if(!rc)printf("\n update sql_result_str:%s",history_db->result_str);
 }

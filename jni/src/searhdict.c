@@ -95,7 +95,7 @@ static void open_dict()
 	//Loading_show(0,NULL);
 }
 
-static char * showExplain(char *explain)
+static void showExplain(char *explain)
 {
 	if(explain){
 		//char *tmp = regex_replace_all(explain,"([^a-zA-Z,;])( [\\*0-9]+ )","$1\n$2");
@@ -109,6 +109,7 @@ static char * showExplain(char *explain)
 		//explain = tmp;
 		TextField_setText(textfield,explain);
 		explainContainer->visible = SDL_TRUE;
+		free(explain);
 	}
 	if(curlistSprite)
 	{
@@ -116,7 +117,7 @@ static char * showExplain(char *explain)
 		UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//Stage_redraw
 	}
 
-	return explain;
+	//return explain;
 }
 
 int add_history(char *word)

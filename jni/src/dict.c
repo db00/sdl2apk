@@ -454,8 +454,8 @@ char *Dict_getMean(Dict* dict,Word* word)
 		int len = word->length+2 + strlen(word->word);
 		explain = (char*)malloc(len);
 		memset(explain,0,len);
-		sprintf(explain,"%s",word->word);
-		sprintf(explain+strlen(explain),"\n");
+		//sprintf(explain,"%s",word->word);
+		//sprintf(explain+strlen(explain),"\n");
 		len = fread(explain+strlen(explain),1,word->length,dict->file);
 		if(len != word->length)
 			return NULL;

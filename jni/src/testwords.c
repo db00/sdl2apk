@@ -284,7 +284,7 @@ static void test_word(char * word)
 		tmp = regex_replace_all(full_explain,patt,numStars);
 		free(numStars);
 		//char * test_explain = regex_replace_all(tmp,"/\\/[^\\/]*\\//ig"," ");
-		char * test_explain = regex_replace_all(tmp,"/\\/[^0-9\\/]*\\//ig"," ");
+		char * test_explain = regex_replace_all(tmp,"/\\/[^0-9\r\n\\/]*\\//ig"," ");
 		printf("test_explain:%s\r\n",test_explain);
 		printf("full_explain:%s\r\n",full_explain);
 		//explain = tmp;

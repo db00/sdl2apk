@@ -9,7 +9,7 @@ void add_new_word(char * word)
 	int id = get_word_id(word);
 	if(id>0)
 		return;
-	char * s ="replace into list(word,date) values (\"%s\",%d);";
+	char * s ="insert into list(word,date) values (\"%s\",%d);";
 	char sql[256];
 	memset(sql,0,256);
 	sprintf(sql,s,word,time(NULL));

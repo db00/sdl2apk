@@ -200,6 +200,7 @@ int init_db()
 	//rc = DataBase_exec(history_db,"create table if not exists list(wordid INTEGER primary key asc,word varchar(50), date real, remembered char(1), numAccess INTEGER, numTest INTEGER);");
 	//if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
 	//if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
+	rc = DataBase_exec(history_db,"delete from list where word like \"%(%\" or \"%)%\";");
 	/*
 	   rc = DataBase_exec(history_db,"DROP TABLE IF EXISTS history");
 	   rc = DataBase_exec(history_db,"delete from list where remembered=0 and word like \"%×%\" or \"%√%\";");

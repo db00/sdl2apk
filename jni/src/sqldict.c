@@ -16,8 +16,8 @@ int inserts(sqlite3*  conn,sqlite3_stmt * stmt3,char * word,char * explain)
 	//在绑定时，最左面的变量索引值是1。
 	//sqlite3_bind_int(stmt3,1,i);
 	//sqlite3_bind_double(stmt3,2,i * 1.0);
-	sqlite3_bind_text(stmt3,2,word,strlen(word),SQLITE_TRANSIENT);
 	sqlite3_bind_text(stmt3,1,explain,strlen(explain),SQLITE_TRANSIENT);
+	sqlite3_bind_text(stmt3,2,word,strlen(word),SQLITE_TRANSIENT);
 	if (sqlite3_step(stmt3) != SQLITE_DONE) {
 		sqlite3_finalize(stmt3);
 		sqlite3_close(conn);
@@ -176,44 +176,54 @@ int make_dict(char * db_path,char * dict_name)
 	return 0;
 }
 
-int update_word(char * db_path,char * word,char * explain)
+int update_one_word(DataBase * db,char * word,char * explain)
 {
 	if(word==NULL || explain==NULL || strlen(word)==0 || strlen(explain)==0)
 		return 1;
-	DataBase *db = DataBase_new(db_path);
-	if(db){
-		int rc=0;
+	int rc=0;
+	if(db==NULL){
 		rc = DataBase_exec(db,"create table if not exists dict(id INTEGER primary key asc,word text UNIQUE,explain text);");
 		if(!rc){
 			//printf("\nsql_result_str:%s",db->result_str);
 		}else{
 			return 1;
 		}
-
-		//const char* insertSQL = "replace into dict(explain,word) values(?,?);";
-		//const char* insertSQL = "replace dict(explain,word) values(?,?);";
-		const char* insertSQL = "update dict set explain=? where word=?;";
-		sqlite3_stmt* stmt3 = NULL;
-		sqlite3 * conn = db->db;
-		if (sqlite3_prepare_v2(conn,insertSQL,strlen(insertSQL),&stmt3,NULL) != SQLITE_OK) {
-			if (stmt3)
-				sqlite3_finalize(stmt3);
-			sqlite3_close(conn);
-			return 1;
-		}
-		rc = inserts(db->db,stmt3,word,explain);
-		if(!rc){
-			//printf("\r\n %s",word);fflush(stdout);
-			//printf("\nsql_result_str:%s",db->result_str);
-		}else{
-			printf("\n ERROR:%s,%s\r\n",explain,word);
-			return 1;
-		}
-		sqlite3_finalize(stmt3);
-		DataBase_clear(db);
-		db = NULL;
 	}
+
+	//const char* insertSQL = "replace into dict(explain,word) values(?,?);";
+	//const char* insertSQL = "insert into dict(explain,word) values(?,?);";
+	const char* insertSQL = "replace into dict(explain,word) values(?,?);";
+	//const char* insertSQL = "update dict set explain=? where word=?;";
+	sqlite3_stmt* stmt3 = NULL;
+	sqlite3 * conn = db->db;
+	if (sqlite3_prepare_v2(conn,insertSQL,strlen(insertSQL),&stmt3,NULL) != SQLITE_OK) {
+		if (stmt3)
+			sqlite3_finalize(stmt3);
+		sqlite3_close(conn);
+		printf("\n ERROR 0:%s,%s\r\n",explain,word);
+		return 1;
+	}
+	rc = inserts(db->db,stmt3,word,explain);
+	if(!rc){
+		//printf("\r\n %s",word);fflush(stdout);
+		//printf("\nsql_result_str:%s",db->result_str);
+	}else{
+		printf("\n ERROR:%s,%s\r\n",explain,word);
+		return 1;
+	}
+	sqlite3_finalize(stmt3);
+	//DataBase_clear(db); db = NULL;
 	return 0;
+}
+int update_word(char * db_path,char * word,char * explain)
+{
+	if(word==NULL || explain==NULL || strlen(word)==0 || strlen(explain)==0)
+		return 1;
+	DataBase *db = DataBase_new(db_path);
+	if(db){
+		return update_one_word(db,word,explain);
+	}
+	return -1;
 }
 
 
@@ -235,7 +245,7 @@ int make_db(char * dict_name,char * db_path)
 
 
 		//const char* insertSQL = "insert into dict(word,explain) values(?,?);";
-		const char* insertSQL = "replace into dict(word,explain) values(?,?);";
+		const char* insertSQL = "replace into dict(explain,word) values(?,?);";
 		sqlite3_stmt* stmt3 = NULL;
 		sqlite3 * conn = db->db;
 		if (sqlite3_prepare_v2(conn,insertSQL,strlen(insertSQL),&stmt3,NULL) != SQLITE_OK) {
@@ -256,8 +266,10 @@ int make_db(char * dict_name,char * db_path)
 		while(i < dict->wordcount)
 		{
 			Word*word = Dict_getWordByIndex(dict,i);
+			//if(word && regex_match(word->word,"\\(Brit\\)"))
 			if(word)
 			{
+				printf("%s\r\n",word->word);
 				char * explain = Dict_getMean(dict,word);
 				if(explain==NULL)
 				{
@@ -371,11 +383,107 @@ int addirregularverb()
 	return 0;
 }
 
+void remend()
+{
+	DataBase * db = DataBase_new(decodePath("~/dict.db"));
+	//char * sql = "select * from dict where explain like \"%<i>US</i>%\";";
+	char * sql = "select * from dict where word like \"`\";";
+	int rc = DataBase_exec2array(db,sql);
+	if(rc){
+		printf("ERROR: %s\r\n",db->result_arr);
+		return;
+	}
+	//DataBase_result_print(db);
+	Array * wordsArr = NULL;
+	Array * explainsArr = NULL;
+	if(db->result_arr){
+		Array * data = db->result_arr;
+		Array * names = Array_getByIndex(data,0);
+		if(names==NULL){
+			printf("no names Array");
+			return ;
+		}
+		int nCount = names->length;
+		int i = 0;
+		while(i<nCount)
+		{
+			char * curName =Array_getByIndex(names,i);
+			if(strcmp(curName,"word")==0)
+			{
+				wordsArr = Array_getByIndex(data,i+1);
+				if(wordsArr == NULL || wordsArr->length==0){
+					printf("%d:no word\r\n",i);
+					return ;
+					break;
+				}
+			}else if(strcmp(curName,"explain")==0){
+				explainsArr = Array_getByIndex(data,i+1);
+				if(explainsArr == NULL || explainsArr->length==0){
+					printf("%d:no explain\r\n",i);
+					return ;
+					break;
+				}
+			}
+			++i;
+		}
+	}
+	if(wordsArr && explainsArr && wordsArr->length>0 && wordsArr->length == explainsArr->length)
+	{
+		int i = 0;
+		char _explain[160];
+		Dict * dict = Dict_new();
+		dict->name = "oxford-gb";
+		while(i<wordsArr->length){
+			//char * explain = NULL;
+			char * word = Array_getByIndex(wordsArr,i);
+			char * explain = Array_getByIndex(explainsArr,i);
+			//if(regex_match(word,"/\\(esp /"))
+			if(regex_match(word,"/`/"))
+			{
+				//char * _word = regex_replace_all(word,"/ \\(Brit.*$/","");
+				char * _word = regex_replace_all(word,"/`/","");
+				printf("%d:%s\r\n",i,_word);fflush(stdout);
+
+				int _index = Dict_getWordIndex(dict,_word);
+				if(_index<0)
+				{
+					printf("\"%s\" ",_word);fflush(stdout);
+					//update_one_word(db,_word,explain);
+				}
+
+				char * __word = NULL;
+				__word = regex_replace_all(word,"/^.* US (.*)$/","$1");
+				memset(_explain,0,sizeof(_explain));
+				sprintf(_explain,"=> %s",_word);
+				_index = Dict_getWordIndex(dict,__word);
+				if(_index<0)
+				{
+					printf("\"%s\":%s\r\n",__word,_explain);
+					update_one_word(db,__word,_explain);
+				}
+				//
+			}
+			/*
+			   if(regex_match(tmp,"/ <i>US</i> /"))
+			   explain = regex_replace_all(tmp,"/ <i>US</i> /","");
+			   if(regex_match(tmp,"/<i>US</i>/"))
+			   explain = regex_replace_all(tmp,"/<i>US</i>/","");
+			   if(word && explain){
+			   update_one_word(db,word,explain);
+			   }
+			   */
+			++i;
+		}
+	}
+}
+
 int main()
 {
+	//remend();
 	//return update_word("/home/libiao/dict.db","hello","has long mean");
 	//make_db("oxford-gb","/home/libiao/dict.db");//from stardict to sqlite3
-	addirregularverb();
-	return make_dict("/home/libiao/dict.db","oxford-gb");// from sqlite3 to stardict
+	//addirregularverb();
+	//select count(*) from dict where explain like "%<i>US</i>%";
+	//return make_dict("/home/libiao/dict.db","oxford-gb");// from sqlite3 to stardict
 	return 0;
 }

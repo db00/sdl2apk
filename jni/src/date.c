@@ -39,11 +39,11 @@ Date * Date_newFrom1970(time_t days)// 1900.1.1=-25569;1904.1.2=-24106
 Date * Date_now()// 返回一个当前时间的数据结构
 {
 	time_t timer = Date_getTime();
-	Date* date = localtime(&timer);
+	Date * date = localtime(&timer);
 	return date;
 }
 
-time_t Date_getTime()// 按照通用时间返回 Date 对象中自 1970 年 1 月 1 日午夜以来的毫秒数。 Date 
+time_t Date_getTime()// 按照通用时间返回 Date 对象中自 1970 年 1 月 1 日午夜以来的秒数。 Date 
 {
 	return time(NULL);
 }
@@ -53,7 +53,7 @@ double Date_getTimer()
 	return (double)clock()/CLOCKS_PER_SEC;
 }
 
-Date * Date_new(time_t *t)//根据秒数来设定时间
+Date * Date_new(time_t * t)//根据秒数来设定时间
 {
 	Date *_date;
 	Date * date = (Date*) malloc(sizeof(Date));
@@ -76,7 +76,7 @@ Date * Date_new(time_t *t)//根据秒数来设定时间
 	return date;
 }
 
-time_t Date_value(Date*date)// 按照通用时间返回 Date 对象中自 1970 年 1 月 1 日午夜以来的毫秒数。 
+time_t Date_value(Date*date)// 按照通用时间返回 Date 对象中自 1970 年 1 月 1 日午夜以来的秒数。 
 {
 	return mktime(date);
 }
@@ -104,7 +104,7 @@ Date*Date_new2(int tm_year,int tm_mon,int tm_mday,int tm_hour,int tm_min,int tm_
 	return Date_new(&t);
 }
 
-double Date_diff(Date* date1,Date* date2)//两个日期相差的毫秒树
+double Date_diff(Date* date1,Date* date2)//两个日期相差的秒
 {
 	time_t t1 = Date_value(date1);
 	time_t t2 = Date_value(date2);

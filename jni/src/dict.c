@@ -327,17 +327,27 @@ int matchs(char * word,char *s)
 	return 1;
 }
 
-Word *Dict_getWordByIndex(Dict * dict,int id)
+int Dict_getNumWords(Dict * dict)
+{
+	if(dict==NULL || dict->name==NULL)
+		return 0;
+	if(dict->file==0){
+		dict->file = Dict_open(dict);
+	}
+	return dict->wordcount;
+}
+
+Word * Dict_getWordByIndex(Dict * dict,int id)
 {
 	if(dict==NULL)
 		return NULL;
 	if(dict->file==0){
 		dict->file = Dict_open(dict);
 	}
-	Word*word = dict->words + id;
-
+	Word * word = dict->words + id;
 	return word;
 }
+
 Word *Dict_getWordByRegIndex(Dict * dict,char * _regex,int id)
 {
 	id++;
@@ -387,7 +397,7 @@ Word *Dict_getWordByRegWordPrev(Dict * dict,char * _regex,Word*_word)
 
 
 int maxlen = 10;
-char *Dict_getByIndex(Dict * dict,int id){
+char * Dict_getByIndex(Dict * dict,int id){
 	if(dict==NULL)
 		return NULL;
 
@@ -429,7 +439,7 @@ char *Dict_getByIndex(Dict * dict,int id){
 	return explain;
 }
 
-char *Dict_getMean(Dict* dict,Word* word)
+char * Dict_getMean(Dict* dict,Word* word)
 {
 	if(dict->file==NULL){
 		dict->file = Dict_open(dict);
@@ -509,6 +519,7 @@ int main(int argc,char**argv)
 
 	Dict * dict = Dict_new();
 	dict->name = "oxford-gb";
+	printf("numWords:%d\r\n",Dict_getNumWords(dict));
 	int _index = Dict_getWordIndex(dict,"hello");
 	printf("%d",_index);
 	return 0;

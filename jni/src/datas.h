@@ -36,10 +36,11 @@ int init_db();
 int get_word_id(char * word);
 int add_to_history(int wordid);
 char * get_remembered_history(int remembered);
-void add_new_word(char * word);
+int add_new_word(char * word,time_t t);
 char * datas_query(char * sql);
 void add_remembered_word(char * word,int remembered);
 Array * get_test_list(int startIndex,int numWords);
+Array * get_review_list(int startIndex,int numWords);
 
 Array * get_history_list(int numWords,char * word,char * compare);
 Array * get_remembered_list(int remembered,int numWords,char * word,char * compare);

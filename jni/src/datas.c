@@ -4,17 +4,19 @@
  */
 #include "datas.h"
 
-void add_new_word(char * word)
+int add_new_word(char * word,time_t t)
 {
 	int id = get_word_id(word);
 	if(id>0)
-		return;
+		return id;
 	char * s ="insert into list(word,date) values (\"%s\",%d);";
 	char sql[256];
 	memset(sql,0,256);
-	sprintf(sql,s,word,time(NULL));
+	//t = time(NULL);
+	sprintf(sql,s,word,t);
 	int rc = DataBase_exec(history_db,sql);
 	//if(!rc)printf("\n insert sql_result_str:%s",history_db->result_str);
+	return 0;
 }
 
 /**
@@ -91,20 +93,13 @@ Array * datas_query2(char * sql)
 }
 
 
+
+/*
 char * get_history()
 {
 	return datas_query("select * from list group by wordid ORDER BY date desc;");
-	/*
-	   int rc;
-	   rc = DataBase_exec(history_db,"select * from list group by wordid ORDER BY date desc;");
-	   if(!rc){
-	   printf("\n history :\n%s",history_db->result_str);
-
-	   return history_db->result_str;
-	   }
-	   return NULL;
-	   */
 }
+*/
 char * get_remembered_history(int remembered)
 {
 	char * s = ("select * from list where remembered=%d group by wordid ORDER BY date desc;");
@@ -152,6 +147,22 @@ Array * get_test_list(int startIndex,int numWords)
 	char sql[len];
 	memset(sql,0,len);
 	sprintf(sql,s,startIndex,numWords);
+
+	printf("\n%s\n",sql);fflush(stdout);
+	return datas_query2(sql);
+}
+Array * get_review_list(int lastdate,int numWords)
+{
+	init_db();
+	char *s=NULL;
+	s = "select * from list where date<%d and remembered==1 order by date limit 0,%d;";
+	int len = strlen(s)+20;
+	char sql[len];
+	memset(sql,0,len);
+
+	//time_t t = time(NULL)-24*3600;
+	//printf("%s",ctime(&t));
+	sprintf(sql,s,lastdate,numWords);
 
 	printf("\n%s\n",sql);fflush(stdout);
 	return datas_query2(sql);
@@ -322,6 +333,9 @@ static void _backup()
 
 int main()
 {
+	time_t t = time(NULL)-24*3600;
+	printf("%s,%d",ctime(&t));
+	return 0;
 	_backup();
 	return 0;
 
@@ -333,7 +347,7 @@ int main()
 	if(history_db){
 		int rc=0;
 		/*
-		   add_new_word("test");
+		   add_new_word("test",time(NULL));
 		   printf("\r\n-------------------id:%d\r\n",rc);
 		   if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
 		//printf("\r\n-------------------id:%d\r\n",rc);

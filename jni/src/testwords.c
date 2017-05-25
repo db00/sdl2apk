@@ -17,6 +17,7 @@ static int numWords = 5;
 static int minToPass = 5;
 static Array * test_array;
 static Array * right_array;
+static Array * date_array;
 static Dict * ec_dict = NULL;
 static char * full_explain = NULL;
 
@@ -71,52 +72,112 @@ static int get_test_config()
 	return -1;
 }
 
-Array * get_test_array(int start,int _numWords)
+static void adds(Array * data,time_t * date)
 {
-	Array * data = get_test_list(start,_numWords);
 	if(data)
 	{
 		Array * names = Array_getByIndex(data,0);
 		if(names==NULL){
 			printf("no names Array");
-			return NULL;
+			return;
 		}
 		int nCount = names->length;
 		int i = 0;
+		int wordCol=0;
+		int numCol=0;
+		int dateCol=0;
 		while(i<nCount)
 		{
 			char * curName =Array_getByIndex(names,i);
 			if(strcmp(curName,"word")==0)
 			{
-				Array * wordsArr = Array_getByIndex(data,i+1);
-				if(wordsArr && wordsArr->length>0)
-				{
-					if(test_array==NULL)
-						test_array = Array_new();
-					int j = 0;
-					while(j<wordsArr->length)
-					{
-						Array_push(test_array,append_str(NULL,"%s",Array_getByIndex(wordsArr,j)));
-						++j;
-					}
-				}
+				wordCol = i+1;
 				//printf("\r\n column_name:%s:%d,length:%d\r\n",curName,i+1,wordsArr->length);
 			}else if(strcmp(curName,"numTest")==0){
-				Array * wordsArr = Array_getByIndex(data,i+1);
-				if(wordsArr && wordsArr->length>0)
-				{
-					if(right_array==NULL)
-						right_array = Array_new();
-					int j = 0;
-					while(j<wordsArr->length)
-					{
-						Array_push(right_array,append_str(NULL,"%s",Array_getByIndex(wordsArr,j)));
-						++j;
-					}
-				}
+				numCol = i+1;
+			}else if(strcmp(curName,"date")==0){
+				dateCol = i+1;
 			}
 			++i;
 		}
+		if(wordCol && numCol && dateCol)
+		{
+			Array * wordsArr = Array_getByIndex(data,wordCol);
+			Array * numsArr = Array_getByIndex(data,numCol);
+			Array * dateArr = Array_getByIndex(data,dateCol);
+			if(wordsArr && wordsArr->length>0)
+			{
+				if(test_array==NULL)
+				{
+					test_array = Array_new();
+					right_array = Array_new();
+					date_array = Array_new();
+				}
+				int j = 0;
+				while(j<wordsArr->length)
+				{
+					char * word = Array_getByIndex(wordsArr,j);
+					if(Array_getIndexByStringValue(test_array,word)<0)
+					{
+						Array_push(test_array,append_str(NULL,"%s",word));
+						Array_push(right_array,append_str(NULL,"%s",Array_getByIndex(numsArr,j)));
+						char * _date = Array_getByIndex(dateArr,j);
+						Array_push(date_array,append_str(NULL,"%s",_date));
+						//time_t t = atoi(_date); printf("time|%s|%s\r\n",_date,ctime(&t));
+						if(date)
+							*date = atoi((char *)Array_getByIndex(dateArr,j));
+					}
+					++j;
+				}
+			}
+		}
+	}
+}
+
+static time_t lastdate=0;
+Array * get_test_array(int start,int _numWords)
+{
+	Array * data = get_test_list(start,_numWords);
+	adds(data,NULL);
+	if(test_array == NULL || test_array->length<numWords)
+	{//review remembered words
+		if(test_array==NULL)
+			start = 0;
+		else
+			start = test_array->length;
+
+		if(lastdate==0){
+			lastdate = time(NULL)-24*3600;
+		}
+		data = get_review_list(lastdate,numWords-start);
+		adds(data,&lastdate);
+	}
+	if(test_array == NULL || test_array->length<numWords)
+	{//find random word in dict
+		if(test_array==NULL){
+			test_array = Array_new();
+			right_array = Array_new();
+			date_array = Array_new();
+		}
+		int i = test_array->length;
+		while(i<numWords)
+		{
+			srand(time(NULL));
+			int ran = rand()% Dict_getNumWords(ec_dict);
+			Word * word = Dict_getWordByIndex(ec_dict,ran);
+			char * _word = word->word;
+			if(strlen(_word)>2 && regex_match(_word,"/^[a-z]*$/i"))
+			{
+				if(add_new_word(_word,0)==0)
+				{//not in the list of database
+					Array_push(test_array,append_str(NULL,"%s",_word));
+					Array_push(right_array,append_str(NULL,"%s","0"));
+					Array_push(date_array,append_str(NULL,"%s","0"));
+					++i;
+				}
+			}
+		}
+
 	}
 	return test_array;
 }
@@ -173,9 +234,11 @@ static void check_word(char * s)
 		write_config();
 		return;
 	}
-	char * curWord = regex_replace_all(Array_getByIndex(test_array,numIndex),"/-/gi","");
-	char * right_answer = regex_replace_all(s,"/-/gi","");
+	char * origin_word = Array_getByIndex(test_array,numIndex);
+	char * curWord = regex_replace_all(origin_word,"/[^a-z]/i","");
+	char * right_answer = regex_replace_all(s,"/[^a-z]/i","");
 	int numRight = (int)atoi(Array_getByIndex(right_array,numIndex));
+	int lasttestTime = (int)atoi(Array_getByIndex(date_array,numIndex));
 	printf("numRight:%d\r\n",numRight);
 	if(strcasecmp(right_answer,curWord)==0)
 	{
@@ -183,19 +246,20 @@ static void check_word(char * s)
 		char * right_s = contact_str(s," √ ");
 		Input_setText(input,right_s);
 		free(right_s);
-		change_wordRight(curWord,numRight);
+		change_wordRight(origin_word,numRight);
 		printf("right!\r\n");
-		if(numRight>=minToPass){
-			add_remembered_word(curWord,1);
+		if(numRight>=minToPass || lasttestTime < time(NULL)-3600*24){
+			add_remembered_word(origin_word,1);
 			Array_removeByIndex(test_array,numIndex);
 			Array_removeByIndex(right_array,numIndex);
+			Array_removeByIndex(date_array,numIndex);
 			int len = test_array->length;
 			get_test_array(len,numWords-len);
 			--numIndex;
 		}
 	}else{
 		numRight = 0;
-		change_wordRight(curWord,numRight);
+		change_wordRight(origin_word,numRight);
 		//TextField_setText(textfield,"");
 		printf("wrong!\r\n");
 		printf("%s\r\n",input->value);
@@ -256,16 +320,6 @@ static void test_word(char * word)
 	printf("%d:%s\r\n",numIndex,word);
 	fflush(stdout);
 	if(word && strlen(word)){
-		if(ec_dict==NULL)
-		{
-			ec_dict = Dict_new();
-			ec_dict->name = "oxford-gb";
-			if(!fileExists("~/sound/oxford-gb/"))
-			{
-				//Loading_show(1,"loading oxford ......");
-				loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/oxford.zip","~/sound/");
-			}
-		}
 		Word * _word;
 		_word = Dict_getWord(ec_dict,word);
 		char * explain = NULL;
@@ -324,6 +378,16 @@ static void test_word(char * word)
 
 void startTest()
 {
+	if(ec_dict==NULL)
+	{
+		ec_dict = Dict_new();
+		ec_dict->name = "oxford-gb";
+		if(!fileExists("~/sound/oxford-gb/"))
+		{
+			//Loading_show(1,"loading oxford ......");
+			loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/oxford.zip","~/sound/");
+		}
+	}
 	get_test_config();
 	get_test_array(0,numWords);
 	numIndex = 0;

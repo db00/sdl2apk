@@ -44,6 +44,7 @@ typedef struct
 	Word* words;//单词索引
 } Dict;
 
+int Dict_getNumWords(Dict * dict);
 Dict * Dict_new();
 void Dict_freeWords(Dict*dict);
 void Dict_free(Dict*dict);

@@ -149,6 +149,8 @@ static void show_copied(char * word,int r)
 }
 static void read_out(SpriteEvent*e)
 {
+	if(dictContainer==NULL || dictContainer->visible==0)
+		return;
 	Sprite*target = e->target;
 	if(target==NULL || target->obj==NULL)
 		return;
@@ -169,7 +171,7 @@ static void read_out(SpriteEvent*e)
 
 		dictContainer->visible = SDL_FALSE;
 
-		startTest();
+		startTest(1);
 
 		return;
 	}
@@ -312,6 +314,8 @@ int stageMouseY =0;
 int timestamp = 0;
 void selectedEvent(SpriteEvent*e)
 {
+	if(dictContainer==NULL || dictContainer->visible==0)
+		return;
 	if(e==NULL)
 		return;
 
@@ -853,6 +857,8 @@ static void showHistory()
 
 void show_history_list(SpriteEvent*e)
 {
+	if(dictContainer==NULL || dictContainer->visible==0)
+		return;
 	Sprite*target = e->target;
 	SDL_Event* event = e->e;
 
@@ -927,6 +933,8 @@ void show_history_list(SpriteEvent*e)
 
 void mouseMoves(SpriteEvent*e)
 {
+	if(dictContainer==NULL || dictContainer->visible==0)
+		return;
 	Sprite*target = e->target;
 	if(target==NULL)
 		return;
@@ -993,11 +1001,15 @@ void textChangFunc(Input * input){
 	}
 }
 void stopInput(SpriteEvent* e){
+	if(dictContainer==NULL || dictContainer->visible==0)
+		return;
 	stage->focus = NULL;
 	SDL_StopTextInput();
 }
 
 static void show_list(SpriteEvent* e){
+	if(dictContainer==NULL || dictContainer->visible==0)
+		return;
 	Sprite*target = e->target;
 	SDL_Event* event = e->e;
 	switch(event->type)
@@ -1263,6 +1275,7 @@ void showSearchDict(int b)
 	STATS=DICT;
 	SDL_SetWindowTitle(stage->window, "词典");
 	dictContainer->visible = b;
+	startTest(SDL_FALSE);
 	if(b){
 		Sprite_addChild(stage->sprite,dictContainer);
 		stage->focus = input->sprite;

@@ -214,7 +214,13 @@ static void change_wordRight(char *s,int i)
 static void check_word(char * s)
 {
 	if(strlen(s)<2)
+	{
+		if(strcmp(s,"q")==0){
+			testContainer->visible = SDL_FALSE;
+			showSearchDict(1);
+		}
 		return;
+	}
 	if(regex_match(s,"/^[0-9]{1,}[wp]$/i")){
 		int len = strlen(s);
 		if(input->value[len-1]=='w'){
@@ -376,23 +382,30 @@ static void test_word(char * word)
 	}
 }
 
-void startTest()
+void startTest(int b)
 {
-	if(ec_dict==NULL)
-	{
-		ec_dict = Dict_new();
-		ec_dict->name = "oxford-gb";
-		if(!fileExists("~/sound/oxford-gb/"))
+	if(b){
+		if(ec_dict==NULL)
 		{
-			//Loading_show(1,"loading oxford ......");
-			loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/oxford.zip","~/sound/");
+			ec_dict = Dict_new();
+			ec_dict->name = "oxford-gb";
+			if(!fileExists("~/sound/oxford-gb/"))
+			{
+				//Loading_show(1,"loading oxford ......");
+				loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/oxford.zip","~/sound/");
+			}
 		}
+		get_test_config();
+		get_test_array(0,numWords);
+		numIndex = 0;
+		char * s = Array_getByIndex(test_array,numIndex);
+		test_word(s);
+	}else{
+		if(testContainer)
+			testContainer->visible = SDL_FALSE;
+		if(input)
+			Input_setText(input,"");
 	}
-	get_test_config();
-	get_test_array(0,numWords);
-	numIndex = 0;
-	char * s = Array_getByIndex(test_array,numIndex);
-	test_word(s);
 	//UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//this line is equal to the following code block.
 }
 

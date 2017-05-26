@@ -267,7 +267,7 @@ void compareWebAndLocal(char * url , char * local_path, char * update_url)
 void * update(void *ptr)
 {
     //Loading_show(1,"start check update");
-	https://git.oschina.net/db0/kodi/raw/master/oxford.zip
+	//https://git.oschina.net/db0/kodi/raw/master/oxford.zip
 	//compareWebAndLocal("https://raw.githubusercontent.com/db00/sdl2apk/master/oxford-gb.ifo","~/sound/oxford-gb/oxford-gb.ifo","https://git.oschina.net/db0/kodi/raw/master/oxford.zip");
 	compareWebAndLocal("https://git.oschina.net/db0/kodi/raw/master/oxford-gb.ifo","~/sound/oxford-gb/oxford-gb.ifo","https://git.oschina.net/db0/kodi/raw/master/oxford.zip");
 	//compareWebAndLocal("https://raw.githubusercontent.com/db00/sdl2apk/master/langdao-ce-gb.ifo","~/sound/ce/langdao-ce-gb.ifo","https://git.oschina.net/db0/kodi/raw/master/ce.zip");
@@ -281,7 +281,7 @@ void * update(void *ptr)
 		SDL_Log("\r\n app versionName:%s\r\n",versionName);
 		if(versionName)
 		{
-			char * curVersion = "1.0";
+			char * curVersion = "1.0.1";
 			int hasNewVersion = compareVersion(curVersion,versionName);
 			if(!hasNewVersion)
 			{

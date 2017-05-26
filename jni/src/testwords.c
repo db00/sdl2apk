@@ -16,12 +16,33 @@ static int numIndex = 0;
 static int numWords = 5;
 static int minToPass = 5;
 static Array * test_array;
-static Array * right_array;
-static Array * date_array;
 static Dict * ec_dict = NULL;
 static char * full_explain = NULL;
 
-static void test_word(char * word);
+
+typedef struct TestWord{
+	char * word;
+	time_t date;
+	int numRight;
+}TestWord;
+
+static TestWord * TestWord_new()
+{
+	TestWord * testword = malloc(sizeof(struct TestWord));
+	memset(testword,0,sizeof(struct TestWord));
+	return testword;
+}
+static void TestWord_free(TestWord * word)
+{
+	if(word)
+	{
+		if(word->word)
+			free(word->word);
+		free(word);
+	}
+}
+
+static void test_word(TestWord * word);
 
 static void write_config()
 {
@@ -110,22 +131,32 @@ static void adds(Array * data,time_t * date)
 				if(test_array==NULL)
 				{
 					test_array = Array_new();
-					right_array = Array_new();
-					date_array = Array_new();
 				}
 				int j = 0;
 				while(j<wordsArr->length)
 				{
 					char * word = Array_getByIndex(wordsArr,j);
-					if(Array_getIndexByStringValue(test_array,word)<0)
+
+					int k = 0;
+					int isIn = 0;
+					while(k<test_array->length)
 					{
-						Array_push(test_array,append_str(NULL,"%s",word));
-						Array_push(right_array,append_str(NULL,"%s",Array_getByIndex(numsArr,j)));
-						char * _date = Array_getByIndex(dateArr,j);
-						Array_push(date_array,append_str(NULL,"%s",_date));
-						//time_t t = atoi(_date); printf("time|%s|%s\r\n",_date,ctime(&t));
-						if(date)
-							*date = atoi((char *)Array_getByIndex(dateArr,j));
+						TestWord * testword = Array_getByIndex(test_array,k);
+						if(strcmp(testword->word,word)==0)
+						{
+							isIn = 1;
+							break;
+						}
+						++k;
+					}
+
+					if(!isIn)
+					{
+						TestWord * testword = TestWord_new();
+						testword->word = append_str(NULL,"%s",word);
+						testword->numRight = atoi((char*)Array_getByIndex(numsArr,j));
+						testword->date = atoi((char*)(Array_getByIndex(dateArr,j)));
+						Array_push(test_array,testword);
 					}
 					++j;
 				}
@@ -135,7 +166,7 @@ static void adds(Array * data,time_t * date)
 }
 
 static time_t lastdate=0;
-Array * get_test_array(int start,int _numWords)
+static Array * get_test_array(int start,int _numWords)
 {
 	Array * data = get_test_list(start,_numWords);
 	adds(data,NULL);
@@ -156,8 +187,6 @@ Array * get_test_array(int start,int _numWords)
 	{//find random word in dict
 		if(test_array==NULL){
 			test_array = Array_new();
-			right_array = Array_new();
-			date_array = Array_new();
 		}
 		int i = test_array->length;
 		while(i<numWords)
@@ -170,14 +199,16 @@ Array * get_test_array(int start,int _numWords)
 			{
 				if(add_new_word(_word,0)==0)
 				{//not in the list of database
-					Array_push(test_array,append_str(NULL,"%s",_word));
-					Array_push(right_array,append_str(NULL,"%s","0"));
-					Array_push(date_array,append_str(NULL,"%s","0"));
+
+					TestWord * testword = TestWord_new();
+					testword->word = append_str(NULL,"%s",_word);
+					testword->numRight = 0;
+					testword->date = time(NULL);
+					Array_push(test_array,testword);
 					++i;
 				}
 			}
 		}
-
 	}
 	return test_array;
 }
@@ -195,19 +226,16 @@ static void test_next()
 	++numIndex;
 	if(numIndex>=test_array->length)
 		numIndex=0;
-	char * _s = Array_getByIndex(test_array,numIndex);
+	TestWord * _s = Array_getByIndex(test_array,numIndex);
 	test_word(_s);
 	Input_setText(input,"");
 }
 
-static void change_wordRight(char *s,int i)
+static void change_wordRight(TestWord * word,int i)
 {
-	change_word_rights(s,i);
-	char * a = malloc(100);
-	memset(a,0,16);
-	sprintf(a,"%d",i);
-	free(Array_getByIndex(right_array,numIndex));
-	Array_setByIndex(right_array,numIndex,a);
+	change_word_rights(word->word,i);
+	word->numRight = i;
+	word->date = time(NULL);
 }
 
 
@@ -240,11 +268,11 @@ static void check_word(char * s)
 		write_config();
 		return;
 	}
-	char * origin_word = Array_getByIndex(test_array,numIndex);
-	char * curWord = regex_replace_all(origin_word,"/[^a-z]/i","");
-	char * right_answer = regex_replace_all(s,"/[^a-z]/i","");
-	int numRight = (int)atoi(Array_getByIndex(right_array,numIndex));
-	int lasttestTime = (int)atoi(Array_getByIndex(date_array,numIndex));
+	TestWord * origin_word = Array_getByIndex(test_array,numIndex);
+	char * curWord = regex_replace_all(s,"/[^a-z]/i","");
+	char * right_answer = regex_replace_all(origin_word->word,"/[^a-z]/i","");
+	int numRight = origin_word->numRight;
+	int lasttestTime = origin_word->date;
 	printf("numRight:%d\r\n",numRight);
 	if(strcasecmp(right_answer,curWord)==0)
 	{
@@ -255,10 +283,9 @@ static void check_word(char * s)
 		change_wordRight(origin_word,numRight);
 		printf("right!\r\n");
 		if(numRight>=minToPass || lasttestTime < time(NULL)-3600*24){
-			add_remembered_word(origin_word,1);
+			add_remembered_word(origin_word->word,1);
+			TestWord_free(origin_word);
 			Array_removeByIndex(test_array,numIndex);
-			Array_removeByIndex(right_array,numIndex);
-			Array_removeByIndex(date_array,numIndex);
 			int len = test_array->length;
 			get_test_array(len,numWords-len);
 			--numIndex;
@@ -321,13 +348,15 @@ static void keyupEvent(SpriteEvent* e){
 	UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//this line is equal to the following code block.
 }
 
-static void test_word(char * word)
+static void test_word(TestWord * word)
 {
-	printf("%d:%s\r\n",numIndex,word);
+	if(word==NULL)
+		return;
+	printf("%d:%s\r\n",numIndex,word->word);
 	fflush(stdout);
-	if(word && strlen(word)){
+	if(word->word && strlen(word->word)){
 		Word * _word;
-		_word = Dict_getWord(ec_dict,word);
+		_word = Dict_getWord(ec_dict,word->word);
 		char * explain = NULL;
 		explain = Dict_getMean(ec_dict,_word);
 		char * tmp = regex_replace_all(explain,"([^\r\n][:?!\\.\\*]) ","$1\n");
@@ -336,11 +365,11 @@ static void test_word(char * word)
 			free(full_explain);
 		full_explain = regex_replace_all(tmp,"([^a-zA-Z,;\r\n])( [\\*0-9]{1,2} )","$1\n$2");
 		free(tmp);
-		char * numStars = starStrings(strlen(word));
-		int len = strlen(word+5);
+		char * numStars = starStrings(strlen(word->word));
+		int len = strlen(word->word)+8;
 		char patt[len];
 		memset(patt,0,len);
-		sprintf(patt,"/%s?/i",word);
+		sprintf(patt,"/%s?/i",word->word);
 		tmp = regex_replace_all(full_explain,patt,numStars);
 		free(numStars);
 		//char * test_explain = regex_replace_all(tmp,"/\\/[^\\/]*\\//ig"," ");
@@ -398,7 +427,7 @@ void startTest(int b)
 		get_test_config();
 		get_test_array(0,numWords);
 		numIndex = 0;
-		char * s = Array_getByIndex(test_array,numIndex);
+		TestWord * s = Array_getByIndex(test_array,numIndex);
 		test_word(s);
 	}else{
 		if(testContainer)

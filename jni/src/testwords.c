@@ -293,7 +293,7 @@ static void check_word(char * s)
 		++numRight;
 		char * right_s = contact_str(s," √ ");
 		Input_setText(input,right_s);
-		free(right_s);
+		free(right_s);;
 		change_wordRight(origin_word,numRight);
 		printf("right!\r\n");
 		if(numRight>=minToPass || lasttestTime < time(NULL)-3600*24){

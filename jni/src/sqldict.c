@@ -149,18 +149,20 @@ int make_dict(char * db_path,char * dict_name)
 
 	int idxfilesize = idx_p - idx;
 
-	char * ifo_s = ifo(dict_name,"2.4.4",wordsArr->length,idxfilesize,dict_name);
+	char * ifo_s = ifo(dict_name,"2.4.5",wordsArr->length,idxfilesize,dict_name);
 	char filename[128];
 	memset(filename,0,sizeof(filename));
-	sprintf(filename,"%s.ifo",dict_name);
+
+	char * dict_dir = decodePath(contact_str("~/sound/",dict_name));
+	sprintf(filename,"%s/%s.ifo",dict_dir,dict_name);
 	writefile(filename,ifo_s,strlen(ifo_s));
 
 	memset(filename,0,sizeof(filename));
-	sprintf(filename,"%s.idx",dict_name);
+	sprintf(filename,"%s/%s.idx",dict_dir,dict_name);
 	writefile(filename,idx,idxfilesize);
 
 	memset(filename,0,sizeof(filename));
-	sprintf(filename,"%s.dict",dict_name);
+	sprintf(filename,"%s/%s.dict",dict_dir,dict_name);
 	writefile(filename,dict,dictlen);
 
 	//DataBase_result_print(db);
@@ -387,7 +389,7 @@ void remend()
 {
 	DataBase * db = DataBase_new(decodePath("~/dict.db"));
 	//char * sql = "select * from dict where explain like \"%<i>US</i>%\";";
-	char * sql = "select * from dict where word like \"`\";";
+	char * sql = "select * from dict where word like \"%,%\";";
 	int rc = DataBase_exec2array(db,sql);
 	if(rc){
 		printf("ERROR: %s\r\n",db->result_arr);
@@ -438,27 +440,30 @@ void remend()
 			char * word = Array_getByIndex(wordsArr,i);
 			char * explain = Array_getByIndex(explainsArr,i);
 			//if(regex_match(word,"/\\(esp /"))
-			if(regex_match(word,"/`/"))
+			if(regex_match(word,"/, /"))
 			{
 				//char * _word = regex_replace_all(word,"/ \\(Brit.*$/","");
-				char * _word = regex_replace_all(word,"/`/","");
-				printf("%d:%s\r\n",i,_word);fflush(stdout);
+				//char * _word = regex_replace_all(word,"/^also[ `]*/","");
+				//char * _word = regex_replace_all(word,"/^[^,]*, /","");
+				char * _word = regex_replace_all(word,"/, {1,}.*/","");
+				//printf("%d:%s\r\n",i,_word);fflush(stdout);
 
 				int _index = Dict_getWordIndex(dict,_word);
 				if(_index<0)
 				{
-					printf("\"%s\" ",_word);fflush(stdout);
-					//update_one_word(db,_word,explain);
+					printf("%s->\"%s\" \r\n",word,_word);fflush(stdout);
+					update_one_word(db,_word,explain);
 				}
 
 				char * __word = NULL;
-				__word = regex_replace_all(word,"/^.* US (.*)$/","$1");
+				//__word = regex_replace_all(word,"/^.* US (.*)$/","$1");
+				__word = regex_replace_all(word,"/^[^,]*, {1,}(.*)$/","$1");
 				memset(_explain,0,sizeof(_explain));
 				sprintf(_explain,"=> %s",_word);
 				_index = Dict_getWordIndex(dict,__word);
 				if(_index<0)
 				{
-					printf("\"%s\":%s\r\n",__word,_explain);
+					printf("\"%s\": %s\r\n",__word,_explain);
 					update_one_word(db,__word,_explain);
 				}
 				//
@@ -476,14 +481,66 @@ void remend()
 		}
 	}
 }
+static void addChineseExplain()
+{
+	DataBase * db = DataBase_new(decodePath("~/dict.db"));
+	Dict * dict = Dict_new();
+	dict->name = "oxford-gb";
+	Dict * dict2 = Dict_new();
+	//dict2->name = "langdao";
+	dict2->name = "stardict";
+	int i = 0;
+	int numWords = Dict_getNumWords(dict);
+	int j=0;
+	while(i<numWords)
+	{
+		Word * word = Dict_getWordByIndex(dict,i);
+		char * explain = Dict_getMean(dict,word);
+		//if(regex_match(explain,"/^[\x01-\x7fːæðŋǀɑɒɔəɜɪʃʊʌʒθ]{2,}$/i"))
+		if(regex_match(explain,"/^[\x01-\x7fːæðŋǀɑɒɔəɜɪʃʊʌʒθ]{2,}$/m"))
+		{
+			int _index = Dict_getWordIndex(dict2,word->word);
+			if(_index>=0)
+			{
+				Word * word2 = Dict_getWordByIndex(dict2,_index);
+				char * explain2 = Dict_getMean(dict2,word2);
+				printf("%s:(%s)\r\n",word->word,explain);
+				int len = strlen(explain2)+strlen(explain)+4;
+				char newExplain[len];
+				memset(newExplain,0,len);
+				sprintf(newExplain,"%s\n%s",explain,explain2);
+				//printf("====>%s\r\n",newExplain);
+				if(strcmp(dict2->name,"strdict"))
+					update_one_word(db,word->word,explain2);
+				else
+					update_one_word(db,word->word,newExplain);
+				free(explain2);
+			}
+			free(explain);
+			explain = NULL;
+			++j;
+			//if(j>300) break;
+		}
+		if(explain)
+			free(explain);
+		++i;
+	}
+	printf("a ok\r\n");
+}
 
 int main()
 {
+	/*
+	   const char * dict_name = "strdict";
+	   char * dict_dir = decodePath(contact_str("~/sound/",dict_name));
+	   printf("%s/%s.ifo",dict_dir,dict_name);
+	   */
 	//remend();
+	//addChineseExplain();
 	//return update_word("/home/libiao/dict.db","hello","has long mean");
 	//make_db("oxford-gb","/home/libiao/dict.db");//from stardict to sqlite3
 	//addirregularverb();
 	//select count(*) from dict where explain like "%<i>US</i>%";
-	//return make_dict("/home/libiao/dict.db","oxford-gb");// from sqlite3 to stardict
+	return make_dict("/home/libiao/dict.db","oxford-gb");// from sqlite3 to stardict
 	return 0;
 }

@@ -416,14 +416,16 @@ char * Dict_getByIndex(Dict * dict,int id){
 	   && matchs(word->word,"aaiueodrm")
 	   )
 	   printf("\r\n%s",word->word);
+	   fflush(stdout);
 	   */
-	fflush(stdout);
+	/*
 	if( !regex_match(word->word,"/[\\// ,()]/i")
 			&& word->length >maxlen)
 	{
 		maxlen = word->length;
 		printf("\r\n%d==%d,%s:%d\r\n",id,word->index,word->word,maxlen);
 	}
+	*/
 	//else if (strlen(word->word)>50) printf("\r\n%s:%d\r\n",word->word,maxlen);
 
 	rewind(dict->file);

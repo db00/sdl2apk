@@ -170,6 +170,8 @@ static Array * get_test_array(int start,int _numWords)
 {
 	Array * data = get_test_list(start,_numWords);
 	adds(data,NULL);
+	if(data && data->length>=_numWords)
+		return test_array;
 	if(test_array == NULL || test_array->length<numWords)
 	{//review remembered words
 		if(test_array==NULL)
@@ -181,8 +183,12 @@ static Array * get_test_array(int start,int _numWords)
 			lastdate = time(NULL)-24*3600;
 		}
 		data = get_review_list(lastdate,numWords-start);
+		//data = get_review_list(lastdate,numWords);
 		adds(data,&lastdate);
+		if(data && data->length+start>=numWords)
+			return test_array;
 	}
+	//return test_array;
 	if(test_array == NULL || test_array->length<numWords)
 	{//find random word in dict
 		if(test_array==NULL){
@@ -267,6 +273,14 @@ static void check_word(char * s)
 		Input_setText(input,"");
 		write_config();
 		return;
+	}else if(regex_match(s,"/^([0-9]{1,3}\\.){3}[0-9]{1,3}k$/i")){
+		char * file = "~/sound/host";
+		char ip[32];
+		memset(ip,0,sizeof(ip));
+		snprintf(ip,strlen(input->value)-2,"%s",input->value);
+		writefile(file,ip,strlen(ip));
+		Input_setText(input,ip);
+		return;
 	}
 	TestWord * origin_word = Array_getByIndex(test_array,numIndex);
 	char * curWord = regex_replace_all(s,"/[^a-z]/i","");
@@ -292,7 +306,8 @@ static void check_word(char * s)
 		}
 	}else{
 		numRight = 0;
-		change_wordRight(origin_word,numRight);
+		add_remembered_word(origin_word->word,0);
+		change_wordRight(origin_word,0);
 		//TextField_setText(textfield,"");
 		printf("wrong!\r\n");
 		printf("%s\r\n",input->value);

@@ -95,11 +95,11 @@ Array * datas_query2(char * sql)
 
 
 /*
-char * get_history()
-{
-	return datas_query("select * from list group by wordid ORDER BY date desc;");
-}
-*/
+   char * get_history()
+   {
+   return datas_query("select * from list group by wordid ORDER BY date desc;");
+   }
+   */
 char * get_remembered_history(int remembered)
 {
 	char * s = ("select * from list where remembered=%d group by wordid ORDER BY date desc;");
@@ -174,10 +174,17 @@ Array * get_remembered_list(int remembered,int numWords,char * word,char * compa
 	if(word && compare)
 	{
 		//s = ("select * from list where remembered=%d group by wordid ORDER BY date desc;");
-		if(compare[0]=='<')
-			s = "select * from list where wordid %s (select wordid from list where word==\"%s\") and remembered==%d order by wordid desc limit 0,%d;";
-		else
-			s = "select * from list where wordid %s (select wordid from list where word==\"%s\") and remembered==%d order by wordid limit 0,%d;";
+		if(remembered){
+			if(compare[0]=='<')
+				s = "select * from list where date %s (select date from list where word==\"%s\") and remembered==%d order by date desc limit 0,%d;";
+			else
+				s = "select * from list where date %s (select date from list where word==\"%s\") and remembered==%d order by date limit 0,%d;";
+		}else{
+			if(compare[0]=='<')
+				s = "select * from list where wordid %s (select wordid from list where word==\"%s\") and remembered==%d order by wordid desc limit 0,%d;";
+			else
+				s = "select * from list where wordid %s (select wordid from list where word==\"%s\") and remembered==%d order by wordid limit 0,%d;";
+		}
 		int len = strlen(s)+10;
 		len += strlen(word);
 		char sql[len];
@@ -185,7 +192,11 @@ Array * get_remembered_list(int remembered,int numWords,char * word,char * compa
 		sprintf(sql,s,compare,word,remembered,numWords);
 		return datas_query2(sql);
 	}else{
-		s = "select *  from list where remembered==%d order by wordid desc limit 0,%d;";
+		if(remembered){
+			s = "select *  from list where remembered==%d order by date desc limit 0,%d;";
+		}else{
+			s = "select *  from list where remembered==%d order by wordid desc limit 0,%d;";
+		}
 		int len = strlen(s)+10;
 		char sql[len];
 		memset(sql,0,len);

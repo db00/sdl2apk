@@ -361,7 +361,7 @@ int regex_search_all(char * s,char * reg , Array*matched_arr)
 		if(Array_getByIndex(matched_arr,num) && strlen(Array_getByIndex(matched_arr,num))>0){
 			//printf(" matched:%s,dealed_len:%d\n",Array_getByIndex(matched_arr,num),pos);
 			//free(Array_getByIndex(matched_arr,num)); Array_setByIndex(matched_arr,num,NULL);
-			num+=1;
+			num++;
 		}else{
 			break;
 		}

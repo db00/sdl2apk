@@ -22,6 +22,7 @@
 #include "besier.h"
 #include "sdlstring.h"
 #include "testwords.h"
+#include "pictures.h"
 
 
 static Sprite * curlistSprite = NULL;
@@ -189,6 +190,15 @@ static void read_out(SpriteEvent*e)
 		if(strlen(word)==0)
 			return;
 		Sound_playEng(word,2);
+	}else if(strcmp(target->obj,"图片")==0){
+		if(strlen(word)==0)
+			return;
+		if(isPictureMode){
+			removePictures();
+		}else{
+			search_pic(explainContainer,word);
+			Sprite_addChild(explainContainer,target);
+		}
 	}else if(strcmp(target->obj,"清除")==0){
 		if(strlen(word)==0)
 			return;
@@ -240,6 +250,7 @@ int getMean(Word*word)
 
 int searchWord(char* _word)
 {
+	removePictures();
 	if(_word && strlen(_word)){
 		if(ec_dict==NULL)
 			open_dict();
@@ -632,7 +643,10 @@ static Array * get_more_list(char * word,int isAppend,int isFromCenter)
 	if(isFromCenter || word==NULL)
 	{
 		if(history_str_arr)
-			Array_clear(history_str_arr);
+		{
+			//Array_clear(history_str_arr);
+			Array_freeEach(history_str_arr);
+		}
 		history_str_arr = NULL;
 	}
 	if(word && strlen(word)==0)
@@ -850,6 +864,7 @@ static void showHistory()
 	}
 	curlistSprite->visible = 1;
 	explainContainer->visible = SDL_FALSE;
+	removePictures();
 	changeHistoryList();
 	Redraw(NULL);
 }
@@ -996,6 +1011,7 @@ void textChangFunc(Input * input){
 		SDL_Log("text input changed!");
 		curlistSprite->visible = 1;
 		explainContainer->visible = SDL_FALSE;
+		removePictures();
 		makeWordlist(input->value);
 		Redraw(NULL);
 	}
@@ -1132,6 +1148,7 @@ void *uiThread(void *ptr){
 		int gap=2;
 		enBtn = makeTopBtn(explainContainer,"英音",gap,read_out);
 		enBtn = makeTopBtn(explainContainer,"美音",gap,read_out);
+		enBtn = makeTopBtn(explainContainer,"图片",gap,read_out);
 		enBtn = makeTopBtn(explainContainer,"复制单词",gap,read_out);
 		enBtn = makeTopBtn(explainContainer,"复制解释",gap,read_out);
 

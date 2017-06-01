@@ -182,7 +182,13 @@ Sprite * Sprite_newImg(char *url)
 	if(url){
 		if(strncmp(url,"http://",7)==0 || strncmp(url,"https://",8)==0 )
 		{
-			sprite->surface = Httploader_loadimg(url);
+			SDL_Surface * surface = Httploader_loadimg(url);
+			if(surface)
+				sprite->surface = surface;
+			else{
+				Sprite_destroy(sprite);
+				return NULL;
+			}
 		}else if(url[0]=='~'){
 			char * _url = decodePath(url);
 			sprite->surface = IMG_Load(_url);

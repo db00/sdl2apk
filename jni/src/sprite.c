@@ -12,7 +12,7 @@
 
 GLES2_Context gles2;
 Stage * stage = NULL;
-static SDL_mutex *mutex = NULL;
+//static SDL_mutex *mutex = NULL;
 
 static int LoadContext(GLES2_Context * data)
 {
@@ -1618,18 +1618,22 @@ int PrintEvent(const SDL_Event * event)
 	}
 	//SDL_SpinLock lock = 0;
 	//SDL_AtomicLock(&lock);
-	if (SDL_LockMutex(mutex) < 0) {
-		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't lock mutex: %s", SDL_GetError());
-		quit(1);
-	}
+	/*
+	   if (SDL_LockMutex(mutex) < 0) {
+	   SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't lock mutex: %s", SDL_GetError());
+	   quit(1);
+	   }
+	   */
 	//mouse event:
 	if(target) {
 		bubbleEvent(target,(SDL_Event*)event);//事件冒泡
 	}
-	if (SDL_UnlockMutex(mutex) < 0) {
-		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't unlock mutex: %s", SDL_GetError());
-		quit(1);
-	}
+	/*
+	   if (SDL_UnlockMutex(mutex) < 0) {
+	   SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't unlock mutex: %s", SDL_GetError());
+	   quit(1);
+	   }
+	   */
 	//SDL_AtomicUnlock(&lock);
 	return 0;
 }
@@ -1637,10 +1641,12 @@ int PrintEvent(const SDL_Event * event)
 
 void Stage_loopEvents()
 {
-	if ((mutex = SDL_CreateMutex()) == NULL) {
-		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create mutex: %s\n", SDL_GetError());
-		quit(1);
-	}
+	/*
+	   if ((mutex = SDL_CreateMutex()) == NULL) {
+	   SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create mutex: %s\n", SDL_GetError());
+	   quit(1);
+	   }
+	   */
 
 	if(stage && stage->sprite->children)Stage_redraw();
 	int done=0;
@@ -2142,6 +2148,7 @@ int main(int argc, char *argv[])
 	rect.w = 50;
 	rect.h = 50;
 	sprite3->mask= &rect;
+	sprite3->canDrag = SDL_TRUE;
 	Sprite_addChild(stage->sprite,sprite3);
 	//sprite3->visible = 0;
 	Sprite_addEventListener(sprite3,SDL_MOUSEBUTTONDOWN,mouseDown);

@@ -41,6 +41,21 @@ static void TestWord_free(TestWord * word)
 		free(word);
 	}
 }
+static int isWordInTestArr(char * _word)
+{
+	if(_word && strlen(_word) && test_array)
+	{
+		int i = 0;
+		while(i<test_array->length)
+		{
+			TestWord * word = Array_getByIndex(test_array,i);
+			if(strcmp(word->word,_word)==0)
+				return i;
+			++i;
+		}
+	}
+	return -1;
+}
 
 static void test_word(TestWord * word);
 
@@ -203,9 +218,9 @@ static Array * get_test_array(int start,int _numWords)
 			char * _word = word->word;
 			if(strlen(_word)>2 && regex_match(_word,"/^[a-z]*$/i"))
 			{
-				if(add_new_word(_word,0)==0)
+				//if(add_new_word(_word,0)==0)
+				if(isWordInTestArr(_word)<0 && get_word_id(_word)==0)
 				{//not in the list of database
-
 					TestWord * testword = TestWord_new();
 					testword->word = append_str(NULL,"%s",_word);
 					testword->numRight = 0;
@@ -277,7 +292,11 @@ static void check_word(char * s)
 		char * file = "~/sound/host";
 		char ip[32];
 		memset(ip,0,sizeof(ip));
-		snprintf(ip,strlen(input->value)-2,"%s",input->value);
+		//char * ip = regex_replace_all(input->);
+		snprintf(ip,strlen(s),"%s",s);
+		if(*(ip+strlen(ip)-1)=='k')
+			*(ip+strlen(ip)-1)='\0';
+
 		writefile(file,ip,strlen(ip));
 		Input_setText(input,ip);
 		return;
@@ -323,7 +342,7 @@ static void check_word(char * s)
 }
 
 static void keyupEvent(SpriteEvent* e){
-	if(regex_match(input->value,"/ [×√]/")){
+	if(regex_match(input->value,"/[×√]/")){
 		test_next();
 		return;
 	}
@@ -423,6 +442,7 @@ static void test_word(TestWord * word)
 		testContainer->visible = SDL_TRUE;
 		TextField_setText(textfield,test_explain);free(test_explain);
 		Sprite_addEventListener(stage->sprite,SDL_KEYUP,keyupEvent); 
+		//Sprite_addEventListener(stage->sprite,SDL_KEYDOWN,keyupEvent); 
 	}
 }
 

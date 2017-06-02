@@ -552,6 +552,6 @@ int main()
 	//make_db("oxford-gb","/home/libiao/dict.db");//from stardict to sqlite3
 	//addirregularverb();
 	//select count(*) from dict where explain like "%<i>US</i>%";
-	return make_dict("/home/libiao/dict.db","oxford-gb");// from sqlite3 to stardict
+	//return make_dict("/home/libiao/dict.db","oxford-gb");// from sqlite3 to stardict
 	return 0;
 }

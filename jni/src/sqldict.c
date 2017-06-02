@@ -271,7 +271,7 @@ int make_db(char * dict_name,char * db_path)
 			//if(word && regex_match(word->word,"\\(Brit\\)"))
 			if(word)
 			{
-				printf("%s\r\n",word->word);
+				//printf("%s\r\n",word->word);
 				char * explain = Dict_getMean(dict,word);
 				if(explain==NULL)
 				{
@@ -389,7 +389,9 @@ void remend()
 {
 	DataBase * db = DataBase_new(decodePath("~/dict.db"));
 	//char * sql = "select * from dict where explain like \"%<i>US</i>%\";";
-	char * sql = "select * from dict where word like \"%,%\";";
+	//char * sql = "select * from dict where word like \"%,%\";";
+	//char * sql = "select * from dict where word like \"%/ %/%\";";
+	char * sql = "select * from dict where word like \"`%\";";
 	int rc = DataBase_exec2array(db,sql);
 	if(rc){
 		printf("ERROR: %s\r\n",db->result_arr);
@@ -440,31 +442,32 @@ void remend()
 			char * word = Array_getByIndex(wordsArr,i);
 			char * explain = Array_getByIndex(explainsArr,i);
 			//if(regex_match(word,"/\\(esp /"))
-			if(regex_match(word,"/, /"))
+			if(regex_match(word,"/^`/"))
 			{
 				//char * _word = regex_replace_all(word,"/ \\(Brit.*$/","");
 				//char * _word = regex_replace_all(word,"/^also[ `]*/","");
 				//char * _word = regex_replace_all(word,"/^[^,]*, /","");
-				char * _word = regex_replace_all(word,"/, {1,}.*/","");
+				//char * _word = regex_replace_all(word,"/^([^ ]{1,}) .*$/","$1");
+				char * _word = regex_replace_all(word,"/^`/","");
 				//printf("%d:%s\r\n",i,_word);fflush(stdout);
 
 				int _index = Dict_getWordIndex(dict,_word);
 				if(_index<0)
 				{
 					printf("%s->\"%s\" \r\n",word,_word);fflush(stdout);
-					update_one_word(db,_word,explain);
+					//update_one_word(db,_word,explain);
 				}
 
 				char * __word = NULL;
 				//__word = regex_replace_all(word,"/^.* US (.*)$/","$1");
-				__word = regex_replace_all(word,"/^[^,]*, {1,}(.*)$/","$1");
+				__word = regex_replace_all(word,"/^[^ ]{1,} /(.*)/.*$/","$1");
 				memset(_explain,0,sizeof(_explain));
 				sprintf(_explain,"=> %s",_word);
 				_index = Dict_getWordIndex(dict,__word);
 				if(_index<0)
 				{
-					printf("\"%s\": %s\r\n",__word,_explain);
-					update_one_word(db,__word,_explain);
+					//printf("\"%s\": %s\r\n",__word,_explain);
+					//update_one_word(db,__word,_explain);
 				}
 				//
 			}
@@ -487,8 +490,8 @@ static void addChineseExplain()
 	Dict * dict = Dict_new();
 	dict->name = "oxford-gb";
 	Dict * dict2 = Dict_new();
-	//dict2->name = "langdao";
-	dict2->name = "stardict";
+	dict2->name = "langdao";
+	//dict2->name = "stardict";
 	int i = 0;
 	int numWords = Dict_getNumWords(dict);
 	int j=0;
@@ -497,23 +500,31 @@ static void addChineseExplain()
 		Word * word = Dict_getWordByIndex(dict,i);
 		char * explain = Dict_getMean(dict,word);
 		//if(regex_match(explain,"/^[\x01-\x7fːæðŋǀɑɒɔəɜɪʃʊʌʒθ]{2,}$/i"))
-		if(regex_match(explain,"/^[\x01-\x7fːæðŋǀɑɒɔəɜɪʃʊʌʒθ]{2,}$/m"))
+		//if(regex_match(explain,"/^[\x01-\x7fːæðŋǀɑɒɔəɜɪʃʊʌʒθ]{2,}$/m"))
+		//if(regex_match(explain,"/[\x2f/\\[\\]\x5b\x5d]/m")==0)
+		if(strstr(explain,"[")==NULL && strstr(explain,"/")==NULL)
 		{
 			int _index = Dict_getWordIndex(dict2,word->word);
 			if(_index>=0)
 			{
 				Word * word2 = Dict_getWordByIndex(dict2,_index);
 				char * explain2 = Dict_getMean(dict2,word2);
-				printf("%s:(%s)\r\n",word->word,explain);
-				int len = strlen(explain2)+strlen(explain)+4;
-				char newExplain[len];
-				memset(newExplain,0,len);
-				sprintf(newExplain,"%s\n%s",explain,explain2);
-				//printf("====>%s\r\n",newExplain);
-				if(strcmp(dict2->name,"strdict"))
-					update_one_word(db,word->word,explain2);
-				else
-					update_one_word(db,word->word,newExplain);
+				//printf("%s:(%s)\r\n",word->word,explain);
+
+				if(strstr(explain2,"[")!=NULL)
+				{
+					int len = strlen(explain2)+strlen(explain)+4;
+					char newExplain[len];
+					memset(newExplain,0,len);
+					sprintf(newExplain,"%s\n%s",explain,explain2);
+					printf("====>%s\r\n",newExplain);
+					if(strcmp(dict2->name,"strdict")==0)
+					{
+						//update_one_word(db,word->word,explain2);
+					}else{
+						update_one_word(db,word->word,newExplain);
+					}
+				}
 				free(explain2);
 			}
 			free(explain);

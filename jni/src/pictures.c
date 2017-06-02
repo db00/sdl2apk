@@ -126,8 +126,9 @@ void search_pic(Sprite * _container,char * _word)
 	isPictureMode = 1;
 
 	container = Sprite_new();
+	//Sprite_addChildAt(_container,container,0);
 	Sprite_addChild(_container,container);
-	container->y = stage->stage_h/2;
+	container->y = stage->stage_h/3;
 	container->mouseChildren = SDL_FALSE;
 
 	char * __url = "https://image.baidu.com/search/index?tn=baiduimage&word=%s";
@@ -137,8 +138,8 @@ void search_pic(Sprite * _container,char * _word)
 	sprintf(baiduurl,__url,_word);
 	URLRequest * urlrequest = Httploader_load(baiduurl);
 	if(urlrequest->statusCode == 200){
-		char * filename = decodePath("~/sound/pic.txt");
-		if(writefile(filename,urlrequest->data,urlrequest->respond->contentLength)==0)
+		//char * filename = decodePath("~/sound/pic.txt");
+		//if(writefile(filename,urlrequest->data,urlrequest->respond->contentLength)==0)
 		{
 
 			Array * matched_arr = Array_new();
@@ -164,6 +165,7 @@ void search_pic(Sprite * _container,char * _word)
 			Array_clear(matched_arr);
 		}
 	}
+	URLRequest_clear(urlrequest);
 
 	Sprite_addEventListener(container,SDL_MOUSEMOTION,mouseMoves);
 	SDL_Rect * rect = malloc(sizeof(*rect));

@@ -185,11 +185,19 @@ static void read_out(SpriteEvent*e)
 	if(strcmp(target->obj,"英音")==0){
 		if(strlen(word)==0)
 			return;
-		Sound_playEng(word,1);
+		if(isCE(input->value)){
+
+		}else{
+			Sound_playEng(word,1);
+		}
 	}else if(strcmp(target->obj,"美音")==0){
 		if(strlen(word)==0)
 			return;
-		Sound_playEng(word,2);
+		if(isCE(input->value)){
+
+		}else{
+			Sound_playEng(word,2);
+		}
 	}else if(strcmp(target->obj,"图片")==0){
 		if(strlen(word)==0)
 			return;

@@ -33,7 +33,7 @@ void Loading_show(int boolean,char * s)
 		SDL_Log("surface size:%dx%d",earth_sprite->surface->w,earth_sprite->surface->h);
 		Data3d*_data3D = earth_sprite->data3d;
 		if(_data3D==NULL){
-			_data3D = Data3D_new();
+			_data3D = Data3D_init();
 			if(_data3D->programObject==0)
 			{
 				data2D = Data3D_init();

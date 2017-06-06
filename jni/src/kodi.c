@@ -291,7 +291,7 @@ static void mousehandl(SpriteEvent*e)
 			if(event->motion.state){
 				sprite->rotationX += event->motion.yrel;
 				sprite->rotationY += event->motion.xrel;
-				UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//Stage_redraw
+				Stage_redraw();
 
 				deltaX += event->motion.xrel;
 				deltaY += event->motion.yrel;

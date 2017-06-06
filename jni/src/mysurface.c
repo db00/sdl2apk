@@ -196,8 +196,10 @@ Sprite * Sprite_newImg(char *url)
 		}else{
 			sprite->surface = IMG_Load(url);
 		}
-		sprite->w = sprite->surface->w;
-		sprite->h = sprite->surface->h;
+		if(sprite->surface){
+			sprite->w = sprite->surface->w;
+			sprite->h = sprite->surface->h;
+		}
 	}
 	sprite->obj = contact_str("",url);
 	return sprite;

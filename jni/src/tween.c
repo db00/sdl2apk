@@ -141,7 +141,7 @@ void Tween_kill(void * tweenobj,int toEnd)
 static Uint32 my_callbackfunc(Uint32 interval, void *param)
 {
 	Uint32 then = SDL_GetTicks();//当前时间;
-	Tween*tween = (Tween*)param;
+	Tween * tween = (Tween*)param;
 	Sprite *sprite = tween->sprite;
 
 	tween->passedTime += tween->interval;
@@ -199,8 +199,8 @@ static Uint32 my_callbackfunc(Uint32 interval, void *param)
 		setSpriteStatus(tween->sprite,cur);
 	}
 
-	//Stage_redraw();//not available on android,so, use the following line instead
-	UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//this line is equal to the following code block.
+	Stage_redraw();
+	//UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//this line is equal to the following code block.
 	/*
 	   SDL_Event event;
 	   SDL_UserEvent userevent;
@@ -224,7 +224,7 @@ Tween * tween_to(Sprite*sprite,int time,TweenObj*obj)
 	if(sprite == NULL || obj == NULL || time<=0)
 		return NULL;
 
-	Tween*tween = (Tween*)malloc(sizeof(Tween));
+	Tween * tween = (Tween*)malloc(sizeof(Tween));
 	memset(tween,0,sizeof(Tween));
 	tween->sprite = sprite;
 	tween->time = time;
@@ -320,7 +320,7 @@ int main(int argc, char *argv[])
 	Tween * tween = tween_to(sprite,1000 ,tweenObj);
 	tween->ease = easeInOut_bounce;
 	tween->loop = 1;
-	Tween_kill(tween,1);
+	//Tween_kill(tween,1);
 
 	Stage_loopEvents();
 	return 0;

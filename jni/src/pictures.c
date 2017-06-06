@@ -45,13 +45,18 @@
 
 
 #include "pictures.h"
+#include "tween.h"
 
 
-static Sprite * container;
-static Array * urlArr;
-static int picH;
-static int numPic;
+static Sprite * parent = NULL;
+static Sprite * container = NULL;
+static Array * urlArr = NULL;
+static int picH = 0;
+static int numPic = 0;
+static int isLoading = 0;
 
+static void mouseMoves(SpriteEvent*e);
+static void addPic();
 
 void removePictures()
 {
@@ -62,25 +67,23 @@ void removePictures()
 	}
 	if(container)
 	{
+		if(parent && parent == container->parent)
+			Sprite_removeChild(parent,container);
+
 		Sprite_destroy(container);
 		container = NULL;
 	}
+	isLoading = 0;
 	isPictureMode = 0;
 	picH = 0;
 	numPic = 0;
 	Stage_redraw();
 }
-static void addPic()
+static void * load_picture(void * _url)
 {
-	if(urlArr==NULL)
-		return;
-	if(container->y+picH<stage->stage_h)
+	if(_url)
 	{
-		int i = numPic;
-		if(i>=urlArr->length)
-			return;
-		char * _url = Array_getByIndex(urlArr,i);
-		Sprite * sprite = Sprite_newImg(_url);
+		Sprite * sprite = Sprite_newImg((char*)_url);
 		if(sprite)
 		{
 			sprite->y = picH;
@@ -92,8 +95,77 @@ static void addPic()
 			}
 			picH += sprite->h;
 			Sprite_addChild(container,sprite);
+			Stage_redraw();
+		}
+	}
+	isLoading = 0;
+	addPic();
+}
+static void addPic()
+{
+	if(urlArr==NULL)
+		return;
+
+
+	if(isLoading == 0 && container->y+picH<stage->stage_h)
+	{
+		isLoading = 1;
+		int i = numPic;
+		if(i>=urlArr->length)
+			return;
+		char * _url = Array_getByIndex(urlArr,i);
+
+		pthread_t thread1;
+		if(pthread_create(&thread1, NULL,load_picture, _url)!=0)//创建子线程  
+		{  
+			perror("pthread_create");  
+		}else{
+			pthread_detach(thread1);
+			//pthread_join(thread1,NULL);
 		}
 		++numPic;
+	}
+
+}
+
+static void container_new()
+{
+	if(parent && container==NULL)
+	{
+		container = Sprite_new();
+		//Sprite_addChildAt(parent,container,0);
+		Sprite_addChild(parent,container);
+		container->y = stage->stage_h/3;
+		container->mouseChildren = SDL_FALSE;
+		Sprite_addEventListener(container,SDL_MOUSEMOTION,mouseMoves);
+		Sprite_addEventListener(container,SDL_MOUSEBUTTONUP,mouseMoves);
+	}
+
+	if(container->dragRect==NULL)
+	{
+		SDL_Rect * rect = malloc(sizeof(*rect));
+		rect->x = container->x;
+		rect->w = 0;
+		rect->y = -(((unsigned int)-1)/4);
+		rect->h = (((unsigned int)-1)/2);
+		container->dragRect = rect;
+	}
+}
+
+
+static Tween * tween = NULL;
+static void tweenstart()
+{
+	if(tween)
+	{
+		//Tween_kill(tween,0);
+		//tween = NULL;
+	}
+	TweenObj * tweenObj = (TweenObj*)TweenObj_new(container);
+	if(container->y + picH != stage->stage_h)
+	{
+		tweenObj->end->y = stage->stage_h - picH;// (container->y + container->h);
+		tween = tween_to(container,300 ,tweenObj);
 	}
 }
 
@@ -108,42 +180,37 @@ static void mouseMoves(SpriteEvent*e)
 	if(target!=container)
 		return;
 
-	SDL_Event* event = e->e;
-	if(event->type!= SDL_MOUSEMOTION)
-		return;
+	SDL_Event * event = e->e;
+	if(event->type)
+		switch(event->type)
+		{
+			case SDL_MOUSEMOTION:
+				if(event->motion.state){
+					target->x += event->motion.xrel;
+					target->y += event->motion.yrel;
+					Sprite_limitPosion(target,target->dragRect);
+					addPic();
+				}
+				break;
+			case SDL_MOUSEBUTTONUP:
+				//tweenstart();
+				break;
+		}
 
-	if(event->motion.state){
-		target->x += event->motion.xrel;
-		target->y += event->motion.yrel;
-		Sprite_limitPosion(target,target->dragRect);
-		Stage_redraw();
-	}
-	addPic();
+	Stage_redraw();
 }
-void search_pic(Sprite * _container,char * _word)
+
+static void baiduLoaded(URLRequest * urlrequest)
 {
-	removePictures();
-	isPictureMode = 1;
-
-	container = Sprite_new();
-	//Sprite_addChildAt(_container,container,0);
-	Sprite_addChild(_container,container);
-	container->y = stage->stage_h/3;
-	container->mouseChildren = SDL_FALSE;
-
-	char * __url = "https://image.baidu.com/search/index?tn=baiduimage&word=%s";
-	int len = strlen(__url)+strlen(_word)+5;
-	char baiduurl[len];
-	memset(baiduurl,0,len);
-	sprintf(baiduurl,__url,_word);
-	URLRequest * urlrequest = Httploader_load(baiduurl);
+	if(urlrequest==NULL)
+		return;
 	if(urlrequest->statusCode == 200){
 		//char * filename = decodePath("~/sound/pic.txt");
 		//if(writefile(filename,urlrequest->data,urlrequest->respond->contentLength)==0)
 		{
 
 			Array * matched_arr = Array_new();
-			int n = regex_search_all(urlrequest->data,"/\"thumbURL\":\"([^\"]*)\"/", matched_arr);
+			int n = regex_search_all(urlrequest->data,"/\"thumbURL\":\"([^\"]{5,})\"/", matched_arr);
 			printf("ok:%d\r\n",n);
 			int i = 0;
 			while(i<n)
@@ -156,7 +223,8 @@ void search_pic(Sprite * _container,char * _word)
 				char * _url = getStrBtw(thumbURL,":\"","\"",0);
 				free(thumbURL);
 				printf("%d:%s\r\n",i,_url);
-				Array_push(urlArr,_url);
+				if(regex_match(_url,"^http"))
+					Array_push(urlArr,_url);
 
 				addPic();
 
@@ -166,15 +234,26 @@ void search_pic(Sprite * _container,char * _word)
 		}
 	}
 	URLRequest_clear(urlrequest);
+	fflush(stdout);
+}
 
-	Sprite_addEventListener(container,SDL_MOUSEMOTION,mouseMoves);
-	SDL_Rect * rect = malloc(sizeof(*rect));
-	rect->x = container->x;
-	rect->w = 0;
-	rect->y = -(((unsigned int)-1)/4);
-	rect->h = (((unsigned int)-1)/2);
-	container->dragRect = rect;
-	Stage_redraw();
+void search_pic(Sprite * _container,char * _word)
+{
+	removePictures();
+	isPictureMode = 1;
+
+	parent = _container;
+
+	container_new();
+
+
+	const char * __url = "https://image.baidu.com/search/index?tn=baiduimage&word=%s";
+	int len = strlen(__url)+strlen(_word)+5;
+	char baiduurl[len];
+	memset(baiduurl,0,len);
+	sprintf(baiduurl,__url,_word);
+	//URLRequest * urlrequest = Httploader_load(baiduurl); baiduLoaded(urlrequest);
+	URLRequest * urlrequest =  Httploader_asyncload(baiduurl,baiduLoaded);
 }
 
 #ifdef debug_pictures

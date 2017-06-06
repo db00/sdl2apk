@@ -284,7 +284,7 @@ void makeList()
 		//SDL_Log("curKeyIndex:%d,%d",curKeyIndex,i);
 		++i;
 	}
-	UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//Stage_redraw
+	Stage_redraw();
 
 	//readAsk(NULL); return NULL;
 	pthread_t thread;//创建不同的子线程以区别不同的客户端  

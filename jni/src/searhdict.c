@@ -75,7 +75,7 @@ static void Redraw(char *text) {
 		textfield = TextField_setText(textfield,text);
 		//TextField_setScrollV(textfield,TextField_getMaxScrollV(textfield));
 	}
-	UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//Stage_redraw
+	Stage_redraw();
 }
 
 
@@ -115,7 +115,7 @@ static void showExplain(char *explain)
 	if(curlistSprite)
 	{
 		curlistSprite->visible = SDL_FALSE;
-		UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//Stage_redraw
+		Stage_redraw();
 	}
 
 	//return explain;
@@ -951,7 +951,7 @@ void show_history_list(SpriteEvent*e)
 
 	showHistory();
 
-	UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//Stage_redraw
+	Stage_redraw();
 }
 
 void mouseMoves(SpriteEvent*e)
@@ -1117,7 +1117,7 @@ static Sprite * makeTopBtn(Sprite * contener,char * name,int gap, void (*func)(S
 	return btn;
 }
 
-void *uiThread(void *ptr){
+static void * uiThread(void *ptr){
 	if(dictContainer==NULL){
 		dictContainer = Sprite_new();
 		dictContainer->surface = Surface_new(1,1);

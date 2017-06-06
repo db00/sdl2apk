@@ -14,6 +14,8 @@ GLES2_Context gles2;
 Stage * stage = NULL;
 //static SDL_mutex *mutex = NULL;
 
+static int _Stage_redraw();
+
 static int LoadContext(GLES2_Context * data)
 {
 #if SDL_VIDEO_DRIVER_UIKIT
@@ -244,7 +246,7 @@ void Sprite_matrix(Sprite *sprite)
 }
 
 
-SDL_Rect* setSpriteBorder(Sprite*sprite,SDL_Rect*rect)
+static SDL_Rect * setSpriteBorder(Sprite*sprite,SDL_Rect*rect)
 {
 	if(rect==NULL || sprite == stage->sprite){
 		return NULL;
@@ -354,8 +356,9 @@ static void initGL()
 	SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 1);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-#ifndef HAVE_OPENGL
+
 	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);//or -1
+#ifndef HAVE_OPENGL
 	//SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);//gldebug ..not Available in sdl2.0.4,dont know why.
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 #else
@@ -500,7 +503,7 @@ Stage * Stage_init(int is3D)
 	return stage;
 }
 
-Point3d *Sprite_localToGlobal(Sprite*sprite,Point3d *p)
+Point3d * Sprite_localToGlobal(Sprite*sprite,Point3d *p)
 {
 	if(sprite == NULL)
 		return NULL;
@@ -539,7 +542,7 @@ Point3d *Sprite_localToGlobal(Sprite*sprite,Point3d *p)
 
 
 
-Point3d *Sprite_GlobalToLocal(Sprite*sprite,Point3d*p)
+Point3d * Sprite_GlobalToLocal(Sprite*sprite,Point3d*p)
 {
 	if(sprite == NULL)
 		return NULL;
@@ -852,7 +855,7 @@ int Sprite_getChildIndex(Sprite*parent,Sprite*sprite)
 }
 
 
-Sprite*Sprite_removeChild(Sprite*parent,Sprite*sprite)
+Sprite * Sprite_removeChild(Sprite*parent,Sprite*sprite)
 {
 	if(parent==NULL || sprite ==NULL)
 		return sprite;
@@ -890,7 +893,7 @@ SDL_bool Sprite_contains(Sprite*parent,Sprite*sprite)
 	return SDL_FALSE;
 }
 
-Sprite* Sprite_getChildByName(Sprite*sprite,const char*name)
+Sprite * Sprite_getChildByName(Sprite*sprite,const char*name)
 {
 	if(sprite->children==NULL)
 		return NULL;
@@ -1066,7 +1069,7 @@ int Sprite_removeEventListener(Sprite*sprite,Uint32 type,EventFunc func)
 }
 
 
-Sprite*Sprite_addChildAt(Sprite*parent,Sprite*sprite,int index)
+Sprite * Sprite_addChildAt(Sprite*parent,Sprite*sprite,int index)
 {
 	if(parent==NULL || sprite == NULL)
 		return sprite;
@@ -1290,8 +1293,7 @@ int Sprite_removeChildren(Sprite*sprite)
 	return 0;
 }
 
-//UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//Stage_redraw
-int Stage_redraw()
+static int _Stage_redraw()
 {
 	if(stage->GLEScontext){
 		SDL_GL_MakeCurrent(stage->window, stage->GLEScontext);
@@ -1305,6 +1307,12 @@ int Stage_redraw()
 		Sprite_show(stage->sprite);
 		SDL_RenderPresent(stage->renderer);
 	}
+	return 0;
+}
+
+int Stage_redraw()
+{
+	UserEvent_new(SDL_USEREVENT,0,_Stage_redraw,NULL);//_Stage_redraw
 	return 0;
 }
 
@@ -1470,7 +1478,7 @@ int PrintEvent(const SDL_Event * event)
 					}
 					Sprite_limitPosion(target,target->dragRect);
 					//if(target->mouse->x)
-					//Stage_redraw();
+					//_Stage_redraw();
 				}
 			}
 			//stage->focus = target;
@@ -1519,7 +1527,7 @@ int PrintEvent(const SDL_Event * event)
 				}else{
 					//destroyQuitSprite();
 				}
-				//Stage_redraw();
+				//_Stage_redraw();
 			}
 		case SDL_TEXTINPUT:
 		case SDL_TEXTEDITING:
@@ -1540,7 +1548,7 @@ int PrintEvent(const SDL_Event * event)
 			break;
 
 		case SDL_USEREVENT:
-			//SDL_Log("SDL_UserEvent Stage_redraw,%d",event->user.timestamp);
+			//SDL_Log("SDL_UserEvent _Stage_redraw,%d",event->user.timestamp);
 			((void (*)(void*))(event->user.data1))(event->user.data2);
 			return 0;
 			break;
@@ -1554,14 +1562,14 @@ int PrintEvent(const SDL_Event * event)
 			switch (event->window.event) {
 				case SDL_WINDOWEVENT_SHOWN:
 					SDL_Log("Window %d shown", event->window.windowID);
-					Stage_redraw();
+					_Stage_redraw();
 					break;
 				case SDL_WINDOWEVENT_HIDDEN:
 					SDL_Log("Window %d hidden", event->window.windowID);
 					break;
 				case SDL_WINDOWEVENT_EXPOSED:
 					SDL_Log("Window %d exposed", event->window.windowID);
-					Stage_redraw();
+					_Stage_redraw();
 					break;
 				case SDL_WINDOWEVENT_MOVED:
 					SDL_Log("Window %d moved to %d,%d",
@@ -1575,7 +1583,7 @@ int PrintEvent(const SDL_Event * event)
 					Window_resize(event->window.data1,event->window.data2);
 					//stage->stage_w = event->window.data1;
 					//stage->stage_h = event->window.data2;
-					Stage_redraw();
+					_Stage_redraw();
 					break;
 				case SDL_WINDOWEVENT_MINIMIZED:
 					SDL_Log("Window %d minimized", event->window.windowID);
@@ -1585,7 +1593,7 @@ int PrintEvent(const SDL_Event * event)
 					break;
 				case SDL_WINDOWEVENT_RESTORED:
 					SDL_Log("Window %d restored", event->window.windowID);
-					Stage_redraw();
+					_Stage_redraw();
 					break;
 				case SDL_WINDOWEVENT_ENTER:
 					SDL_Log("Mouse entered window %d",
@@ -1648,7 +1656,7 @@ void Stage_loopEvents()
 	   }
 	   */
 
-	if(stage && stage->sprite->children)Stage_redraw();
+	if(stage && stage->sprite->children)_Stage_redraw();
 	int done=0;
 	while (!done) {
 		SDL_Event event;

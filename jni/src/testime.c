@@ -122,7 +122,7 @@ static void keyupEvent(SpriteEvent* e){
                 break;
         }
     }
-	UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//Stage_redraw
+    Stage_redraw();
 }
 
 
@@ -146,7 +146,7 @@ static void slideEvent(SpriteEvent* e){
             break;
 
     }
-	//UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//Stage_redraw
+    //Stage_redraw();
 }
 
 
@@ -157,8 +157,6 @@ static void slideEvent(SpriteEvent* e){
 int main(int argc, char *argv[]) {
     Stage_init(1);
     if(stage==NULL)return 0;
-
-    Loading_show(1,"");
 
     pthread_t thread1;
     if(pthread_create(&thread1, NULL, webThread, NULL)!=0)//创建子线程  
@@ -189,10 +187,6 @@ int main(int argc, char *argv[]) {
     //showCardTest(1);
     showSearchDict(1);
 
-    //update(NULL);
-
-    Loading_show(0,"");
-    //
     Stage_loopEvents();
     exit(0);
     return 0;

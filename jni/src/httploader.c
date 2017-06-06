@@ -1,6 +1,6 @@
 /**
  *
- gcc -Wall -g urlcode.c array.c base64.c ipstring.c httploader.c mystring.c -lssl -lcrypto -lm -D debug_httploader &&./a.out
+ gcc -Wall -g urlcode.c array.c base64.c ipstring.c httploader.c mystring.c -lpthread -lssl -lcrypto -lm -D debug_httploader &&./a.out
  gcc -Wall -I"../SDL2_image/" -I"../SDL2_ttf" -I"." -I"include" regex.c urlcode.c utf8.c mysurface.c myregex.c textfield.c files.c array.c matrix.c tween.c ease.c base64.c ipstring.c sprite.c httploader.c mystring.c -L"lib" -liconv -lssl -lcrypto -lws2_32 -lgdi32 -lSDL2_image -lSDL2_ttf -lmingw32 -lSDL2main -lSDL2 -I"../SDL2/include/" -lm -D debug_httploader && a
  gcc -Wall -D SDL2 -I"../SDL2_image/" -I"../SDL2_ttf" textfield.c utf8.c mysurface.c myregex.c urlcode.c files.c array.c matrix.c base64.c ipstring.c sprite.c httploader.c mystring.c  -lssl -lcrypto  -lSDL2_image -lSDL2_ttf -lSDL2 -I"../SDL2/include/" -lm -D debug_httploader &&./a.out
  > a.txt
@@ -467,7 +467,7 @@ URLRequest * Httploader_request(URLRequest *urlrequest)
 	return urlrequest;
 }
 
-URLRequest * Httploader_load(char *url)
+URLRequest * Httploader_load(char * url)
 {
 	if(url == NULL)
 		return NULL;
@@ -475,6 +475,31 @@ URLRequest * Httploader_load(char *url)
 	return Httploader_request(urlrequest);
 }
 
+static void * URLRequest_loaded(void * ptr){
+	URLRequest * urlrequest = ptr;
+	urlrequest = Httploader_request(urlrequest);
+	if(urlrequest->onComplete!=NULL)
+		urlrequest->onComplete(urlrequest);
+	return urlrequest;
+}
+
+URLRequest * Httploader_asyncload(char * url,void (*load_func)(URLRequest *))
+{
+	if(url == NULL)
+		return NULL;
+	URLRequest * urlrequest = URLRequest_new(url);
+	urlrequest->onComplete = load_func;
+
+	pthread_t thread1;
+	if(pthread_create(&thread1, NULL,URLRequest_loaded, urlrequest)!=0)//创建子线程  
+	{  
+		perror("pthread_create");  
+	}else{
+		pthread_detach(thread1);
+		//pthread_join(thread1,NULL);
+	}
+	return urlrequest;
+}
 
 URLRequest*URLRequest_setAuthorization(URLRequest*urlrequest,char*userName,char*pswd)
 {

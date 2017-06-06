@@ -777,7 +777,7 @@ static void video_display(Video*video)
 				Sprite_destroyTexture(sprite);
 				sprite->texture = frame->bmp;
 			}
-			UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//Stage_redraw
+			Stage_redraw();
 		}
 		SDL_UnlockMutex(video->pictq.mutex);
 	}

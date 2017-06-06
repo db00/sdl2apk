@@ -46,12 +46,13 @@ typedef struct Tween{
 	SDL_TimerID timer;
 	Uint32 interval;
 	SDL_TimerCallback callback;
-	void*param;
+	void * param;
 	float (*ease)(float,float,float,float);
-	void (*onComplete)(void *);
-	void * onCompleteParas;
 
 	Array * surfaces;//序列帧画面数组
+
+	void (*onComplete)(void *);
+	void * onCompleteParas;
 }Tween;
 
 TweenObj * TweenObj_new(Sprite*sprite);

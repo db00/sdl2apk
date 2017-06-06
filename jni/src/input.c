@@ -23,7 +23,7 @@ static void Input_redraw(Input *input) {
 	*/
 #endif
 	SDL_SetTextInputRect(input->rect);
-	UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//Stage_redraw
+	Stage_redraw();
 }
 
 static void textChangFunc(Input * input)

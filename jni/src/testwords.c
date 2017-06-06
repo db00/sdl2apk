@@ -379,7 +379,7 @@ static void keyupEvent(SpriteEvent* e){
 		default:
 			break;
 	}
-	UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//this line is equal to the following code block.
+	Stage_redraw();
 }
 
 static void test_word(TestWord * word)
@@ -470,7 +470,7 @@ void startTest(int b)
 		if(input)
 			Input_setText(input,"");
 	}
-	//UserEvent_new(SDL_USEREVENT,0,Stage_redraw,NULL);//this line is equal to the following code block.
+	Stage_redraw();
 }
 
 #ifdef debug_test_word

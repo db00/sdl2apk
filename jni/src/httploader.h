@@ -11,6 +11,7 @@
 #include <string.h>
 #include <time.h>
 #include <ctype.h>
+#include <pthread.h>
 
 #ifndef _WIN32_WCE
 #include <errno.h>
@@ -119,6 +120,7 @@ typedef struct URLRequest
 	int isHttps;
 	char * path;
 
+	void(* onComplete)(struct URLRequest *);// async load complete function
 	char * data;//downloaded data
 	int bytesOfData;//downloaded data Length;
 	RequestData * request;
@@ -135,6 +137,7 @@ void URLRequest_clear(URLRequest* urlrequest);
 URLRequest * URLRequest_new(char *_url);
 URLRequest * Httploader_request(URLRequest *urlrequest);
 URLRequest * Httploader_load(char *url);
+URLRequest * Httploader_asyncload(char * url,void (*load_func)(URLRequest *));
 URLRequest * URLRequest_setAuthorization(URLRequest*urlrequest,char*userName,char*pswd);
 char * loadUrl(char * url,size_t* len);
 

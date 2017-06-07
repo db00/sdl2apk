@@ -1251,6 +1251,8 @@ int Sprite_destroy(Sprite*sprite)
 	if(sprite->tween && sprite->Tween_kill)
 	{
 		sprite->Tween_kill(sprite->tween,0);
+		sprite->tween = NULL;
+		sprite->Tween_kill = NULL;
 	}
 
 	Sprite_destroySurface(sprite);

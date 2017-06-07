@@ -159,14 +159,16 @@ static void tweenstart()
 	if(tween)
 	{
 		//Tween_kill(tween,0);
-		//tween = NULL;
+		tween = NULL;
 	}
-	TweenObj * tweenObj = (TweenObj*)TweenObj_new(container);
+	TweenObj * tweenObj;
 	if(parent->y + container->y + picH < stage->stage_h)
 	{
+		tweenObj = (TweenObj*)TweenObj_new(container);
 		tweenObj->end->y = stage->stage_h - picH - parent->y;// (container->y + container->h);
 		tween = tween_to(container,300 ,tweenObj);
 	}else if(container->y > stage->stage_h/3){
+		tweenObj = (TweenObj*)TweenObj_new(container);
 		tweenObj->end->y = stage->stage_h/3;// (container->y + container->h);
 		tween = tween_to(container,300 ,tweenObj);
 	}

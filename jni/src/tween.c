@@ -59,9 +59,10 @@ void Tween_clear(Tween *tween)
 			}
 			tween->timer = 0;
 		}
-		if(tween->sprite)
-		{
+		if(tween->sprite){
 			tween->sprite->tween = NULL;
+			tween->sprite->Tween_kill = NULL;
+			tween->sprite = NULL;
 		}
 		if(tween->obj){
 			//SDL_Log("TweenObj_clear start!");fflush(stdout);
@@ -133,9 +134,9 @@ void Tween_kill(void * tweenobj,int toEnd)
 	if(tween->onComplete){
 		tween->onComplete(tween->onCompleteParas);
 	}
+	Stage_redraw();
 
 	Tween_clear(tween);
-	Stage_redraw();
 }
 
 
@@ -143,7 +144,7 @@ static Uint32 my_callbackfunc(Uint32 interval, void *param)
 {
 	Uint32 then = SDL_GetTicks();//当前时间;
 	Tween * tween = (Tween*)param;
-	Sprite *sprite = tween->sprite;
+	Sprite * sprite = tween->sprite;
 
 	tween->passedTime += tween->interval;
 	int timeLeft = tween->time - tween->passedTime;
@@ -153,7 +154,7 @@ static Uint32 my_callbackfunc(Uint32 interval, void *param)
 	}
 	if(timeLeft <=0) {
 		if(tween->surfaces && tween->surfaces->length>0)
-			Sprite_setSurface(tween->sprite,Array_getByIndex(tween->surfaces,tween->surfaces->length-1));
+			Sprite_setSurface(sprite,Array_getByIndex(tween->surfaces,tween->surfaces->length-1));
 		if(sprite->Tween_kill==NULL)
 		{
 			sprite->Tween_kill = Tween_kill;
@@ -177,7 +178,7 @@ static Uint32 my_callbackfunc(Uint32 interval, void *param)
 				i=0;
 			if(i>=tween->surfaces->length)
 				i = tween->surfaces->length-1;
-			Sprite_setSurface(tween->sprite,Array_getByIndex(tween->surfaces,i));
+			Sprite_setSurface(sprite,Array_getByIndex(tween->surfaces,i));
 		}
 
 		cur->x = start->x + (end->x - start->x)*completeRate;
@@ -197,7 +198,7 @@ static Uint32 my_callbackfunc(Uint32 interval, void *param)
 		cur->rotationY = start->rotationY + (end->rotationY - start->rotationY)*completeRate;
 		cur->rotationZ = start->rotationZ + (end->rotationZ - start->rotationZ)*completeRate;
 
-		setSpriteStatus(tween->sprite,cur);
+		setSpriteStatus(sprite,cur);
 	}
 
 	Stage_redraw();
@@ -220,22 +221,20 @@ static Uint32 my_callbackfunc(Uint32 interval, void *param)
 	return interval;
 }
 
-Tween * tween_to(Sprite*sprite,int time,TweenObj*obj)
+Tween * tween_to(Sprite * sprite,int time,TweenObj*obj)
 {
 	if(sprite == NULL || obj == NULL || time<=0)
 		return NULL;
+	if(sprite->Tween_kill && sprite->tween){
+		sprite->Tween_kill(sprite->tween,0);
+	}
 
 	Tween * tween = (Tween*)malloc(sizeof(Tween));
 	memset(tween,0,sizeof(Tween));
-	tween->sprite = sprite;
 	tween->time = time;
 	tween->obj = obj;
 
-	if(sprite->Tween_kill==NULL){
-		sprite->Tween_kill = Tween_kill;
-	}else if(sprite->tween){
-		sprite->Tween_kill(sprite->tween,0);
-	}
+	sprite->Tween_kill = Tween_kill;
 	sprite->tween = tween;
 
 	if(obj->start==NULL){
@@ -270,10 +269,11 @@ Tween * tween_to(Sprite*sprite,int time,TweenObj*obj)
 		  */
 		tween->ease = easeNone_linear;
 	}
+	tween->sprite = sprite;
 
 	//tween->StartTime = SDL_GetTicks();
 	tween->callback = my_callbackfunc;
-	if(tween->interval<=0)tween->interval = 25;
+	if(tween->interval<=0)tween->interval = 20;
 	tween->param = tween;
 	tween->timer= SDL_AddTimer(tween->interval, tween->callback, tween->param);
 	return tween;

@@ -1,6 +1,6 @@
 /**
  * @file testwords.c
- gcc -g -D debug_test_word -I"../SDL2/include/" -I"../SDL2_ttf/" -lSDL2 -lsqlite3 -lz -lssl -lcrypto -lSDL2_ttf -lm utf8.c myfont.c matrix.c sprite.c textfield.c input.c urlcode.c dict.c update.c bytearray.c zip.c httploader.c ipstring.c base64.c sqlite.c myregex.c  testwords.c files.c mystring.c array.c datas.c && ./a.out
+ gcc -g -D debug_test_word -I"../SDL2/include/" -I"../SDL2_ttf/" -lSDL2 -lsqlite3 -lz -lssl -lcrypto -lpthread -lSDL2_ttf -lm utf8.c myfont.c matrix.c sprite.c textfield.c input.c urlcode.c dict.c update.c bytearray.c zip.c httploader.c ipstring.c base64.c sqlite.c myregex.c  testwords.c files.c mystring.c array.c datas.c && ./a.out
  * @author db0@qq.com
  * @version 1.0.1
  * @date 2017-05-18
@@ -9,6 +9,7 @@
 #include "testwords.h"
 
 static Sprite * testContainer= NULL;
+static Sprite * prevSprite = NULL;
 static Input * input = NULL;
 static TextField * textfield = NULL;
 
@@ -265,8 +266,7 @@ static void check_word(char * s)
 	if(strlen(s)<2)
 	{
 		if(strcmp(s,"q")==0){
-			testContainer->visible = SDL_FALSE;
-			showSearchDict(1);
+			Test_end();
 		}
 		return;
 	}
@@ -342,13 +342,13 @@ static void check_word(char * s)
 }
 
 static void keyupEvent(SpriteEvent* e){
+	if(Sprite_getVisible(testContainer)==0)
+		return;
 	if(regex_match(input->value,"/[×√]/")){
 		test_next();
 		return;
 	}
 	if(strlen(input->value)==0)
-		return;
-	if(testContainer==NULL || testContainer->visible==0)
 		return;
 	SDL_Event *event = e->e;
 	const char * kname = SDL_GetKeyName(event->key.keysym.sym);
@@ -427,14 +427,12 @@ static void test_word(TestWord * word)
 			{
 				input = Input_new(stage->stage_w,min(stage->stage_h/10,50));
 				//input->textChangFunc = textChangFunc;
-				//Sprite_addEventListener(input->sprite,SDL_MOUSEBUTTONDOWN,show_list);//click to show a list
 				Sprite_addChild(testContainer,input->sprite);
 				stage->focus = input->sprite;
 			}
 			textfield = TextField_new();
 			textfield->sprite->canDrag = 1;
 			textfield->w = stage->stage_w;
-			//Sprite_addEventListener(textfield->sprite,SDL_MOUSEBUTTONDOWN,stopInput); 
 			Sprite_addChildAt(testContainer,textfield->sprite,0);
 			textfield->y = input->sprite->h;
 			textfield->h = stage->stage_h - textfield->y;
@@ -442,42 +440,53 @@ static void test_word(TestWord * word)
 		testContainer->visible = SDL_TRUE;
 		TextField_setText(textfield,test_explain);free(test_explain);
 		Sprite_addEventListener(stage->sprite,SDL_KEYUP,keyupEvent); 
-		//Sprite_addEventListener(stage->sprite,SDL_KEYDOWN,keyupEvent); 
 	}
 }
 
-void startTest(int b)
+void Test_end()
 {
-	if(b){
-		if(ec_dict==NULL)
-		{
-			ec_dict = Dict_new();
-			ec_dict->name = "oxford-gb";
-			if(!fileExists("~/sound/oxford-gb/"))
-			{
-				//Loading_show(1,"loading oxford ......");
-				loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/oxford.zip","~/sound/");
-			}
-		}
-		get_test_config();
-		get_test_array(0,numWords);
-		numIndex = 0;
-		TestWord * s = Array_getByIndex(test_array,numIndex);
-		test_word(s);
-	}else{
-		if(testContainer)
-			testContainer->visible = SDL_FALSE;
-		if(input)
-			Input_setText(input,"");
-	}
+	if(testContainer)
+		testContainer->visible = SDL_FALSE;
+	if(input)
+		Input_setText(input,"");
+	if(prevSprite)
+		prevSprite->visible = SDL_TRUE;
+	SDL_SetWindowTitle(stage->window,"");
+	Stage_redraw();
+}
+void Test_start(Sprite * dictContainer,Dict * dict)
+{
+	SDL_SetWindowTitle(stage->window,"测试");
+	prevSprite = dictContainer;
+	if(prevSprite)
+		prevSprite->visible = SDL_FALSE;
+	ec_dict = dict;
+	get_test_config();
+	get_test_array(0,numWords);
+	numIndex = 0;
+	TestWord * s = Array_getByIndex(test_array,numIndex);
+	test_word(s);
 	Stage_redraw();
 }
 
 #ifdef debug_test_word
+
+#include "update.h"
+
 int main()
 {
 	Stage_init(1);
-	startTest();
+
+	Dict * dict  = Dict_new();
+
+	dict->name = "oxford-gb";
+	if(!fileExists("~/sound/oxford-gb/"))
+	{
+		//Loading_show(1,"loading oxford ......");
+		loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/oxford.zip","~/sound/");
+	}
+
+	Test_start(NULL,dict);
 
 
 	Stage_loopEvents();

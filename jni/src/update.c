@@ -230,27 +230,34 @@ int loadAndunzip(char * url,char * toDir)
 
 void compareWebAndLocal(char * url , char * local_path, char * update_url)
 {
+	char * path = decodePath(local_path);
+	char * f = readfile(path,NULL);
+	free(path);
+	if(f==NULL){
+		return;
+	}
+
 	char * oxford_info = loadUrl(url,NULL);
 	if(oxford_info)
 	{
 		char * newVersion = getStrBtw(oxford_info,"version=","\x0a",0);
+		free(oxford_info);
 		SDL_Log("oxford version: %s\r\n",newVersion);
-		char * path = NULL;
-		path = decodePath(local_path);
 		int hasNewVersion = 0;
-		char * f = readfile(path,NULL);
-		char * curVersion = NULL;
-		if(f)
+		char * curVersion = getStrBtw(f,"version=","\x0a",0);
+		free(f);
+		if(curVersion && strlen(curVersion)>0)
 		{
-			curVersion = getStrBtw(readfile(path,NULL),"version=","\x0a",0);
+			while(curVersion[strlen(curVersion)-1]=='\x0d'||curVersion[strlen(curVersion)-1]=='\x0a')
+				curVersion[strlen(curVersion)-1]='\0';
+		}else{
+			if(newVersion)
+				free(newVersion);
 			if(curVersion)
-			{
-				while(curVersion[strlen(curVersion)-1]=='\x0d'||curVersion[strlen(curVersion)-1]=='\x0a')
-					curVersion[strlen(curVersion)-1]='\0';
-			}
-			hasNewVersion = compareVersion(curVersion,newVersion);
-			free(f);
+				free(curVersion);
+			return;
 		}
+		hasNewVersion = compareVersion(curVersion,newVersion);
 
 		if(hasNewVersion){
 			SDL_Log("has new oxford version: %s\r\n",newVersion);
@@ -258,15 +265,16 @@ void compareWebAndLocal(char * url , char * local_path, char * update_url)
 		}else{
 			SDL_Log("no newer than oxford version: %s\r\n",curVersion);
 		}
+		if(newVersion)
+			free(newVersion);
 		if(curVersion)
 			free(curVersion);
-		free(oxford_info);
 	}
 }
 
 void * update(void *ptr)
 {
-    //Loading_show(1,"start check update");
+	//Loading_show(1,"start check update");
 	//https://git.oschina.net/db0/kodi/raw/master/oxford.zip
 	//compareWebAndLocal("https://raw.githubusercontent.com/db00/sdl2apk/master/oxford-gb.ifo","~/sound/oxford-gb/oxford-gb.ifo","https://git.oschina.net/db0/kodi/raw/master/oxford.zip");
 	compareWebAndLocal("https://git.oschina.net/db0/kodi/raw/master/oxford-gb.ifo","~/sound/oxford-gb/oxford-gb.ifo","https://git.oschina.net/db0/kodi/raw/master/oxford.zip");
@@ -296,7 +304,7 @@ void * update(void *ptr)
 		free(s);
 	}
 	fflush(stdout);
-    //Loading_show(0,"updated");
+	//Loading_show(0,"updated");
 	return NULL;
 }
 

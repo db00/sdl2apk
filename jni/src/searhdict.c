@@ -7,33 +7,26 @@
  *
  *
  * 各种时态单词查询
- * 生词测试
  * 单词导入
- * 图片
  * 从解释跳转中找词
  * 中文read
  *
  */
 
-#include "loading.h"
-#include "update.h"
 #include "searhdict.h"
 #include "datas.h"
-#include "besier.h"
-#include "sdlstring.h"
 #include "testwords.h"
-#include "pictures.h"
+#include "explain.h"
+#include "update.h"
 
 
-static Sprite * curlistSprite = NULL;
 static Sprite * dictContainer= NULL;
-static Sprite * sideBtns= NULL;
+static Sprite * curlistSprite = NULL;
+static Sprite * sideBtns = NULL;
 static Input * input = NULL;
-static TextField * textfield = NULL;
 static Dict * ec_dict = NULL;
 static Dict * ce_dict = NULL;
 static Array * history_str_arr;
-static Sprite * explainContainer;
 
 static enum DICT_STATS {
 	DICT,
@@ -70,17 +63,6 @@ int isCE(char * value)
 	return 0;
 }
 
-static void Redraw(char *text) {
-	if(text){
-		textfield = TextField_setText(textfield,text);
-		//TextField_setScrollV(textfield,TextField_getMaxScrollV(textfield));
-	}
-	Stage_redraw();
-}
-
-
-
-
 static void open_dict()
 {
 	if(ec_dict==NULL)
@@ -96,57 +78,13 @@ static void open_dict()
 	//Loading_show(0,NULL);
 }
 
-static void showExplain(char *explain)
-{
-	if(explain){
-		//char *tmp = regex_replace_all(explain,"([^a-zA-Z,;])( [\\*0-9]+ )","$1\n$2");
-		//free(explain);
-		//explain = regex_replace_all(tmp,"([:?!\\.])( )","$1\n$2");
-		//free(tmp);
-		//char *tmp = regex_replace_all(explain,"([^a-zA-Z0-9,;'>\\(\\)\\/ ~]|[:?!\\.])([ \\*0-9]{,2} )","$1\n$2");
-		char *tmp = regex_replace_all(explain,"([^\r\n][:?!\\.\\*]) ","$1\n");
-		free(explain);
-		explain = regex_replace_all(tmp,"([^a-zA-Z,;\r\n])( [\\*0-9]{1,2} )","$1\n$2");
-		//explain = tmp;
-		TextField_setText(textfield,explain);
-		explainContainer->visible = SDL_TRUE;
-		free(explain);
-	}
-	if(curlistSprite)
-	{
-		curlistSprite->visible = SDL_FALSE;
-		Stage_redraw();
-	}
-
-	//return explain;
-}
-
 int add_history(char *word)
 {
 	if(history_db && strlen(word)>1 && regex_match(word,"/^[a-z-]*$/i")) 
 	{
 		add_new_word(word,time(NULL));
-		//printf("\r\n-------------------id:%d\r\n",rc);
-		//rc = add_to_history(rc);
-		//if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
 	}
 	return 0;
-}
-static void show_copied(char * word,int r)
-{
-	if(r==0)
-	{
-		//printf("\n%d,",r);fflush(stdout);
-		int success = SDL_ShowSimpleMessageBox(
-				SDL_MESSAGEBOX_ERROR,
-				word,
-				//"copied",
-				"已复制",
-				NULL);
-		if (success == -1) {
-			SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Error Presenting MessageBox: %s\n", SDL_GetError());
-		}
-	}
 }
 static void read_out(SpriteEvent*e)
 {
@@ -168,12 +106,7 @@ static void read_out(SpriteEvent*e)
 		}
 		return;
 	}else if(strcmp(target->obj,"测试")==0){
-		SDL_SetWindowTitle(stage->window,"测试");
-
-		dictContainer->visible = SDL_FALSE;
-
-		startTest(1);
-
+		Test_start(dictContainer,ec_dict);
 		return;
 	}
 
@@ -182,50 +115,15 @@ static void read_out(SpriteEvent*e)
 		return;
 
 	//printf("read %s\n",word);
-	if(strcmp(target->obj,"英音")==0){
-		if(strlen(word)==0)
-			return;
-		if(isCE(input->value)){
-
-		}else{
-			Sound_playEng(word,1);
-		}
-	}else if(strcmp(target->obj,"美音")==0){
-		if(strlen(word)==0)
-			return;
-		if(isCE(input->value)){
-
-		}else{
-			Sound_playEng(word,2);
-		}
-	}else if(strcmp(target->obj,"图片")==0){
-		if(strlen(word)==0)
-			return;
-		if(isPictureMode){
-			removePictures();
-		}else{
-			search_pic(explainContainer,word);
-			Sprite_addChild(explainContainer,target);
-		}
-	}else if(strcmp(target->obj,"清除")==0){
+	if(strcmp(target->obj,"清除")==0){
 		if(strlen(word)==0)
 			return;
 		Input_setText(input,"");
-	}else if(strcmp(target->obj,"复制单词")==0){
-		if(strlen(word)==0)
-			return;
-		int r= setClipboardText(input->value);
-		show_copied(input->value,r);
-	}else if(strcmp(target->obj,"复制解释")==0){
-		if(strlen(word)==0)
-			return;
-		int r= setClipboardText(textfield->text);
-		show_copied(textfield->text,r);
 	}
-	//Redraw(NULL);
+	//Stage_redraw();
 }
 
-Word * _getWord(char * _word)
+static Word * _getWord(char * _word)
 {
 	//if(_word==NULL || strlen(_word)==0) return NULL;
 	if(isCE(_word)){
@@ -234,29 +132,33 @@ Word * _getWord(char * _word)
 	return Dict_getWord(ec_dict,_word);
 }
 
-int getMean(Word*word)
+static int getMean(Word * word)
 {
 	if(word==NULL)
 		return 0;
-	char * explain = NULL;
+	Dict * dict = ec_dict;
 	if(isCE(word->word)){
-		explain = Dict_getMean(ce_dict,word);
-	}else{
-		explain = Dict_getMean(ec_dict,word);
+		dict = ce_dict;
 	}
-	showExplain(explain);
+	if(curlistSprite){
+		curlistSprite->visible = SDL_FALSE;
+	}
+
 	if(word->word)
 	{
 		if(!isInputRegexp())
 			Input_setText(input,word->word);
 		add_history(word->word);
 	}
-	if(sideBtns) sideBtns->visible = SDL_FALSE;
+	if(sideBtns)
+		sideBtns->visible = SDL_FALSE;
+
+	Explain_show(dictContainer,input->sprite->h,dict,word);
 	return 0;
 }
 
 
-int searchWord(char* _word)
+static int searchWord(char* _word)
 {
 	removePictures();
 	if(_word && strlen(_word)){
@@ -329,9 +231,9 @@ static int button_messagebox(Word * _word)
 }
 
 
-int stageMouseY =0;
-int timestamp = 0;
-void selectedEvent(SpriteEvent*e)
+static int stageMouseY =0;
+static int timestamp = 0;
+static void selectedEvent(SpriteEvent*e)
 {
 	if(dictContainer==NULL || dictContainer->visible==0)
 		return;
@@ -358,10 +260,6 @@ void selectedEvent(SpriteEvent*e)
 			return;
 			break;
 		case SDL_MOUSEBUTTONUP:
-			if(word==NULL)
-			{
-				return;
-			}
 			if(sprite->parent->obj)
 				return;
 			if(abs(stageMouseY - event->button.y)>20)
@@ -385,7 +283,7 @@ void selectedEvent(SpriteEvent*e)
 
 
 
-Sprite * makeWordBtn(Word * word)
+static Sprite * makeWordBtn(Word * word)
 {
 	int fontSize = 20*stage->stage_h/320;
 	//printf("fontSize: (%d===%d)", fontSize,h);
@@ -435,7 +333,7 @@ static Sprite * removeWordBtn(Word * word)
 				}
 
 				lastSprite = Sprite_removeChild(curlistSprite,lastSprite);
-				Redraw(NULL);
+				Stage_redraw();
 
 				return lastSprite;
 
@@ -444,11 +342,11 @@ static Sprite * removeWordBtn(Word * word)
 			++i;
 		}
 	}
-	Redraw(NULL);
+	Stage_redraw();
 	return NULL;
 }
 
-Sprite * appendWordBtn(Word * word,int end)
+static Sprite * appendWordBtn(Word * word,int end)
 {
 	Sprite * sprite = makeWordBtn(word);
 	if(curlistSprite->children && curlistSprite->children->length>0)
@@ -476,7 +374,7 @@ Sprite * appendWordBtn(Word * word,int end)
 	return sprite;
 }
 
-void removeOuts()
+static void removeOuts()
 {
 	if(curlistSprite->children && curlistSprite->children->length>0)
 	{
@@ -508,7 +406,7 @@ static Word * _getWordByIndex(char * curWord,int index)
 	}
 	return Dict_getWordByIndex(ec_dict,index); 
 }
-void changeWordList()
+static void changeWordList()
 {
 	if(ec_dict==NULL)
 	{
@@ -536,7 +434,6 @@ void changeWordList()
 			return;
 		}
 	}
-	//printf("curlistSprite height: %d\n",curlistSprite->h);
 	if(curlistSprite->children && curlistSprite->children->length>0)
 	{
 		Sprite * lastSprite = NULL;
@@ -612,7 +509,7 @@ void changeWordList()
 	removeOuts();
 }
 
-int getIndexByValue(Array * array,char * word)
+static int getIndexByValue(Array * array,char * word)
 {
 	if(array && array->length>0)
 	{
@@ -755,7 +652,6 @@ static Array * get_more_list(char * word,int isAppend,int isFromCenter)
 
 static void changeHistoryList()
 {
-	//printf("curlistSprite height: %d\n",curlistSprite->h);
 	if(history_str_arr==NULL || history_str_arr->length<=0)
 	{
 		printf("\n no words \n");fflush(stdout);
@@ -763,7 +659,6 @@ static void changeHistoryList()
 	}
 
 	char * curWord;
-	//Word* word;
 	if(curlistSprite->children ==NULL || curlistSprite->children->length<=0)
 	{// first word
 		int index = getIndexByValue(history_str_arr,input->value);
@@ -871,16 +766,16 @@ static void showHistory()
 		curlistSprite->y = input->sprite->h;
 	}
 	curlistSprite->visible = 1;
-	explainContainer->visible = SDL_FALSE;
+	Explain_hide();
 	removePictures();
 	changeHistoryList();
-	Redraw(NULL);
+	Stage_redraw();
 }
 
 
-void show_history_list(SpriteEvent*e)
+static void show_history_list(SpriteEvent*e)
 {
-	if(dictContainer==NULL || dictContainer->visible==0)
+	if(Sprite_getVisible(dictContainer)==0)
 		return;
 	Sprite*target = e->target;
 	SDL_Event* event = e->e;
@@ -910,42 +805,6 @@ void show_history_list(SpriteEvent*e)
 	}
 	get_more_list(input->value,1,1);
 
-	/*
-	   if(data)
-	   {
-	   Array_clear(history_str_arr);
-	   history_str_arr = NULL;
-
-	   cJSON* pRoot = cJSON_Parse(data);
-	   if(pRoot){
-	   int nCount = cJSON_GetArraySize( pRoot); 
-
-	   int i;
-	   for(i=0;i<nCount; i++){
-	   if(history_str_arr==NULL)
-	   history_str_arr = Array_new();
-
-	   cJSON *child =  cJSON_GetArrayItem(pRoot, i);
-	   cJSON * w = cJSON_GetObjectItem(child,"word");
-	   char * s = w->valuestring;
-	   if(strlen(s)>1){
-	//char * word = cJSON_Print(w);;
-	char * word = append_str(NULL,s);
-	//char * word = w->valuestring;
-	history_str_arr = Array_push(history_str_arr,word);
-	}
-	//printf("\n---------->%s,%s\n",word,(char*)Array_getByIndex(history_str_arr,i));
-
-	child = child->next;
-	}
-	cJSON_Delete(pRoot);
-	pRoot = NULL;
-	//printf("---------->%d,%s",nCount,cJSON_Print(pRoot));
-	}
-
-	}
-	*/
-
 	//printf("\n=====\n");fflush(stdout);
 	//printf("\n---------->%d\n",history_str_arr->length); fflush(stdout);
 
@@ -956,7 +815,7 @@ void show_history_list(SpriteEvent*e)
 
 void mouseMoves(SpriteEvent*e)
 {
-	if(dictContainer==NULL || dictContainer->visible==0)
+	if(Sprite_getVisible(dictContainer)==0)
 		return;
 	Sprite*target = e->target;
 	if(target==NULL)
@@ -971,10 +830,9 @@ void mouseMoves(SpriteEvent*e)
 
 	if(event->motion.state){
 		//if(abs(event->motion.xrel)<20 && abs(event->motion.yrel)<20)
-		{
-			target->x += event->motion.xrel;
-			target->y += event->motion.yrel;
-		}
+		target->x += event->motion.xrel;
+		target->y += event->motion.yrel;
+
 		int stageSize = stage->stage_w>stage->stage_h?stage->stage_w:stage->stage_h;
 		if(abs(stageMouseY-event->motion.y)>stageSize/320 || abs(event->motion.xrel)>stageSize/320){
 			target->obj= e;
@@ -990,7 +848,7 @@ void mouseMoves(SpriteEvent*e)
 			}
 		}
 		SDL_StopTextInput();
-		Redraw(NULL);
+		Stage_redraw();
 	}
 }
 Sprite * makeWordlist(char * curWord)
@@ -1018,21 +876,15 @@ void textChangFunc(Input * input){
 	{
 		SDL_Log("text input changed!");
 		curlistSprite->visible = 1;
-		explainContainer->visible = SDL_FALSE;
+		Explain_hide();
 		removePictures();
 		makeWordlist(input->value);
-		Redraw(NULL);
+		Stage_redraw();
 	}
-}
-void stopInput(SpriteEvent* e){
-	if(dictContainer==NULL || dictContainer->visible==0)
-		return;
-	stage->focus = NULL;
-	SDL_StopTextInput();
 }
 
 static void show_list(SpriteEvent* e){
-	if(dictContainer==NULL || dictContainer->visible==0)
+	if(Sprite_getVisible(dictContainer)==0)
 		return;
 	Sprite*target = e->target;
 	SDL_Event* event = e->e;
@@ -1061,7 +913,7 @@ static void show_list(SpriteEvent* e){
 }
 
 static void keyupEvent(SpriteEvent* e){
-	if(dictContainer==NULL || dictContainer->visible==0)
+	if(Sprite_getVisible(dictContainer)==0)
 		return;
 	SDL_Event *event = e->e;
 	const char * kname = SDL_GetKeyName(event->key.keysym.sym);
@@ -1090,7 +942,7 @@ static void keyupEvent(SpriteEvent* e){
 		default:
 			break;
 	}
-	Redraw(NULL);
+	Stage_redraw();
 }
 
 static Sprite * makeSideBtn(char * name,int y, void (*func)(SpriteEvent*))
@@ -1101,19 +953,6 @@ static Sprite * makeSideBtn(char * name,int y, void (*func)(SpriteEvent*))
 	//printf("btn:(%s)\n",btn->obj);
 	btn->x = stage->stage_w - btn->w;
 	Sprite_addChild(sideBtns,btn);
-	return btn;
-}
-static Sprite * makeTopBtn(Sprite * contener,char * name,int gap, void (*func)(SpriteEvent*))
-{
-	Sprite * btn = Sprite_newText(name,30,0x0,0xffffffff);
-	if(contener->children && contener->children->length>0)
-	{
-		Sprite * lastSprite = Sprite_getChildByIndex(contener,contener->children->length-1);
-		btn->x = lastSprite->x + lastSprite->w + gap;
-	}
-	Sprite_addEventListener(btn,SDL_MOUSEBUTTONUP,func);
-	//printf("btn:(%s)\n",btn->obj);
-	Sprite_addChild(contener,btn);
 	return btn;
 }
 
@@ -1128,43 +967,16 @@ static void * uiThread(void *ptr){
 		dictContainer->h = stage->stage_h;
 
 
-		textfield = TextField_new();
-		textfield->sprite->canDrag = 1;
-		textfield->w = stage->stage_w;
-		Sprite_addEventListener(textfield->sprite,SDL_MOUSEBUTTONDOWN,stopInput); 
-
-
-
 		input = Input_new(stage->stage_w,min(stage->stage_h/10,50));
 		input->textChangFunc = textChangFunc;
 		Sprite_addEventListener(input->sprite,SDL_MOUSEBUTTONDOWN,show_list);//click to show a list
 		Sprite_addChild(dictContainer,input->sprite);
 		stage->focus = input->sprite;
 
-
 		//Sprite * clearbtn = Sprite_newText("×",40,0x0,0x00000000);
 		Sprite * clearbtn = Sprite_newText("⊗",input->sprite->h*.7,0x0,0x00000000);
 		clearbtn->x = stage->stage_w-clearbtn->w*1.3;
 		Sprite_addChild(input->sprite,clearbtn);
-
-
-		explainContainer = Sprite_new();
-		Sprite_addChildAt(dictContainer,explainContainer,0);
-		explainContainer->y = input->sprite->h;
-
-		Sprite * enBtn;
-		int gap=2;
-		enBtn = makeTopBtn(explainContainer,"英音",gap,read_out);
-		enBtn = makeTopBtn(explainContainer,"美音",gap,read_out);
-		enBtn = makeTopBtn(explainContainer,"图片",gap,read_out);
-		enBtn = makeTopBtn(explainContainer,"复制单词",gap,read_out);
-		enBtn = makeTopBtn(explainContainer,"复制解释",gap,read_out);
-
-		Sprite_addChildAt(explainContainer,textfield->sprite,0);
-		textfield->y = enBtn->h;
-		textfield->h = stage->stage_h - explainContainer->y - textfield->y;
-		explainContainer->visible = SDL_FALSE;
-
 
 		if(curlistSprite==NULL){
 			int numWords = 10;
@@ -1179,7 +991,7 @@ static void * uiThread(void *ptr){
 			rect->h = (((unsigned int)-1)/2);
 			curlistSprite->dragRect = rect;
 			curlistSprite->surface = Surface_new(stage->stage_w,numWords*fontSize*1.5);
-			Sprite_addChildAt(dictContainer,curlistSprite,1);
+			Sprite_addChildAt(dictContainer,curlistSprite,0);
 			Sprite_addEventListener(curlistSprite,SDL_MOUSEMOTION,mouseMoves);
 		}
 
@@ -1191,11 +1003,11 @@ static void * uiThread(void *ptr){
 		Sprite_addChild(dictContainer,sideBtns);
 
 
-		gap=2;
+		int gap =2;
 		int y = input->sprite->h;
 		//enBtn = makeSideBtn("清除",y,read_out);
 		//y = enBtn->y + enBtn->h + gap;
-		enBtn = makeSideBtn("粘贴",y,read_out);
+		Sprite * enBtn = makeSideBtn("粘贴",y,read_out);
 		y = enBtn->y + enBtn->h + gap;
 		enBtn = makeSideBtn("历史",y,show_history_list);
 		y = enBtn->y + enBtn->h + gap;
@@ -1205,11 +1017,6 @@ static void * uiThread(void *ptr){
 		y = enBtn->y + enBtn->h + gap;
 		enBtn = makeSideBtn("测试",y,read_out);
 		y = enBtn->y + enBtn->h + gap;
-		//enBtn = makeSideBtn("正则查询",y,read_out);
-		/*
-		   enBtn = makeSideBtn("英汉",enBtn->y + enBtn->h + 5,read_out);
-		   enBtn = makeSideBtn("测试",enBtn->y + enBtn->h + 5,read_out);
-		   */
 
 		char * clipboardtext = getClipboardText(0);
 		if(clipboardtext && strlen(clipboardtext)>0){//显示剪切版单词
@@ -1223,10 +1030,11 @@ static void * uiThread(void *ptr){
 	return NULL;
 }
 
-int startx;
-int starty;
-void stageMouseEvent(SpriteEvent* e){
-	if(dictContainer->visible==SDL_FALSE)
+static int startx;
+static int starty;
+static void stageMouseEvent(SpriteEvent* e)
+{
+	if(Sprite_getVisible(dictContainer)==0)
 		return;
 	Sprite*target = e->target;
 	SDL_Event* event = e->e;
@@ -1250,7 +1058,7 @@ void stageMouseEvent(SpriteEvent* e){
 				{
 					sideBtns->visible = SDL_FALSE;
 					printf("\r\nfrom left"); fflush(stdout);
-					Redraw(NULL);
+					Stage_redraw();
 					Sprite_removeEventListener(stage->sprite,SDL_MOUSEMOTION,stageMouseEvent); 
 				}
 			}else if(startx>stage->stage_w-w/2){//show sideBtns
@@ -1258,7 +1066,7 @@ void stageMouseEvent(SpriteEvent* e){
 				{
 					sideBtns->visible = SDL_TRUE;
 					printf("\r\nfrom right"); fflush(stdout);
-					Redraw(NULL);
+					Stage_redraw();
 					Sprite_removeEventListener(stage->sprite,SDL_MOUSEMOTION,stageMouseEvent); 
 				}
 				/*
@@ -1267,14 +1075,14 @@ void stageMouseEvent(SpriteEvent* e){
 				   {
 				//printf("\r\nfrom top\r\n"); fflush(stdout);
 				//sideBtns->visible = SDL_FALSE;
-				//Redraw(NULL);
+				//Stage_redraw();
 				Sprite_removeEventListener(stage->sprite,SDL_MOUSEMOTION,stageMouseEvent); 
 				}
 				}else if(starty>stage->stage_h*9/10){
 				if(event->button.y<stage->stage_h*8/10)
 				{
 				//sideBtns->visible = SDL_TRUE;
-				//Redraw(NULL);
+				//Stage_redraw();
 				//printf("\r\nfrom bottom\r\n"); fflush(stdout);
 				Sprite_removeEventListener(stage->sprite,SDL_MOUSEMOTION,stageMouseEvent); 
 				}
@@ -1284,7 +1092,7 @@ void stageMouseEvent(SpriteEvent* e){
 		{
 			sideBtns->visible = SDL_FALSE;
 			printf("\r\n to right"); fflush(stdout);
-			Redraw(NULL);
+			Stage_redraw();
 			Sprite_removeEventListener(stage->sprite,SDL_MOUSEMOTION,stageMouseEvent); 
 		}
 	}
@@ -1296,20 +1104,18 @@ void stageMouseEvent(SpriteEvent* e){
 
 void showSearchDict(int b)
 {
-	uiThread(NULL);
-	STATS=DICT;
-	SDL_SetWindowTitle(stage->window, "词典");
-	dictContainer->visible = b;
-	startTest(SDL_FALSE);
 	if(b){
-		Sprite_addChild(stage->sprite,dictContainer);
+		STATS = DICT;
+		uiThread(NULL);
+		open_dict();
 		stage->focus = input->sprite;
+		Test_end();
+		Sprite_addEventListener(stage->sprite,SDL_MOUSEBUTTONDOWN,stageMouseEvent); 
+		SDL_SetWindowTitle(stage->window, "词典");
 	}
-	Sprite_addEventListener(stage->sprite,SDL_MOUSEBUTTONDOWN,stageMouseEvent); 
+	dictContainer->visible = b;
+
 	//Sprite_roundRect2D(0,0,100,100,30,30);
-
-
-	open_dict();
 }
 
 

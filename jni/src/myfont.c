@@ -24,6 +24,8 @@
 #endif
 #endif
 
+static char * getFontPathByContainString(char * s);
+
 typedef struct TextFormat
 {
 	//TTF_Font * font;
@@ -184,9 +186,9 @@ TTF_Font * getFontByPath(char * path,int fontSize)
 	return getDefaultFont(fontSize);
 }
 
+static char * defaulfFontFile = NULL;
 TTF_Font * getDefaultFont(int fontSize)
 {
-	TTF_Font * default_font = NULL;
 	if(!TTF_WasInit())
 	{
 		if ( TTF_Init() < 0 ) {
@@ -195,22 +197,28 @@ TTF_Font * getDefaultFont(int fontSize)
 			return NULL;
 		}
 	}
-	//if(!fileExists(DEFAULT_TTF_FILE))
-	default_font = getFontByContainString("历əʊs1",fontSize);
-	//default_font = getFontByContainString("史",fontSize);
-	if(default_font==NULL)
-	{
-		fprintf(stderr, "Couldn't initialize TTF: %s\n",DEFAULT_TTF_FILE);
+	if(defaulfFontFile==NULL)
+		defaulfFontFile = getFontPathByContainString("历əʊs1");
 
-		if(!fileExists("~/sound/DroidSansFallback.ttf"))
+	if(defaulfFontFile == NULL)
+	{
+		char * path = decodePath("~/sound/DroidSansFallback.ttf");
+		if(!fileExists(path))
 		{
 			loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/font.zip","~/sound/");
-			char * file = decodePath("~/sound/DroidSansFallback.ttf");
-			Font_push(file,12);
-			return TTF_OpenFont(file, fontSize);
 		}
+		if(!fileExists(path))
+		{
+			free(path);
+			path = NULL;
+			return NULL;
+		}
+		defaulfFontFile = path;
+		Font_push(defaulfFontFile,fontSize);
 	}
-	return default_font;
+	if(defaulfFontFile)
+		return TTF_OpenFont(defaulfFontFile, fontSize);
+	return NULL;
 }
 
 
@@ -259,7 +267,7 @@ int isWordInFont(TTF_Font * font,char * utf8)
 	return 1;
 }
 
-TTF_Font * getFontByContainString(char * s,int fontSize)
+char * getFontPathByContainString(char * s)
 {
 	fontList = Font_getlist();
 	if(fontList){
@@ -267,14 +275,23 @@ TTF_Font * getFontByContainString(char * s,int fontSize)
 		while(i<fontList->length)
 		{
 			TextFormat * font = Array_getByIndex(fontList,i);
-			TTF_Font * _font = TTF_OpenFont(font->fontpath,fontSize);
+			TTF_Font * _font = TTF_OpenFont(font->fontpath,16);
 			if(font && _font && isWordInFont(_font,s)){
 				SDL_Log("%s in fontList\n",font->fontpath);
-				return _font;
+				return font->fontpath;
 			}
 			TTF_CloseFont(_font);
 			++i;
 		}
+	}
+	return NULL;
+}
+
+TTF_Font * getFontByContainString(char * s,int fontSize)
+{
+	char * path = getFontPathByContainString(s);
+	if(path){
+		return TTF_OpenFont(path,fontSize);
 	}
 	return NULL;
 }

@@ -43,6 +43,8 @@ char * Input_setText(Input * input,char * s)
 
 static void keydownEvent(SpriteEvent* e){
 	SDL_Event *event = e->e;
+	if(Sprite_getVisible(e->target)==0)
+		return;
 	Input* input = e->target->obj;
 	char * _value;
 	//SDL_Log("-----keydownEvent: %08X,%08X\n",event->key.keysym.sym,event->key.keysym.scancode);
@@ -88,6 +90,8 @@ static void keydownEvent(SpriteEvent* e){
 static void textinputEvent(SpriteEvent*e)
 {
 	SDL_Event * event = (SDL_Event *)(e->e);
+	if(Sprite_getVisible(e->target)==0)
+		return;
 	if (event->text.text[0] == '\0'){
 		return;
 	}

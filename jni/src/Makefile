@@ -23,7 +23,7 @@ SRC_DIR:=.
 LIB:= -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lm -lSDL2 -lssl -lcrypto -lpthread
 SRC:= sprite.c matrix.c input.c myregex.c kodi.c utf8.c jsonrpc.c files.c httploader.c ipstring.c mystring.c cJSON.c \
 		dict.c readbaidu.c update.c testime.c textfield.c myfont.c bytearray.c zip.c read_card.c pinyin.c music.c searhdict.c\
-		tween.c ease.c urlcode.c filetypes.c httpserver.c array.c base64.c mysurface.c datas.c sqlite.c besier.c sdlstring.c loading.c pictures.c testwords.c# sqlite3.c
+		tween.c ease.c urlcode.c filetypes.c httpserver.c array.c base64.c mysurface.c datas.c sqlite.c besier.c sdlstring.c loading.c pictures.c testwords.c explain.c# sqlite3.c
 DEFINES:= -D STDC_HEADERS -D test_ime
 TARGET:= ./a.out
 ifeq ($(OS),Darwin)

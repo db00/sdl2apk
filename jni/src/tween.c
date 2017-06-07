@@ -135,6 +135,7 @@ void Tween_kill(void * tweenobj,int toEnd)
 	}
 
 	Tween_clear(tween);
+	Stage_redraw();
 }
 
 
@@ -230,15 +231,12 @@ Tween * tween_to(Sprite*sprite,int time,TweenObj*obj)
 	tween->time = time;
 	tween->obj = obj;
 
-	if(sprite->Tween_kill==NULL)
-	{
+	if(sprite->Tween_kill==NULL){
 		sprite->Tween_kill = Tween_kill;
+	}else if(sprite->tween){
+		sprite->Tween_kill(sprite->tween,0);
 	}
-
-	if(sprite->tween){
-		sprite->Tween_kill(sprite->tween,1);
-		sprite->tween = tween;
-	}
+	sprite->tween = tween;
 
 	if(obj->start==NULL){
 		obj->start = (SpriteStatus*)storeStatus(sprite,obj->start);
@@ -286,6 +284,54 @@ Tween * Tween_new(Sprite*sprite,int time,TweenObj*obj)
 }
 
 #ifdef debug_tween
+
+static Tween * tween;
+static void start_move(Sprite * sprite,int b)
+{
+	if(b){
+		TweenObj * tweenObj = (TweenObj*)TweenObj_new(sprite);
+		//tweenObj->end->scaleX = 8.0;
+		//tweenObj->end->scaleY = 4.0;
+		//tweenObj->end->x=240-sprite->w;
+		//tweenObj->end->y=320-sprite->h;
+		tweenObj->start->alpha=.3;
+		tweenObj->end->alpha=1.0;
+		//tweenObj->end->rotationX=(double)360.0*4;//度数
+		//tweenObj->end->rotationY=(double)360.0*4;//度数
+		//tweenObj->start->rotationZ=.0;
+		tweenObj->end->rotationZ=tweenObj->start->rotationZ+(double)360.0;//度数
+		tween = tween_to(sprite,1000 ,tweenObj);
+		tween->ease = easeInOut_bounce;
+		tween->loop = 1;
+	}else{
+		if(tween){
+			Tween_kill(tween,0);
+			tween = NULL;
+		}
+	}
+}
+
+static void events(SpriteEvent * e)
+{
+	if(e==NULL)
+		return;
+	Sprite * sprite = e->target;
+	SDL_Event* event = e->e;
+	switch(event->type)
+	{
+		case SDL_MOUSEBUTTONDOWN:
+			SDL_Log("down");
+			start_move(sprite,0);
+			break;
+		case SDL_MOUSEBUTTONUP:
+			SDL_Log("up");
+			start_move(sprite,1);
+			break;
+	}
+}
+
+
+
 //#include "files.h"
 int main(int argc, char *argv[])
 {
@@ -307,20 +353,10 @@ int main(int argc, char *argv[])
 	Sprite_addChild(m1,sprite);
 
 	Sprite_addChild(stage->sprite,m1);
+	Sprite_addEventListener(sprite,SDL_MOUSEBUTTONDOWN,events);
+	Sprite_addEventListener(sprite,SDL_MOUSEBUTTONUP,events);
 
-	TweenObj * tweenObj = (TweenObj*)TweenObj_new(sprite);
-	//tweenObj->end->scaleX = 8.0;
-	//tweenObj->end->scaleY = 4.0;
-	//tweenObj->end->x=240-sprite->w;
-	//tweenObj->end->y=320-sprite->h;
-	tweenObj->end->alpha=1.0;
-	//tweenObj->end->rotationX=(double)360.0*4;//度数
-	//tweenObj->end->rotationY=(double)360.0*4;//度数
-	tweenObj->end->rotationZ=(double)360.0;//度数
-	Tween * tween = tween_to(sprite,1000 ,tweenObj);
-	tween->ease = easeInOut_bounce;
-	tween->loop = 1;
-	//Tween_kill(tween,1);
+	start_move(sprite,1);
 
 	Stage_loopEvents();
 	return 0;

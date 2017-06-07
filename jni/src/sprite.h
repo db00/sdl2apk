@@ -260,4 +260,5 @@ void Sprite_setSurface(Sprite*sprite,SDL_Surface * surface);
 void quit(int rc);
 void Sprite_matrix(Sprite *sprite);
 int Window_resize(int w,int h);
+int Sprite_getVisible(Sprite*sprite);
 #endif

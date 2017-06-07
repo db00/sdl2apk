@@ -162,9 +162,12 @@ static void tweenstart()
 		//tween = NULL;
 	}
 	TweenObj * tweenObj = (TweenObj*)TweenObj_new(container);
-	if(container->y + picH != stage->stage_h)
+	if(parent->y + container->y + picH < stage->stage_h)
 	{
-		tweenObj->end->y = stage->stage_h - picH;// (container->y + container->h);
+		tweenObj->end->y = stage->stage_h - picH - parent->y;// (container->y + container->h);
+		tween = tween_to(container,300 ,tweenObj);
+	}else if(container->y > stage->stage_h/3){
+		tweenObj->end->y = stage->stage_h/3;// (container->y + container->h);
 		tween = tween_to(container,300 ,tweenObj);
 	}
 }
@@ -193,7 +196,7 @@ static void mouseMoves(SpriteEvent*e)
 				}
 				break;
 			case SDL_MOUSEBUTTONUP:
-				//tweenstart();
+				tweenstart();
 				break;
 		}
 

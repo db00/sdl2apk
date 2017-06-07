@@ -1,6 +1,6 @@
 /**
  * @file loading.c
- gcc -g -Wall -I"../SDL2/include/"  files.c mystring.c myregex.c update.c httploader.c bytearray.c loading.c tween.c ease.c sprite.c matrix.c array.c zip.c ipstring.c urlcode.c base64.c -lz -lcrypto -lssl -lSDL2 -lm -D debug_loading && ./a.out
+ gcc -g -Wall -I"../SDL2/include/"  files.c mystring.c myregex.c update.c httploader.c bytearray.c loading.c tween.c ease.c sprite.c matrix.c array.c zip.c ipstring.c urlcode.c base64.c -lz -lcrypto -lpthread -lssl -lSDL2 -lm -D debug_loading && ./a.out
  *  
  * @author db0@qq.com
  * @version 1.0.1
@@ -8,7 +8,7 @@
  */
 #include "loading.h"
 
-static Data3d * data2D = NULL;
+//static Data3d * data2D = NULL;
 static Tween * tween = NULL;
 static Sprite * earth_contener=NULL;
 static Sprite * earth_sprite=NULL;
@@ -21,12 +21,15 @@ void Loading_show(int boolean,char * s)
 	if(earth_sprite==NULL)
 	{
 		char * path = decodePath("~/sound/1.bmp");
-		if(!fileExists("~/sound/1.bmp"))
+		if(!fileExists(path))
 		{
 			loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/earth.zip","~/sound/");
 		}
-		if(!fileExists("~/sound/1.bmp"))
+		if(!fileExists(path))
+		{
+			free(path);
 			return;
+		}
 		earth_sprite = Sprite_new();
 		earth_sprite->is3D = 1;
 		earth_sprite->surface = (SDL_LoadBMP(path));
@@ -34,11 +37,13 @@ void Loading_show(int boolean,char * s)
 		Data3d*_data3D = earth_sprite->data3d;
 		if(_data3D==NULL){
 			_data3D = Data3D_init();
+			/*
 			if(_data3D->programObject==0)
 			{
 				data2D = Data3D_init();
 				Data3d_set(_data3D,data2D);
 			}
+			*/
 			earth_sprite->data3d = _data3D;
 			_data3D->numIndices = esGenSphere ( 20, .5f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
 		}

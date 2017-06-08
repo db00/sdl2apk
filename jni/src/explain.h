@@ -5,8 +5,9 @@
 #include "dict.h"
 #include "searhdict.h"
 #include "sdlstring.h"
+#include "wordinput.h"
 
 void Explain_hide();
-Sprite * Explain_show(Sprite * parent,int y,Dict * dict,Word * word);
+Sprite * Explain_show(Dict * dict,Word * word);
 
 #endif

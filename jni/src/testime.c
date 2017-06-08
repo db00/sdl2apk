@@ -26,10 +26,10 @@ http://ozzmaker.com/2014/06/30/virtual-keyboard-for-the-raspberry-pi/
 #include "read_card.h"
 
 static enum STATS {
-    DICT,
+    DICTIONARY,
     CARD,
     KODI,
-    END
+    ENDS
 } stats;
 
 void showCardTest(int b)
@@ -45,10 +45,10 @@ void showCardTest(int b)
 void changeStats(int at)
 {
     int index = stats+at;
-    if(index>=END)
+    if(index>=ENDS)
         index=0;
     else if(index<0)
-        index=END-1;
+        index=ENDS-1;
     stats=index;
     printf("stats:%d\n",stats);
 
@@ -62,7 +62,7 @@ void changeStats(int at)
             Kodi_initBtns(1);
             SDL_SetWindowTitle(stage->window, "kodi");
             break;
-        case DICT:
+        case DICTIONARY:
             showSearchDict(1);
             SDL_SetWindowTitle(stage->window, "词典");
             break;

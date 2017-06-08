@@ -201,6 +201,7 @@ Point3d *Sprite_localToGlobal(Sprite*sprite,Point3d *p);
 Point3d *Sprite_GlobalToLocal(Sprite*sprite,Point3d *p);
 Sprite*Sprite_removeChild(Sprite*parent,Sprite*sprite);
 Sprite * Sprite_getChildByIndex(Sprite * sprite,int index);
+int Sprite_getChildIndex(Sprite*parent,Sprite*sprite);
 SDL_bool Sprite_contains(Sprite*parent,Sprite*sprite);
 Sprite* Sprite_getChildByName(Sprite*sprite,const char*name);
 int Sprite_dispatchEvent(Sprite*sprite,const SDL_Event *event);

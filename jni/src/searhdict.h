@@ -1,12 +1,21 @@
 #ifndef searhdict_h
 #define searhdict_h
 
-#include "input.h"
-#include "pthread.h"
 #include "dict.h"
+#include "sprite.h"
+
+enum DICT_STATS {
+	DICT,
+	HISTORY,
+	NEW,
+	REMEMBERED,
+	END
+} STATS;
+
+Sprite * dictContainer;
 
 void showSearchDict(int b);
-int isCE(char * value);
+
 #endif
 
 

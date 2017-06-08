@@ -23,7 +23,7 @@ static void show_copied(char * word,int r)
 	}
 }
 
-void stopInput(SpriteEvent* e){
+static void stopInput(SpriteEvent* e){
 	stage->focus = NULL;
 	SDL_StopTextInput();
 }
@@ -87,13 +87,13 @@ static Sprite * makeTopBtn(Sprite * contener,char * name,int gap, void (*func)(S
 	return btn;
 }
 
-Sprite * Explain_show(Sprite * parent,int _y,Dict * dict,Word * word)
+Sprite * Explain_show(Dict * dict,Word * word)
 {
 	if(explainContainer==NULL)
 	{
 		explainContainer = Sprite_new();
-		Sprite_addChildAt(parent,explainContainer,0);
-		explainContainer->y = _y;//input->sprite->h;
+		Sprite_addChildAt(dictContainer,explainContainer,0);
+		explainContainer->y = Wordinput_getHeight();//input->sprite->h;
 
 		Sprite * enBtn;
 		int gap=2;
@@ -134,6 +134,7 @@ Sprite * Explain_show(Sprite * parent,int _y,Dict * dict,Word * word)
 }
 void Explain_hide()
 {
+	removePictures();
 	if(explainContainer)
 		explainContainer->visible = SDL_FALSE;
 	curWord = NULL;

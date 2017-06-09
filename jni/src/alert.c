@@ -6,10 +6,7 @@
  * @date 2017-06-09
  */
 
-#include "sprite.h"
-#include "textfield.h"
-#include "mysurface.h"
-#include "besier.h"
+#include "alert.h"
 
 static Sprite * container;
 static SDL_TimerID timer;
@@ -20,10 +17,6 @@ static Sprite * bg;
 static Sprite * middleList;
 static Sprite * bottomList;
 
-typedef struct AlertItem{
-	char * str;
-	void * (*func)(void *);
-}AlertItem;
 
 void Alert_hide()
 {
@@ -147,6 +140,7 @@ void Alert_show(char * _title,Array * _middleBtns,Array * _bottomBtns,int time)
 	{
 		container = Sprite_new();
 	}
+	container->visible = SDL_TRUE;
 	middleBtns = _middleBtns;
 	bottomBtns = _bottomBtns;
 	if(title==NULL){
@@ -178,6 +172,7 @@ void Alert_show(char * _title,Array * _middleBtns,Array * _bottomBtns,int time)
 		bottomList = Sprite_new();
 	}
 	Sprite_removeChildren(bottomList);
+	BottomList_W = 0;
 	if(_bottomBtns && _bottomBtns->length>0)
 	{
 		int i = 0;

@@ -1,4 +1,5 @@
 #include "wordinput.h"
+#include "alert.h"
 
 static Sprite * curlistSprite = NULL;
 static Word * curSelectWord;
@@ -138,37 +139,64 @@ static int getMean(Word * word)
 }
 
 
+static Word * _curWord;
+static void * callbackFunc(void * v)
+{
+	AlertItem * item = v;
+
+	if(strcmp("加入熟词",item->str)==0){
+		SDL_Log("%s,%s",item->str,_curWord->word);
+		add_remembered_word(_curWord->word,1);
+	}else if(strcmp("加入生词",item->str)==0){
+		SDL_Log("%s,%s",item->str,_curWord->word);
+		add_remembered_word(_curWord->word,0);
+	}
+	return NULL;
+}
+
 
 static int button_messagebox(Word * _word)
 {
-	char * word = _word->word;
-	if (word == NULL || strlen(word)==0) {
-		return 1;
-	}
-	const SDL_MessageBoxButtonData buttons[] = {
-		{
-			(STATS==NEW)?SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT:SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
-			0,
-			//"remembered"
-			"加入熟词"
-		},
-		{
-			(STATS==REMEMBERED)?SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT:SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
-			1,
-			//"not remebered"
-			"加入生词"
-		},
+	_curWord = _word;
+	Array * middleBtns = AlertItem_push(NULL,AlertItem_new("加入熟词",callbackFunc));
+	AlertItem_push(middleBtns,AlertItem_new("加入生词",callbackFunc));
+	Array * bottomBtns = NULL;
+	bottomBtns = AlertItem_push(NULL,AlertItem_new("取消",callbackFunc));
+	//Alert_show("hello",middleBtns,bottomBtns,5000);
+	Alert_show(_word->word,middleBtns,bottomBtns,0);
+
+
+
+	/*
+
+	   char * word = _word->word;
+	   if (word == NULL || strlen(word)==0) {
+	   return 1;
+	   }
+	   const SDL_MessageBoxButtonData buttons[] = {
+	   {
+	   (STATS==NEW)?SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT:SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
+	   0,
+	//"remembered"
+	"加入熟词"
+	},
+	{
+	(STATS==REMEMBERED)?SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT:SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
+	1,
+	//"not remebered"
+	"加入生词"
+	},
 	};
 
 	SDL_MessageBoxData data = {
-		SDL_MESSAGEBOX_INFORMATION,
-		NULL, /* no parent window */
-		//"change rememeber status",
-		"改变单词状态",
-		word,//data.message = word;
-		2,
-		buttons,
-		NULL /* Default color scheme */
+	SDL_MESSAGEBOX_INFORMATION,
+	NULL, 
+	//"change rememeber status",
+	"改变单词状态",
+	word,//data.message = word;
+	2,
+	buttons,
+	NULL 
 	};
 
 	int button = -1;
@@ -176,19 +204,21 @@ static int button_messagebox(Word * _word)
 
 	success = SDL_ShowMessageBox(&data, &button);
 	if (success == -1) {
-		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Error Presenting MessageBox: %s\n", SDL_GetError());
-		return 1;
+	SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Error Presenting MessageBox: %s\n", SDL_GetError());
+	return 1;
 	}
 
 	SDL_Log("Pressed button: %d, %s\n", button, button == 0 ? "熟" : "生");
 
 	if(button==0){
-		add_remembered_word(word,1);
+	add_remembered_word(word,1);
 	}else if(button==1){
-		add_remembered_word(word,0);
+	add_remembered_word(word,0);
 	}
-
 	return button;
+	*/
+
+	return 0;
 }
 
 static int stageMouseY =0;

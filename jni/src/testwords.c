@@ -466,6 +466,7 @@ void Test_start(Sprite * dictContainer,Dict * dict)
 	numIndex = 0;
 	TestWord * s = Array_getByIndex(test_array,numIndex);
 	test_word(s);
+	stage->focus = input->sprite;
 	Stage_redraw();
 }
 

@@ -246,10 +246,15 @@ void Sprite_matrix(Sprite *sprite)
 }
 
 
-static SDL_Rect * setSpriteBorder(Sprite*sprite,SDL_Rect*rect)
+SDL_Rect * Sprite_getBorder(Sprite*sprite,SDL_Rect*rect)
 {
 	if(rect==NULL || sprite == stage->sprite){
 		return NULL;
+	}
+	if(rect==NULL)
+	{
+		rect = (SDL_Rect*)malloc(sizeof(SDL_Rect));
+		memset(rect,0,sizeof(SDL_Rect));
 	}
 	if(sprite->Bounds){
 		free(sprite->Bounds);
@@ -810,8 +815,8 @@ Sprite * Sprite_show(Sprite*sprite)
 	}
 	rect->w = sprite->w * scaleX;
 	rect->h = sprite->h * scaleY;
-	setSpriteBorder(sprite,rect);
-	//SDL_Log("setSpriteBorder:%s,%d,%d,%d,%d\n",sprite->name,rect->x,rect->y,rect->w,rect->h);
+	Sprite_getBorder(sprite,rect);
+	//SDL_Log("Sprite_getBorder:%s,%d,%d,%d,%d\n",sprite->name,rect->x,rect->y,rect->w,rect->h);
 
 	if(sprite->texture){
 		SDL_SetTextureAlphaMod(sprite->texture, sprite->alpha*0xff);

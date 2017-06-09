@@ -24,4 +24,6 @@ void Wordinput_changeWordList();
 
 void Wordinput_hideList();
 
+Sprite * makeWordBtn(Word * word,void (*selectedEvent)(SpriteEvent *));
+void List_removeOuts(Sprite * curlistSprite);
 #endif

@@ -131,12 +131,16 @@ void Tween_kill(void * tweenobj,int toEnd)
 		memcpy(obj->cur,obj->end,sizeof(SpriteStatus));//结束值
 		setSpriteStatus(tween->sprite,obj->cur);
 	}
-	if(tween->onComplete){
-		tween->onComplete(tween->onCompleteParas);
-	}
 	Stage_redraw();
 
+	void (*onComplete)(void*) = tween->onComplete;//void (*onComplete)(void *);
+	void * onCompleteParas = tween->onCompleteParas;
+
 	Tween_clear(tween);
+
+	if(onComplete){
+		onComplete(onCompleteParas);
+	}
 }
 
 
@@ -214,6 +218,10 @@ static Uint32 my_callbackfunc(Uint32 interval, void *param)
 	   event.user = userevent;
 	   SDL_PushEvent(&event);//
 	   */
+	if(tween->onEachMove)
+	{
+		tween->onEachMove(tween->onCompleteParas);
+	}
 
 	int timeFromThen = (SDL_GetTicks()-then);
 	if(timeFromThen>0)

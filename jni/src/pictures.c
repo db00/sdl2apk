@@ -45,7 +45,7 @@
 
 
 #include "pictures.h"
-#include "tween.h"
+#include "mylist.h"
 
 
 static Sprite * parent = NULL;
@@ -55,7 +55,6 @@ static int picH = 0;
 static int numPic = 0;
 static int isLoading = 0;
 
-static void mouseMoves(SpriteEvent*e);
 static void addPic();
 
 void removePictures()
@@ -137,8 +136,7 @@ static void container_new()
 		Sprite_addChild(parent,container);
 		container->y = stage->stage_h/3;
 		container->mouseChildren = SDL_FALSE;
-		Sprite_addEventListener(container,SDL_MOUSEMOTION,mouseMoves);
-		Sprite_addEventListener(container,SDL_MOUSEBUTTONUP,mouseMoves);
+		List_roll(container,addPic);
 	}
 
 	if(container->dragRect==NULL)
@@ -152,58 +150,6 @@ static void container_new()
 	}
 }
 
-
-static Tween * tween = NULL;
-static void tweenstart()
-{
-	if(tween)
-	{
-		//Tween_kill(tween,0);
-		tween = NULL;
-	}
-	TweenObj * tweenObj;
-	if(parent->y + container->y + picH < stage->stage_h)
-	{
-		tweenObj = (TweenObj*)TweenObj_new(container);
-		tweenObj->end->y = stage->stage_h - picH - parent->y;// (container->y + container->h);
-		tween = tween_to(container,300 ,tweenObj);
-	}else if(container->y > stage->stage_h/3){
-		tweenObj = (TweenObj*)TweenObj_new(container);
-		tweenObj->end->y = stage->stage_h/3;// (container->y + container->h);
-		tween = tween_to(container,300 ,tweenObj);
-	}
-}
-
-static void mouseMoves(SpriteEvent*e)
-{
-	if(container==NULL || container->visible==0)
-		return;
-	Sprite*target = e->target;
-	if(target==NULL)
-		return;
-
-	if(target!=container)
-		return;
-
-	SDL_Event * event = e->e;
-	if(event->type)
-		switch(event->type)
-		{
-			case SDL_MOUSEMOTION:
-				if(event->motion.state){
-					target->x += event->motion.xrel;
-					target->y += event->motion.yrel;
-					Sprite_limitPosion(target,target->dragRect);
-					addPic();
-				}
-				break;
-			case SDL_MOUSEBUTTONUP:
-				tweenstart();
-				break;
-		}
-
-	Stage_redraw();
-}
 
 static void baiduLoaded(URLRequest * urlrequest)
 {

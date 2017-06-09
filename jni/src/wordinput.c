@@ -45,6 +45,47 @@ int Wordinput_getHeight()
 	return 0;
 }
 
+Sprite * makeWordBtn(Word * word,void (*selectedEvent)(SpriteEvent *))
+{
+	int fontSize = 20*stage->stage_h/320;
+	//printf("fontSize: (%d===%d)", fontSize,h);
+	Sprite * sprite = Sprite_newText(word->word,fontSize,0x0,0xffffffff);
+	sprite->obj= word;
+	//sprite->filter = 0;
+	if(sprite->name)
+		free(sprite->name);
+	sprite->name = contact_str("",word->word);
+	Sprite_addEventListener(sprite,SDL_MOUSEBUTTONDOWN,selectedEvent);
+	Sprite_addEventListener(sprite,SDL_MOUSEBUTTONUP,selectedEvent);
+	return sprite;
+}
+
+void List_removeOuts(Sprite * curlistSprite)
+{
+	if(curlistSprite->children && curlistSprite->children->length>0)
+	{
+		Sprite * lastSprite = NULL;
+		lastSprite = Sprite_getChildByIndex(curlistSprite,0);
+		while(lastSprite->y + lastSprite->h + curlistSprite->y<0)
+		{
+			Word * _word = lastSprite->obj;
+			Sprite_removeChildAt(curlistSprite,0);
+			Sprite_destroy(lastSprite);
+			lastSprite = Sprite_getChildByIndex(curlistSprite,0);
+		}
+
+		lastSprite = Sprite_getChildByIndex(curlistSprite,curlistSprite->children->length-1);
+		while(lastSprite->y + curlistSprite->y > stage->stage_h)
+		{
+			Word * _word = lastSprite->obj;
+			Sprite_removeChild(curlistSprite,lastSprite);
+			Sprite_destroy(lastSprite);
+			lastSprite = Sprite_getChildByIndex(curlistSprite,curlistSprite->children->length-1);
+		}
+	}
+	Stage_redraw();
+}
+
 static int isInputRegexp()
 {
 	if(input && input->value && regex_match(input->value,"/^\\/.*\\/[img]*$/"))
@@ -372,6 +413,8 @@ static void list_show()
 		curlistSprite->surface = Surface_new(stage->stage_w,numWords*fontSize*1.5);
 		Sprite_addChildAt(dictContainer,curlistSprite,0);
 		Sprite_addEventListener(curlistSprite,SDL_MOUSEMOTION,mouseMoves);
+
+		//List_roll(curlistSprite);
 	}
 	if(curlistSprite){
 		Sprite_removeChildren(curlistSprite);

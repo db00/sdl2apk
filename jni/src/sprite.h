@@ -222,6 +222,7 @@ void Sprite_centerRect(Sprite*sprite,SDL_Rect*rect);//sprite在矩形中居中
 int Sprite_removeChildren(Sprite*sprite);
 int Stage_redraw();
 int Sprite_limitPosion(Sprite*target,SDL_Rect*rect);
+SDL_Rect * Sprite_getBorder(Sprite*sprite,SDL_Rect*rect);
 
 void Sprite_destroySurface(Sprite*sprite);
 void Sprite_destroyTexture(Sprite*sprite);

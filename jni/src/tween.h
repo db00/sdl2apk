@@ -51,6 +51,9 @@ typedef struct Tween{
 
 	Array * surfaces;//序列帧画面数组
 
+	void (*onEachMove)(void *);
+	void * onEachMoveParas;
+
 	void (*onComplete)(void *);
 	void * onCompleteParas;
 }Tween;

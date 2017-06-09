@@ -86,17 +86,18 @@ static void selectedEvents(SpriteEvent * e)
 static int middleList_H=0;
 Sprite * AlertItem_newMiddlItem(AlertItem * item)
 {
-	//Sprite * sprite = Sprite_new();
+	Sprite * sprite = Sprite_new();
 	if(middleList==NULL)
 		middleList = Sprite_new();
-	Sprite * sprite= Sprite_newText(item->str,30,0x0,0x00ffffff);
+	Sprite * txt = Sprite_newText(item->str,30,0x0,0x00ffffff);
 
 	sprite->y = middleList_H;
-	//Sprite_addChild(sprite,txt);
+	Sprite_addChild(sprite,txt);
 
-	middleList_H += sprite->h+1;
+	//middleList_H += sprite->h+1;
+	middleList_H += txt->h+1;
 	Sprite_addChild(middleList,sprite);
-	//sprite->mouseChildren = SDL_FALSE;
+	sprite->mouseChildren = SDL_FALSE;
 
 	if(item->func){
 		//sprite->w = txt->w;
@@ -195,8 +196,8 @@ void Alert_show(char * _title,Array * _middleBtns,Array * _bottomBtns,int time)
 	int gap = 10;
 	if(bg==NULL)
 	{
-		//bg = Sprite_roundRect2D(0,0,w+gap*2,h+gap*2,30,30);
-		//Sprite_addChildAt(container,bg,0);
+		bg = Sprite_roundRect2D(0,0,w+gap*2,h+gap*2,30,30);
+		Sprite_addChildAt(container,bg,0);
 	}
 
 	container->x = (stage->stage_w - (w+gap*2))/2;

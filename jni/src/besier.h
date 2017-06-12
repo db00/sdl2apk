@@ -14,6 +14,12 @@ typedef struct Point{
 	float y;
 	float z;
 } Point;
+typedef struct Color{
+	float r;
+	float g;
+	float b;
+	float a;
+} Color;
 
 typedef struct GraphicData
 {
@@ -26,7 +32,9 @@ typedef struct GraphicData
 	GLfloat *texCoords;
 	GLuint  *indices;
 
-	Array * points;
+	Array * points;//Point * 
+	Array * pointColors;//Color *
+	Array * fillColors;//Color *
 } GraphicData;
 
 void Graphic_destroy(Sprite * sprite);

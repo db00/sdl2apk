@@ -3,7 +3,7 @@
  gcc -g -Wall -I"include" -I"../SDL2/include/" besier.c -D DEBUG_BESIER  array.c  sprite.c mystring.c   matrix.c  -lm -lSDL2  && ./a.out
 
 
-	//2D->3D: 映射至第四像限, x:+,y:- , x,y各加屏幕大小的一半
+//2D->3D: 映射至第四像限, x:+,y:- , x,y各加屏幕大小的一半
 
 
  * @author db0@qq.com
@@ -20,6 +20,27 @@ Point * Point_new(float x,float y,float z)
 	p->x = x;
 	p->y = y;
 	p->z = z;
+	return p;
+}
+Color * Color_new(unsigned int _color)
+{
+	Color * p = malloc(sizeof(Color));
+	unsigned char * _p = (unsigned char*)&_color;
+	//printf("%d,%d,%d,%d\r\n", _p[0], _p[1], _p[2], _p[3]);
+	p->r = (1.0*(*(_p+3)))/0xff;
+	p->g = (1.0*(*(_p+2)))/0xff;
+	p->b = (1.0*(*(_p+1)))/0xff;
+	p->a = (1.0*(*(_p+0)))/0xff;
+	//printf("%f,%f,%f,%f\r\n", p->r, p->g, p->b, p->a);
+	return p;
+}
+Color * Color_new2(float r,float g,float b,float a)
+{
+	Color * p = malloc(sizeof(Color));
+	p->r = r;
+	p->g = g;
+	p->b = b;
+	p->a = a;
 	return p;
 }
 
@@ -170,6 +191,11 @@ void Graphic_destroy(Sprite * sprite)
 		if(data3d->indices)free(data3d->indices);
 		if(data3d->normals)free(data3d->normals);
 		if(data3d->texCoords)free(data3d->texCoords);
+		/*
+		   if(userData->points)Array_clear(userData->points);
+		   if(userData->pointColors)Array_clear(userData->pointColors);
+		   if(userData->fillColors)Array_clear(userData->fillColors);
+		   */
 		free(data3d);
 	}
 	sprite->data3d= NULL;
@@ -262,20 +288,37 @@ void Graphic_show(Sprite*sprite)
 
 	int numPoint = userData->points->length;
 	//printf("numPoint=%d\n",numPoint);
+	if(userData->pointColors==NULL)
+	{
+		userData->pointColors = Array_new();
+		int i = 0;
+		while(i<numPoint)
+		{
+			Array_push(userData->pointColors,Color_new(0x000000ff));
+			++i;
+		}
+	}
+	if(userData->fillColors==NULL)
+	{
+		userData->fillColors= Array_new();
+		int i = 0;
+		while(i<numPoint)
+		{
+			Array_push(userData->fillColors,Color_new(0xffffff33));
+			++i;
+		}
+	}
 
 	GLfloat *vVertices= malloc(sizeof(GLfloat)*numPoint*3);
-	//GLushort *vVertices = malloc(sizeof(GLfloat)*numPoint*3);
 	GLfloat *fillColor = malloc(sizeof(GLfloat)*numPoint*4);
 	GLfloat *lineColor = malloc(sizeof(GLfloat)*numPoint*4);
+
 	GLushort *indices = malloc(sizeof(GLushort)*numPoint*3);
 	int index = 0;
 	srand((unsigned)time(NULL));  
 	Point * point;
 	while(index<numPoint)
 	{
-		float r;
-		r = 1.0;
-		//printf("r=%f\n",r);
 		{
 			point = Array_getByIndex(userData->points,index);
 			vVertices[3*index] = point->x;
@@ -285,18 +328,17 @@ void Graphic_show(Sprite*sprite)
 			//printf("y=%f\n",point->y);
 		}
 		{
-			r = (rand()%1000)/1000.0f;
-			fillColor[4*index] = 1.0 * r;
-			lineColor[4*index] = 1.0 * r;
-			r = (rand()%1000)/1000.0f;
-			fillColor[4*index+1] = 1.0 * r;
-			lineColor[4*index+1] = 1.0 * r;
-			r = (rand()%1000)/1000.0f;
-			fillColor[4*index+2] = 1.0 * r;
-			lineColor[4*index+2] = 1.0 * r;
+			Color * _lineColor = Array_getByIndex(userData->pointColors,index);
+			Color * _fillColor = Array_getByIndex(userData->fillColors,index);
+			lineColor[4*index] = _lineColor->r;
+			lineColor[4*index+1] = _lineColor->g;
+			lineColor[4*index+2] = _lineColor->b;
+			lineColor[4*index+3] = _lineColor->a;
 
-			fillColor[4*index+3] = 1.0;
-			lineColor[4*index+3] = 1.0;
+			fillColor[4*index] = _fillColor->r;
+			fillColor[4*index+1] = _fillColor->g;
+			fillColor[4*index+2] = _fillColor->b;
+			fillColor[4*index+3] = _fillColor->a;
 		}
 		{
 			indices[index] = index;
@@ -314,23 +356,23 @@ void Graphic_show(Sprite*sprite)
 	// Load the vertex data
 	GL_CHECK(gles2.glVertexAttribPointer ( userData->positionLoc, 3, GL_FLOAT, GL_FALSE, 3*sizeof(GLfloat), vVertices ));
 	GL_CHECK(gles2.glEnableVertexAttribArray ( userData->positionLoc ));
-	/*
-	   GL_CHECK(gles2.glVertexAttribPointer ( userData->colorLoc, 4, GL_FLOAT, GL_FALSE, 4*sizeof(GLfloat), fillColor));
-	   GL_CHECK(gles2.glEnableVertexAttribArray ( userData->colorLoc));
-	   GL_CHECK(gles2.glDrawArrays ( GL_TRIANGLE_FAN, 0, numPoint));
-	   */
+
+	GL_CHECK(gles2.glVertexAttribPointer ( userData->colorLoc, 4, GL_FLOAT, GL_FALSE, 4*sizeof(GLfloat), fillColor));
+	GL_CHECK(gles2.glEnableVertexAttribArray ( userData->colorLoc));
+	GL_CHECK(gles2.glDrawArrays ( GL_TRIANGLE_FAN, 0, numPoint));
+
 	//GL_CHECK(gles2.glDrawArrays ( GL_TRIANGLES, 0, 3 ));
 	//
 	//GL_CHECK(gles2.glDrawArrays( GL_LINES,0, 8));//, GL_UNSIGNED_SHORT, indices);
 
 	GL_CHECK(gles2.glVertexAttribPointer ( userData->colorLoc, 4, GL_FLOAT, GL_FALSE, 4*sizeof(GLfloat), lineColor));
 	GL_CHECK(gles2.glEnableVertexAttribArray ( userData->colorLoc));
+	GL_CHECK(gles2.glDrawElements ( GL_LINE_STRIP,numPoint, GL_UNSIGNED_SHORT, indices));
 
 	//GL_CHECK(gles2.glDrawElements ( GL_LINE_LOOP, numPoint, GL_UNSIGNED_SHORT, indices));
 	//GL_CHECK(gles2.glDrawArrays ( GL_LINE_STRIP, 0, numPoint));
-	GL_CHECK(gles2.glDrawElements ( GL_LINE_STRIP,numPoint, GL_UNSIGNED_SHORT, indices));
 	//GL_CHECK(gles2.glDrawElements ( GL_TRIANGLE_FAN,numPoint, GL_UNSIGNED_SHORT, indices));
-	GL_CHECK(gles2.glDrawElements ( GL_TRIANGLE_FAN,numPoint, GL_UNSIGNED_SHORT, indices));
+	//GL_CHECK(gles2.glDrawElements ( GL_TRIANGLE_FAN,numPoint, GL_UNSIGNED_SHORT, indices));
 	//GL_CHECK(gles2.glDrawElements ( GL_TRIANGLES, numPoint, GL_UNSIGNED_SHORT, indices));
 	//eglSwapBuffers ( esContext->eglDisplay, esContext->eglSurface );
 	//
@@ -346,6 +388,16 @@ void Graphic_drawRoundRect(GraphicData * userData,float _x, float _y,float _w,fl
 	{
 		Array_clear(userData->points);
 		userData->points = NULL;
+	}
+	if(userData->pointColors)
+	{
+		Array_clear(userData->pointColors);
+		userData->pointColors = NULL;
+	}
+	if(userData->fillColors)
+	{
+		Array_clear(userData->fillColors);
+		userData->fillColors= NULL;
 	}
 
 	_y = -_y;
@@ -381,7 +433,7 @@ void Graphic_drawRoundRect(GraphicData * userData,float _x, float _y,float _w,fl
 }
 
 
- //2D->3D: 映射至第四像限, x:+,y:- , x,y各加屏幕大小的一半
+//2D->3D: 映射至第四像限, x:+,y:- , x,y各加屏幕大小的一半
 void Graphic_drawRoundRect2D(Sprite * sprite,int _x, int _y,int _w,int _h,int r_x,int r_y)
 {
 	sprite->x = _x;

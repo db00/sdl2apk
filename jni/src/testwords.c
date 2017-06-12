@@ -443,6 +443,7 @@ static void test_word(TestWord * word)
 	}
 }
 
+static Sprite * oldStageFocus;
 void Test_end()
 {
 	if(testContainer)
@@ -453,9 +454,12 @@ void Test_end()
 		prevSprite->visible = SDL_TRUE;
 	SDL_SetWindowTitle(stage->window,"");
 	Stage_redraw();
+	stage->focus = oldStageFocus;
+	SDL_StopTextInput();
 }
 void Test_start(Sprite * dictContainer,Dict * dict)
 {
+	oldStageFocus = stage->focus;
 	SDL_SetWindowTitle(stage->window,"测试");
 	prevSprite = dictContainer;
 	if(prevSprite)
@@ -466,8 +470,9 @@ void Test_start(Sprite * dictContainer,Dict * dict)
 	numIndex = 0;
 	TestWord * s = Array_getByIndex(test_array,numIndex);
 	test_word(s);
-	stage->focus = input->sprite;
 	Stage_redraw();
+	stage->focus = input->sprite;
+	SDL_StartTextInput();
 }
 
 #ifdef debug_test_word

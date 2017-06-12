@@ -1,6 +1,6 @@
 /**
  *
- gcc -g -Wall -D debug_ime -Wall utf8.c bytearray.c files.c array.c ease.c tween.c input.c mystring.c sprite.c matrix.c textfield.c -lm -I"../SDL2/include/"  -I"../SDL2_ttf/" -lSDL2 -lSDL2_ttf  && ./a.out
+ gcc -g -Wall -D debug_ime -Wall utf8.c bytearray.c myregex.c myfont.c files.c array.c ease.c tween.c input.c mystring.c sprite.c matrix.c textfield.c -lm -I"../SDL2/include/"  -I"../SDL2_ttf/" -lSDL2 -lSDL2_ttf  && ./a.out
  */
 
 #include "input.h"
@@ -112,8 +112,7 @@ static void textinputEvent(SpriteEvent*e)
 static void texteditingEvent(SpriteEvent*e){
 	SDL_Event* event = (SDL_Event*)(e->e);
 	Input* input = e->target->obj;
-	SDL_Log("-------text editing \"%s\", selected range (%d, %d)\n",
-			event->edit.text, event->edit.start, event->edit.length);
+	//SDL_Log("-------text editing \"%s\", selected range (%d, %d)\n", event->edit.text, event->edit.start, event->edit.length);
 
 	Input_redraw(input);
 }
@@ -134,11 +133,7 @@ Input * Input_new(int w,int h)
 	Input * input = malloc(sizeof(Input));
 	memset(input,0,sizeof(Input));
 	TextField * textfield = TextField_new();
-#ifdef __ANDROID__
-	textfield->font = getFontByPath("/sdcard/DroidSansFallback.ttf",h);
-#else
-	textfield->font = getFontByPath("DroidSansFallback.ttf",h);
-#endif
+	textfield->font = getDefaultFont(h);
 	//textfield->textColor = uintColor(0x330000ff);
 	input->textfield = textfield;
 	textfield->w = w;

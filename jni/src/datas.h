@@ -37,6 +37,7 @@ int get_word_id(char * word);
 int add_to_history(int wordid);
 char * get_remembered_history(int remembered);
 int add_new_word(char * word,time_t t);
+int del_word(char * word);
 char * datas_query(char * sql);
 void add_remembered_word(char * word,int remembered);
 Array * get_test_list(int startIndex,int numWords);

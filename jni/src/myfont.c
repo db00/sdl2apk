@@ -187,8 +187,15 @@ TTF_Font * getFontByPath(char * path,int fontSize)
 }
 
 static char * defaulfFontFile = NULL;
+static TTF_Font * defaulfFont = NULL;
 TTF_Font * getDefaultFont(int fontSize)
 {
+	if(defaulfFontFile)
+	{
+		//if(defaulfFont) TTF_CloseFont(defaulfFont);
+		defaulfFont = TTF_OpenFont(defaulfFontFile, fontSize);
+		return defaulfFont;
+	}
 	if(!TTF_WasInit())
 	{
 		if ( TTF_Init() < 0 ) {
@@ -217,7 +224,10 @@ TTF_Font * getDefaultFont(int fontSize)
 		Font_push(defaulfFontFile,fontSize);
 	}
 	if(defaulfFontFile)
-		return TTF_OpenFont(defaulfFontFile, fontSize);
+	{
+		defaulfFont = TTF_OpenFont(defaulfFontFile, fontSize);
+		return defaulfFont;
+	}
 	return NULL;
 }
 

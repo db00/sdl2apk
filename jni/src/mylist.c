@@ -1,4 +1,7 @@
 #include "mylist.h"
+
+static Tween * tween;
+
 Sprite * List_AddItem(Sprite * curlistSprite,Sprite * sprite,int end)
 {
 	if(curlistSprite->children && curlistSprite->children->length>0)
@@ -81,8 +84,9 @@ void List_showOptical(Sprite * curlistSprite)
 
 void List_rollback(void * list)
 {
+	tween = NULL;
 	Sprite * curlistSprite = list;
-	Tween * tween = NULL;
+	//Tween * tween = NULL;
 	TweenObj * tweenObj;
 	int h = curlistSprite->h;
 	if(h<=0)
@@ -159,7 +163,7 @@ static void mouseMoves(SpriteEvent*e)
 					tweenObj->end->y = stage->stage_h*.2 - target->Bounds->h;
 					time = max(abs((tweenObj->end->y-target->y)/speed*1000*.3),100);
 				}
-				Tween * tween = tween_to(target,(int)time,tweenObj);
+				tween = tween_to(target,(int)time,tweenObj);
 				tween->onComplete = List_rollback;
 				tween->onCompleteParas = target;
 				tween->ease = easeOut_strong;
@@ -171,6 +175,10 @@ static void mouseMoves(SpriteEvent*e)
 			stageX = event->button.x;
 			stageY = event->button.y;
 			timestamp = event->button.timestamp;
+			if(tween && tween->sprite){
+				//Tween_kill(tween->sprite,0);
+				tween = NULL;
+			}
 			//SDL_Log("down : (%d,%d),%d\r\n",stageX,stageY,timestamp);
 			break;
 		default:

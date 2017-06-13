@@ -19,6 +19,21 @@ int add_new_word(char * word,time_t t)
 	return 0;
 }
 
+int del_word(char * word)
+{
+	int id = get_word_id(word);
+	if(id>0)
+	{
+		char * s ="delete from list where word=\"%s\";";
+		char sql[256];
+		memset(sql,0,256);
+		sprintf(sql,s,word);
+		int rc = DataBase_exec(history_db,sql);
+		if(!rc)printf("\n update sql_result_str:%s",history_db->result_str);
+	}
+	return 0;
+}
+
 /**
  *
  * 把word加入熟词（1）/生词（0）

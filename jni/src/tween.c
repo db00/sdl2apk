@@ -126,13 +126,13 @@ int setSpriteStatus(Sprite*sprite,SpriteStatus*status)
 void Tween_kill(void * tweenobj,int toEnd)
 {
 	Tween * tween = tweenobj;
+	if(tween==NULL)return;
 	TweenObj * obj = tween->obj;
 	if(toEnd){
 		memcpy(obj->cur,obj->end,sizeof(SpriteStatus));//结束值
 		setSpriteStatus(tween->sprite,obj->cur);
 	}
 	Stage_redraw();
-
 	void (*onComplete)(void*) = tween->onComplete;//void (*onComplete)(void *);
 	void * onCompleteParas = tween->onCompleteParas;
 
@@ -240,7 +240,6 @@ Tween * tween_to(Sprite * sprite,int time,TweenObj*obj)
 	Tween * tween = (Tween*)malloc(sizeof(Tween));
 	memset(tween,0,sizeof(Tween));
 	tween->time = time;
-	tween->obj = obj;
 
 	sprite->Tween_kill = Tween_kill;
 	sprite->tween = tween;
@@ -258,6 +257,7 @@ Tween * tween_to(Sprite * sprite,int time,TweenObj*obj)
 		obj->end= (SpriteStatus*)malloc(sizeof(SpriteStatus));
 		memcpy(obj->end,obj->start,sizeof(SpriteStatus));
 	}
+	tween->obj = obj;
 
 	if(tween->ease==NULL){
 		/**

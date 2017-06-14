@@ -1,6 +1,6 @@
 /**
  * @file textfield.c
- gcc -Wall -I"../SDL2/include/"  -I"../SDL2_ttf/" myfont.c array.c utf8.c update.c httploader.c ipstring.c urlcode.c base64.c  bytearray.c zip.c files.c myregex.c sdlstring.c textfield.c matrix.c sprite.c mystring.c  -lSDL2_ttf -lz -lssl -lcrypto -lm -lSDL2 -D debugtext  && ./a.out
+ gcc -Wall -I"../SDL2/include/"  -I"../SDL2_ttf/" myfont.c array.c utf8.c update.c httploader.c ipstring.c urlcode.c base64.c  bytearray.c zip.c files.c myregex.c sdlstring.c textfield.c matrix.c sprite.c mystring.c  -lSDL2_ttf -lz -lssl -lcrypto -lpthread -lm -lSDL2 -D debugtext  && ./a.out
  gcc -g -Wall -I"../SDL2/include/" -I"../SDL2_image/" -I"../SDL2_ttf/" array.c tween.c ease.c textfield.c matrix.c sprite.c sdlstring.c mystring.c files.c -lSDL2_ttf -lmingw32 -lSDL2main -lSDL2 -D debugtext && a
  *  
  * @author db0@qq.com
@@ -45,7 +45,7 @@ void TextField_clear(TextField*textfield)
 	if(textfield == NULL)
 		return;
 
-	SDL_DestroyMutex(textfield->mutex);
+	//SDL_DestroyMutex(textfield->mutex);
 
 	if(textfield->font)
 	{
@@ -117,7 +117,7 @@ TextWord * Textword_new(TTF_Font * font, Uint8 * curChar)
 	return textword;
 }
 
-TextLine * TextField_getLastLine(TextField*textfield)
+TextLine * TextField_getLastLine(TextField * textfield)
 {
 	if(textfield==NULL){
 		SDL_Log("TextField_getLastLine Error: textfield is NULL!\n");
@@ -488,10 +488,12 @@ TextField *TextField_appendText(TextField*textfield,char*s)
 	if(textfield == NULL)
 		textfield = TextField_new();
 
+	/*
 	if (SDL_LockMutex(textfield->mutex) < 0) {
 		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't lock mutex: %s", SDL_GetError());
 		exit(1);
 	}
+	*/
 
 	int dealedlen = 0;
 	if(textfield->text) {
@@ -545,10 +547,12 @@ TextField *TextField_appendText(TextField*textfield,char*s)
 	drawLines(textfield);
 
 
+	/*
 	if (SDL_UnlockMutex(textfield->mutex) < 0) {
 		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't unlock mutex: %s", SDL_GetError());
 		exit(1);
 	}
+	*/
 	return textfield;
 }
 
@@ -587,10 +591,12 @@ TextField* TextField_new()
 	}
 
 
+	/*
 	if ((textfield->mutex = SDL_CreateMutex()) == NULL) {
 		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create mutex: %s\n", SDL_GetError());
 		exit(1);
 	}
+	*/
 
 
 	return textfield;
@@ -621,10 +627,12 @@ TextField * TextField_setText(TextField*textfield,char *s)
 	if(textfield==NULL)
 		textfield = TextField_new();
 
+	/*
 	if (SDL_LockMutex(textfield->mutex) < 0) {
 		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't lock mutex: %s", SDL_GetError());
 		exit(1);
 	}
+	*/
 
 	textfield->numLines = 0;
 	textfield->lines = NULL;
@@ -669,10 +677,12 @@ TextField * TextField_setText(TextField*textfield,char *s)
 			Stage_init(1);
 	}
 	textfield->sprite->y = textfield->y;
+	/*
 	if (SDL_UnlockMutex(textfield->mutex) < 0) {
 		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't unlock mutex: %s", SDL_GetError());
 		exit(1);
 	}
+	*/
 
 	if(s){
 		if(textfield->posSprite)

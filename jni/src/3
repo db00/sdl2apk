@@ -155,15 +155,16 @@ static void mouseMoves(SpriteEvent*e)
 				tweenObj = (TweenObj*)TweenObj_new(target);
 				tweenObj->end->y = target->y + time*speed/1000;// (container->y + container->h);
 				//SDL_Log("target->h = %d\r\n",target->Bounds->h);
-				if(tweenObj->end->y>0 || target->Bounds->h<stage->stage_h)
+				/*
+				if(tweenObj->end->y>stage->stage_h/2)
 				{
-					//tweenObj->end->y = stage->stage_h/2;
-					tweenObj->end->y = 0;//stage->stage_h/2;
+					tweenObj->end->y = stage->stage_h/2;
 					time = max(abs((tweenObj->end->y-target->y)/speed*1000),100);
 				}else if(tweenObj->end->y + target->Bounds->h < stage->stage_h){
-					tweenObj->end->y = stage->stage_h*1.0 - target->Bounds->h;
+					tweenObj->end->y = stage->stage_h*.2 - target->Bounds->h;
 					time = max(abs((tweenObj->end->y-target->y)/speed*1000),100);
 				}
+				*/
 				tween = tween_to(target,(int)time,tweenObj);
 				tween->onComplete = List_rollback;
 				tween->onCompleteParas = target;
@@ -177,10 +178,8 @@ static void mouseMoves(SpriteEvent*e)
 			stageY = event->button.y;
 			timestamp = event->button.timestamp;
 			if(tween && tween->sprite){
-				TweenObj * tweenObj;
-				tweenObj = (TweenObj*)TweenObj_new(target);
-				tween = tween_to(target,100,tweenObj);
 				//Tween_kill(tween->sprite,0);
+				tween = NULL;
 			}
 			//SDL_Log("down : (%d,%d),%d\r\n",stageX,stageY,timestamp);
 			break;

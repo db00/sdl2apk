@@ -35,26 +35,26 @@ typedef struct TextLine{
 	int indexInText;//文本块的开始字符
 	int numbyte;//文本行字节数
 	char * text;//文本开始位置指针
-	TextWord* lastWord;//结尾字符
+	TextWord * lastWord;//结尾字符
 	SDL_Rect rect;//显示图像大小位置
-	struct TextLine*next;
+	struct TextLine * next;
 }TextLine;
 
 
 typedef struct TextField{
 	//TextFormat * format;//字体
 	TTF_Font * font;
-	TextLine*lines;//
-	TextLine*lastLine;//最后一行
+	TextLine * lines;//
+	TextLine * lastLine;//最后一行
 	int numLines ;// [只读] 定义多行文本字段中的文本行数。
 	char*text ;// 作为文本字段中当前文本的字符串。
-	SDL_Color *textColor ;// 文本字段中文本的颜色（采用十六进制格式）。
-	SDL_Color *backgroundColor; // 文本字段背景的颜色。
-	SDL_Color *borderColor ;// 文本字段边框的颜色。
+	SDL_Color * textColor ;// 文本字段中文本的颜色（采用十六进制格式）。
+	SDL_Color * backgroundColor; // 文本字段背景的颜色。
+	SDL_Color * borderColor ;// 文本字段边框的颜色。
 	int textHeight ;// [只读] 文本的高度，以像素为单位。
 	int textWidth ;// [只读] 文本的宽度，以像素为单位。
 	int mouseWheelEnabled ;// 一个布尔值，表示当用户单击某个文本字段并滚动鼠标滚轮时，Flash Player 是否自动滚动多行文本字段。
-	Sprite*sprite;
+	Sprite * sprite;
 	int length ;// [只读] 文本字段中的字符数。
 	int x;
 	int y;
@@ -62,9 +62,9 @@ typedef struct TextField{
 	int h;
 	SDL_bool staticHeight;//true为固定高度，false根据文本内容变化的动态高度
 	int scrollV ;// 文本在文本字段中的垂直位置。
-	SDL_mutex *mutex;
+	//SDL_mutex * mutex;
 	float posRate;//文本当前显示的位置，值域:[0,1]
-	Sprite*posSprite;//文本当前显示的位置，值域:[0,1]
+	Sprite * posSprite;//文本当前显示的位置，值域:[0,1]
 
 	/*
 	   int maxScrollV ;// [只读] scrollV 的最大值。

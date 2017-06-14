@@ -389,6 +389,18 @@ void Wordinput_changeWordList()
 	List_showOptical(curlistSprite);
 }
 
+static void onListMove(void * p)
+{
+	if(STATS == DICT)
+	{
+		Btnlist_hide();
+		Wordinput_changeWordList();
+	}else{
+		Wordinput_hideList();
+		Btnlist_changeHistoryList();
+	}
+}
+
 static void mouseMoves(SpriteEvent*e)
 {
 	if(Sprite_getVisible(dictContainer)==0)
@@ -417,14 +429,7 @@ static void mouseMoves(SpriteEvent*e)
 		Sprite_limitPosion(target,target->dragRect);
 		if(target==curlistSprite)
 		{
-			if(STATS == DICT)
-			{
-				Btnlist_hide();
-				Wordinput_changeWordList();
-			}else{
-				Wordinput_hideList();
-				Btnlist_changeHistoryList();
-			}
+			onListMove(NULL);
 		}
 	}
 }
@@ -444,7 +449,7 @@ static void list_show()
 		Sprite_addChildAt(dictContainer,curlistSprite,0);
 		Sprite_addEventListener(curlistSprite,SDL_MOUSEMOTION,mouseMoves);
 
-		//List_roll(curlistSprite);
+		//List_roll(curlistSprite,onListMove);
 	}
 	if(curlistSprite){
 		Sprite_removeChildren(curlistSprite);

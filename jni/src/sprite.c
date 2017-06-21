@@ -1376,6 +1376,17 @@ int Sprite_limitPosion(Sprite*target,SDL_Rect*rect)
 	return 0;
 }
 
+void Sprite_preventDefault(Sprite * target)
+{
+}
+	
+static int stopPropagation=0;
+void Sprite_stopPropagation(Sprite * target)
+{
+	//target->stopPropagation = 1;
+	stopPropagation = 1;
+}
+
 static void bubbleEvent(Sprite*target,SDL_Event*event)
 {
 	stage->currentTarget = target;
@@ -1387,6 +1398,14 @@ static void bubbleEvent(Sprite*target,SDL_Event*event)
 			if(target==stage->currentTarget)
 				Sprite_dispatchEvent(target,event);
 		}
+		if(stopPropagation){
+			stopPropagation = 0;
+			return;
+		}
+		if(target->stopPropagation){
+			target->stopPropagation = 0;
+			return;
+		}
 		if(target && stage->currentTarget==target)
 		{
 			target = target->parent;
@@ -1397,7 +1416,7 @@ static void bubbleEvent(Sprite*target,SDL_Event*event)
 		Sprite_dispatchEvent(stage->sprite,event);
 	stage->currentTarget = NULL;
 }
-
+	
 
 static int button_messagebox(void *eventNumber)
 {
@@ -1536,15 +1555,16 @@ int PrintEvent(const SDL_Event * event)
 				}
 				//_Stage_redraw();
 			}
+			//break;
 		case SDL_TEXTINPUT:
 		case SDL_TEXTEDITING:
 			if(stage->focus){
-				Sprite_dispatchEvent(stage->focus,(SDL_Event*)event);//舞台事件
+				Sprite_dispatchEvent(stage->focus,event);//舞台事件
 			}else{
 				SDL_Log("no focus\n");
 			}
 			if(stage->focus!=stage->sprite){
-				Sprite_dispatchEvent(stage->sprite,(SDL_Event*)event);//舞台事件
+				Sprite_dispatchEvent(stage->sprite,event);//舞台事件
 			}
 			return 0;
 			break;

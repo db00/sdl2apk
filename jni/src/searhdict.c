@@ -126,10 +126,10 @@ void showSearchDict(int b)
 {
 	if(b){
 		STATS = DICT;
-		uiThread(NULL);
 		Test_end();
 		Sprite_addEventListener(stage->sprite,SDL_MOUSEBUTTONDOWN,stageMouseEvent); 
 		SDL_SetWindowTitle(stage->window, "词典");
+		uiThread(NULL);
 	}
 	dictContainer->visible = b;
 

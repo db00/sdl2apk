@@ -2,7 +2,7 @@
  * @file sprite.h
 e:\Documents\wxDevCppP7\App\DevCpp\MinGW32\bin\gcc -Wall -I"." files.c mystring.c myregex.c -I"../SDL2/include/" -D GLchar=char sprite.c matrix.c array.c regex.c -lGLESv2 -lmingw32 -lSDL2main -lSDL2 -Ddebug_sprite && a
 e:\Documents\wxDevCppP7\App\DevCpp\MinGW32\bin\gcc -Wall -I"." files.c mystring.c myregex.c -I"../SDL2/include/" sprite.c matrix.c array.c regex.c -lopengl32 -lmingw32 -lSDL2main -lSDL2 -Ddebug_sprite && a
- gcc -Wall -I"../SDL2/include/" array.c sprite.c matrix.c files.c mystring.c myregex.c -lSDL2 -lm -Ddebug_sprite && ./a.out
+gcc -Wall -I"../SDL2/include/" array.c sprite.c matrix.c files.c mystring.c myregex.c -lSDL2 -lm -Ddebug_sprite && ./a.out
  *  
  * @author db0@qq.com
  * @version 1.0.1
@@ -140,6 +140,7 @@ typedef struct Sprite{
 	void * tween;//动画效果
 	void (*Tween_kill)(void*,int);//动画效果清除,arguments[0]:tween,arguments[1]:toEnd
 
+	int stopPropagation;//防止对事件流中当前节点的后续节点中的所有事件侦听器进行处理。
 
 	int x;//(窗口坐标)
 	int y;//(窗口坐标)
@@ -263,4 +264,5 @@ void quit(int rc);
 void Sprite_matrix(Sprite *sprite);
 int Window_resize(int w,int h);
 int Sprite_getVisible(Sprite*sprite);
+void Sprite_stopPropagation(Sprite * target);
 #endif

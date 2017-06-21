@@ -428,7 +428,7 @@ static void test_word(TestWord * word)
 				input = Input_new(stage->stage_w,min(stage->stage_h/10,50));
 				//input->textChangFunc = textChangFunc;
 				Sprite_addChild(testContainer,input->sprite);
-				stage->focus = input->sprite;
+				//stage->focus = input->sprite;
 			}
 			textfield = TextField_new();
 			textfield->sprite->canDrag = 1;
@@ -471,6 +471,7 @@ void Test_start(Sprite * dictContainer,Dict * dict)
 	TestWord * s = Array_getByIndex(test_array,numIndex);
 	test_word(s);
 	Stage_redraw();
+	Sprite_stopPropagation(input->sprite);
 	stage->focus = input->sprite;
 	SDL_StartTextInput();
 }

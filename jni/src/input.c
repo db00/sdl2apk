@@ -1,6 +1,6 @@
 /**
  *
- gcc -g -Wall -D debug_ime -Wall utf8.c bytearray.c myregex.c myfont.c files.c array.c ease.c tween.c input.c mystring.c sprite.c matrix.c textfield.c -lm -I"../SDL2/include/"  -I"../SDL2_ttf/" -lSDL2 -lSDL2_ttf  && ./a.out
+ gcc -g -Wall -D debug_ime -Wall utf8.c update.c ipstring.c base64.c urlcode.c zip.c httploader.c bytearray.c myregex.c myfont.c files.c array.c ease.c tween.c input.c mystring.c sprite.c matrix.c textfield.c -lm -I"../SDL2/include/"  -I"../SDL2_ttf/" -lpthread -lssl -lz -lcrypto -lSDL2 -lSDL2_ttf  && ./a.out
  */
 
 #include "input.h"
@@ -110,16 +110,16 @@ static void textinputEvent(SpriteEvent*e)
 }
 
 static void texteditingEvent(SpriteEvent*e){
-	SDL_Event* event = (SDL_Event*)(e->e);
+	//SDL_Event* event = (SDL_Event*)(e->e);
 	Input* input = e->target->obj;
 	//SDL_Log("-------text editing \"%s\", selected range (%d, %d)\n", event->edit.text, event->edit.start, event->edit.length);
 
 	Input_redraw(input);
 }
 
-static void fingerEvent(SpriteEvent*e){
-	if(e)
-	{
+static void Input_fingerEvent(SpriteEvent*e)
+{
+	if(e){
 		stage->focus = e->target;
 		SDL_StartTextInput();
 	}else{
@@ -139,8 +139,7 @@ Input * Input_new(int w,int h)
 	textfield->w = w;
 	textfield->h = h;
 	input->value = malloc(2);
-	input->value[0]='\0';
-	input->value[1]='\0';
+	memset(input->value,0,2);
 	TextField_setText(textfield,input->value);
 	Sprite * sprite = Sprite_new();
 	input->sprite = sprite;
@@ -162,8 +161,8 @@ Input * Input_new(int w,int h)
 	input->rect->h = sprite->h;
 
 	sprite->obj = input;
-	Sprite_addEventListener(sprite,SDL_MOUSEBUTTONDOWN,fingerEvent); 
-	//Sprite_addEventListener(sprite,SDL_FINGERDOWN,fingerEvent); 
+	Sprite_addEventListener(sprite,SDL_MOUSEBUTTONDOWN,Input_fingerEvent); 
+	//Sprite_addEventListener(sprite,SDL_FINGERDOWN,Input_fingerEvent); 
 	Sprite_addEventListener(sprite,SDL_KEYDOWN,keydownEvent); 
 	Sprite_addEventListener(sprite,SDL_TEXTINPUT,textinputEvent); 
 	Sprite_addEventListener(sprite,SDL_TEXTEDITING,texteditingEvent); 

@@ -41,12 +41,18 @@ char * Input_setText(Input * input,char * s)
 	return input->value;
 }
 
+static unsigned int timestamp;
 static void keydownEvent(SpriteEvent* e){
 	SDL_Event *event = e->e;
 	if(Sprite_getVisible(e->target)==0)
 		return;
 	Input* input = e->target->obj;
 	char * _value;
+	if(event->key.timestamp-timestamp<20){
+		return;
+	}
+
+
 	//SDL_Log("-----keydownEvent: %08X,%08X\n",event->key.keysym.sym,event->key.keysym.scancode);
 	switch (event->key.keysym.sym)
 	{
@@ -58,6 +64,8 @@ static void keydownEvent(SpriteEvent* e){
 			textChangFunc(input);
 			break;
 		case SDLK_BACKSPACE:
+			timestamp = event->key.timestamp;
+			SDL_Log("--------------timestamp:%d,%d",timestamp,event->type);
 			//printf("SDLK_BACKSPACE\n");
 			if (input->value && strlen(input->value)>0)
 			{

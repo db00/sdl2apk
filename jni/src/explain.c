@@ -104,6 +104,7 @@ Sprite * Explain_show(Dict * dict,Word * word)
 		enBtn = makeTopBtn(explainContainer,"复制解释",gap,read_out);
 
 		textfield = TextField_new();
+		//textfield->font = getDefaultFont(20);
 		textfield->sprite->canDrag = 1;
 		textfield->w = stage->stage_w;
 		Sprite_addEventListener(textfield->sprite,SDL_MOUSEBUTTONDOWN,stopInput); 

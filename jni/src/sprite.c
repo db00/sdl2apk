@@ -1121,7 +1121,9 @@ int isPointInSprite(Sprite * sprite,SDL_Point * p)
 	if(sprite->Bounds && Sprite_getVisible(sprite))
 	{
 		if(SDL_PointInRect(p,sprite->Bounds))
+		{
 			return 1;
+		}
 	}
 	return 0;
 }
@@ -1503,6 +1505,7 @@ int PrintEvent(const SDL_Event * event)
 						target->y += event->motion.yrel;
 					}
 					Sprite_limitPosion(target,target->dragRect);
+					//SDL_Log("motion->state: %d",event->motion.state);
 					//if(target->mouse->x)
 					//_Stage_redraw();
 				}

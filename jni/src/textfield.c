@@ -285,6 +285,45 @@ void TextField_drawPostionBar(TextField*textfield)
 	Stage_redraw();
 }/*}}}*/
 
+static void mouseDown(SpriteEvent*e)
+{
+	SDL_Event *event  = e->e;
+	/*
+	   if(event->type == SDL_MOUSEWHEEL)
+	   SDL_Log("SDL_MOUSEWHEEL:timestamp:%d,windowID:%d,which:%d,x:%d,y:%d,direction:%d\n",
+	   event->wheel.timestamp,
+	   event->wheel.windowID,
+	   event->wheel.which,
+	   event->wheel.x,
+	   event->wheel.y
+	   ,event->wheel.direction
+	   );
+
+*/
+	Sprite *sprite = e->target;
+	TextField * textfield = (TextField*)(sprite->obj);
+	if(textfield->textHeight<1)
+		return;
+	int fontheight = TTF_FontHeight(textfield->font);
+	int x = stage->mouse->x - sprite->Bounds->x;
+	int y = stage->mouse->y - sprite->Bounds->y;
+	int line = y/fontheight;
+	SDL_Log("sprite->Bounds: (%d,%d,%d,%d)",
+			x,
+			y,
+			sprite->Bounds->w,
+			sprite->Bounds->h
+		   );
+	SDL_Log("sprite->Bounds: (%d)",line);
+
+	if(textfield->wordSelect)
+	{
+
+		//textfield->wordSelect(word);
+	}
+}
+
+
 int drawLines(TextField*textfield)
 {
 	Sprite *sprite = textfield->sprite;
@@ -294,6 +333,7 @@ int drawLines(TextField*textfield)
 		printf("no sprite\n");fflush(stdout);
 		return 0;
 	}
+	Sprite_addEventListener(sprite,SDL_MOUSEBUTTONDOWN,mouseDown);
 
 	if(textfield->mouseWheelEnabled){
 		Sprite_addEventListener(sprite,SDL_MOUSEWHEEL,mouseWheels);
@@ -489,11 +529,11 @@ TextField *TextField_appendText(TextField*textfield,char*s)
 		textfield = TextField_new();
 
 	/*
-	if (SDL_LockMutex(textfield->mutex) < 0) {
-		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't lock mutex: %s", SDL_GetError());
-		exit(1);
-	}
-	*/
+	   if (SDL_LockMutex(textfield->mutex) < 0) {
+	   SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't lock mutex: %s", SDL_GetError());
+	   exit(1);
+	   }
+	   */
 
 	int dealedlen = 0;
 	if(textfield->text) {
@@ -548,11 +588,11 @@ TextField *TextField_appendText(TextField*textfield,char*s)
 
 
 	/*
-	if (SDL_UnlockMutex(textfield->mutex) < 0) {
-		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't unlock mutex: %s", SDL_GetError());
-		exit(1);
-	}
-	*/
+	   if (SDL_UnlockMutex(textfield->mutex) < 0) {
+	   SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't unlock mutex: %s", SDL_GetError());
+	   exit(1);
+	   }
+	   */
 	return textfield;
 }
 
@@ -592,11 +632,11 @@ TextField* TextField_new()
 
 
 	/*
-	if ((textfield->mutex = SDL_CreateMutex()) == NULL) {
-		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create mutex: %s\n", SDL_GetError());
-		exit(1);
-	}
-	*/
+	   if ((textfield->mutex = SDL_CreateMutex()) == NULL) {
+	   SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create mutex: %s\n", SDL_GetError());
+	   exit(1);
+	   }
+	   */
 
 
 	return textfield;
@@ -628,11 +668,11 @@ TextField * TextField_setText(TextField*textfield,char *s)
 		textfield = TextField_new();
 
 	/*
-	if (SDL_LockMutex(textfield->mutex) < 0) {
-		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't lock mutex: %s", SDL_GetError());
-		exit(1);
-	}
-	*/
+	   if (SDL_LockMutex(textfield->mutex) < 0) {
+	   SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't lock mutex: %s", SDL_GetError());
+	   exit(1);
+	   }
+	   */
 
 	textfield->numLines = 0;
 	textfield->lines = NULL;
@@ -678,11 +718,11 @@ TextField * TextField_setText(TextField*textfield,char *s)
 	}
 	textfield->sprite->y = textfield->y;
 	/*
-	if (SDL_UnlockMutex(textfield->mutex) < 0) {
-		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't unlock mutex: %s", SDL_GetError());
-		exit(1);
-	}
-	*/
+	   if (SDL_UnlockMutex(textfield->mutex) < 0) {
+	   SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't unlock mutex: %s", SDL_GetError());
+	   exit(1);
+	   }
+	   */
 
 	if(s){
 		if(textfield->posSprite)

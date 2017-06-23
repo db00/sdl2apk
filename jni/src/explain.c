@@ -22,6 +22,13 @@ static void show_copied(char * word,int r)
 		}
 	}
 }
+static void saveWord(char * word)
+{
+	if(regex_match(word,"/^[a-z-]*$/i")){
+		int r= setClipboardText(word);
+		show_copied(word,r);
+	}
+}
 
 static void stopInput(SpriteEvent* e){
 	stage->focus = NULL;
@@ -104,6 +111,7 @@ Sprite * Explain_show(Dict * dict,Word * word)
 		enBtn = makeTopBtn(explainContainer,"复制解释",gap,read_out);
 
 		textfield = TextField_new();
+		textfield->wordSelect = saveWord;
 		//textfield->font = getDefaultFont(20);
 		textfield->sprite->canDrag = 1;
 		textfield->w = stage->stage_w;

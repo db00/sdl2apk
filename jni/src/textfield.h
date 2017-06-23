@@ -66,6 +66,7 @@ typedef struct TextField{
 	float posRate;//文本当前显示的位置，值域:[0,1]
 	Sprite * posSprite;//文本当前显示的位置，值域:[0,1]
 
+	void (* wordSelect)(char *);//
 	/*
 	   int maxScrollV ;// [只读] scrollV 的最大值。
 

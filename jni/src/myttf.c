@@ -9,12 +9,29 @@
  */
 #include "myttf.h"
 
-static void mouseWheels(SpriteEvent*e);
+//单个字符
+typedef struct TextWord{
+	char * word;
+	int w;
+	int h;
+	Sprite * sprite;
+}TextWord;
+
+typedef struct TextLine{
+	int start;//文本开始位置
+	int numbyte;//文本行字节数
+	Sprite * sprite;
+}TextLine;
 
 static void TextWord_clear(TextWord*textword)
 {
 	if(textword == NULL)
 		return;
+	if(textword->word)
+		free(textword->word);
+	if(textword->sprite){
+		Sprite_destroy(textword->sprite);
+	}
 	free(textword);
 }
 
@@ -23,27 +40,29 @@ static void TextLine_clear(TextLine*line)
 	if(line== NULL)
 		return;
 
-	if(line->words)
+	if(line->sprite)
 	{
-		int i = 0;
-		while(i<line->words->length)
+		while(line->sprite->children && line->sprite->children->length>0)
 		{
-			TextWord * word = Array_getByIndex(line->words,i);
-			TextWord_clear(word);
-			++i;
+			Sprite * child =Sprite_getChildByIndex(line->sprite,0);
+			TextWord * textword = child->obj;
+			TextWord_clear(textword);
+			child->obj = NULL;
 		}
+		if(line->sprite->parent)
+		{
+			Sprite_removeChild(line->sprite->parent,line->sprite);
+		}
+		Sprite_destroy(line->sprite);
+		line->sprite = NULL;
 	}
 
-	if(line->text) {
-		free(line->text);
-		line->text = NULL;
-	}
 	free(line);
 	line = NULL;
 }
 
 
-static void TextField_clearLines(TextField*textfield)
+static void Text_clearLines(Text*textfield)
 {
 	if(textfield->lines)
 	{
@@ -56,8 +75,13 @@ static void TextField_clearLines(TextField*textfield)
 		Array_clear(textfield->lines);
 		textfield->lines = NULL;
 	}
+	if(textfield->sprite)
+	{
+		textfield->sprite->w = 0;
+		textfield->sprite->h = 0;
+	}
 }
-void TextField_clear(TextField*textfield)
+void Text_clear(Text*textfield)
 {
 	if(textfield == NULL)
 		return;
@@ -65,7 +89,7 @@ void TextField_clear(TextField*textfield)
 	if(textfield->font){
 	}
 
-	TextField_clearLines(textfield);
+	Text_clearLines(textfield);
 
 	if(textfield->textColor){
 		free(textfield->textColor);
@@ -85,27 +109,85 @@ void TextField_clear(TextField*textfield)
 	free(textfield);
 }
 
+static char * curWord;
+static int curMouseY;
+static unsigned int timestamp;
+static void showCurWord(SpriteEvent * e)
+{
+	Sprite * sprite = e->target;
+	TextWord * textword = sprite->obj;
+	Text * textfield = sprite->other;
+	SDL_Event * event = e->e;
+	switch(e->type)
+	{
+		case SDL_MOUSEMOTION:
+			if(curWord != textword->word || abs(curMouseY-event->motion.y)>10){
+				Sprite_removeEventListener(sprite,SDL_MOUSEBUTTONUP,showCurWord);
+				Sprite_removeEventListener(sprite,SDL_MOUSEMOTION,showCurWord);
+			}
+			break;
+		case SDL_MOUSEBUTTONDOWN:
+			Sprite_addEventListener(sprite,SDL_MOUSEBUTTONUP,showCurWord);
+			Sprite_addEventListener(sprite,SDL_MOUSEMOTION,showCurWord);
+			curMouseY = event->button.y;
+			curWord = textword->word;
+			timestamp = event->button.timestamp;
+			break;
+		case SDL_MOUSEBUTTONUP:
+			Sprite_removeEventListener(sprite,SDL_MOUSEBUTTONUP,showCurWord);
+			Sprite_removeEventListener(sprite,SDL_MOUSEMOTION,showCurWord);
+			if(curWord == textword->word && event->button.timestamp-timestamp>1000)
+			{
+				SDL_Log("selected: %s",textword->word);
+				if(textfield->wordSelect)
+					textfield->wordSelect(textword->word);
+			}
+			break;
+	}
+}
 
-static TextWord * Textword_new(TTF_Font * font, Uint8 * curChar)
+static TextWord * Textword_new(Text * textfield, Uint8 * curChar)
 {
 	TextWord* textword = (TextWord*)malloc(sizeof(TextWord));
 	memset(textword,0,sizeof(TextWord));
 
-	textword->numbyte = UTF8_numByte((char*)curChar);
+	int numBytes = UTF8_numByte((char*)curChar);
 	if(('A'<=curChar[0] && curChar[0]<='Z') || ('a'<=curChar[0] && curChar[0]<='z'))
 	{//单词不分段
 		while(
-				('a'<=curChar[textword->numbyte] && curChar[textword->numbyte]<='z')
-				|| ('A'<=curChar[textword->numbyte] && curChar[textword->numbyte]<='Z')
+				('a'<=curChar[numBytes] && curChar[numBytes]<='z')
+				|| ('A'<=curChar[numBytes] && curChar[numBytes]<='Z')
 			 )
-			textword->numbyte++;
+			numBytes++;
 	}
 
-	char word[textword->numbyte+1];
-	memset(word,0,textword->numbyte + 1);
-	memcpy(word,curChar,textword->numbyte);
+	char * word = malloc(numBytes+1);
+	memset(word,0,numBytes + 1);
+	memcpy(word,curChar,numBytes);
+	textword->word = word;
 
-	TTF_SizeUTF8(font,word,&(textword->w),&(textword->h));
+	textword->sprite = Sprite_new();
+	textword->sprite->obj = textword;
+	textword->sprite->other = textfield;
+
+	TTF_Font * font = textfield->font;
+	SDL_Surface * surface=NULL;
+	SDL_Color * backgroundColor = textfield->backgroundColor;
+	SDL_Color * textColor = textfield->textColor;
+	if(backgroundColor){
+		surface= TTF_RenderUTF8_Shaded(font, word, *(textColor),*(backgroundColor));
+	}else{
+		//surface= TTF_RenderUTF8_Blended(font, word, *(textColor));
+		surface= TTF_RenderUTF8_Solid(font, word, *(textColor));
+	}
+	if(surface)
+	{
+		textword->sprite->surface = surface;
+		//TTF_SizeUTF8(font,word,&(textword->w),&(textword->h));
+		textword->w = surface->w;
+		textword->h = surface->h;
+		Sprite_addEventListener(textword->sprite,SDL_MOUSEBUTTONDOWN,showCurWord);
+	}
 	return textword;
 }
 
@@ -113,222 +195,152 @@ static TextLine * TextLine_new()
 {
 	TextLine * textline = (TextLine*)malloc(sizeof(TextLine));
 	memset(textline,0,sizeof(TextLine));
-	memset(&(textline->rect) ,0 ,sizeof(SDL_Rect));
+	textline->sprite = Sprite_new();
 	return textline;
 }
 
-static TextLine * TextField_getLastLine(TextField * textfield)
+static TextLine * Text_getLastLine(Text * textfield)
 {
 	if(textfield==NULL){
-		SDL_Log("TextField_getLastLine Error: textfield is NULL!\n");
+		SDL_Log("Text_getLastLine Error: textfield is NULL!\n");
 		return NULL;
 	}
 	if(textfield->lines == NULL){
 		TextLine * line = TextLine_new();
+		line->start = textfield->dealedlen;
 		textfield->lines = Array_new();
 		Array_push(textfield->lines,line);
+		Sprite_addChild(textfield->sprite,line->sprite);
 	}
 	return Array_getByIndex(textfield->lines,textfield->lines->length-1);
 }
 
-static TextLine * TextField_appenNewLine(TextField * textfield)
+static TextLine * Text_appenNewLine(Text * textfield)
 {
 	TextLine * line = TextLine_new();
-	line->lineId = textfield->lines->length;
+	line->start = textfield->dealedlen;
+	Sprite_addChild(textfield->sprite,line->sprite);
 	Array_push(textfield->lines,line);
-	line->rect.y = textfield->textHeight;
-	textfield->textHeight = line->rect.y + line->rect.h;
+	line->sprite->y = textfield->sprite->h;
 	return line;
 }
 
-static SDL_bool TextField_lineFull(TextField * textfield,TextLine * line,TextWord*textword)
+static SDL_bool Text_lineFull(Text * textfield,TextLine * line,TextWord*textword)
 {
 	if(textfield && line && textword){
-		if((textword->w) + (line->rect.w) > (textfield->w)) {
+		if((textword->w) + (line->sprite->w) > (textfield->w)) 
+		{
 			return SDL_TRUE;
 		}
 
-		if(line->text && strlen(line->text)) {
-			char * lastWord = line->text + line->numbyte -1;
+		if(textfield->text && strlen(textfield->text)) {
+			char * lastWord = textfield->text + textfield->dealedlen-1;
 			if(*lastWord == '\r' || *lastWord == '\n' )
+			{
+				//SDL_Log("----------------------------r-n---------------");
 				return SDL_TRUE;
+			}
 		}
 	}
 	return SDL_FALSE;
 }
 
 
-static void setLineTexture(TextField * textfield,TextLine * line)
+
+static void Text_more(Text * textfield)
 {
-	//printf(" Surface_new ERROR!\n");fflush(stdout);
-	SDL_Surface * surface = NULL;
-	if(textfield->backgroundColor)
+	TextLine * line = Text_getLastLine(textfield);//最后一行
+	while(textfield->dealedlen < strlen(textfield->text))
 	{
-		surface= TTF_RenderUTF8_Shaded(textfield->font, line->text, *(textfield->textColor),*(textfield->backgroundColor));
-	}
-	else
-	{
-		//surface= TTF_RenderUTF8_Blended(textfield->font, line->text, *(textfield->textColor));
-		surface= TTF_RenderUTF8_Solid(textfield->font, line->text, *(textfield->textColor));
-	}
+		TextWord * textword = Textword_new(textfield,(Uint8*)(textfield->text+textfield->dealedlen));
 
-	if(surface){
-		//line->rect.w = surface->w;
-		//line->rect.h = surface->h;//初始宽高
-		//SDL_BlendMode saved_mode;
-		SDL_Rect dstrect;
-		dstrect.x = line->rect.x;
-		dstrect.y = line->rect.y;
-		dstrect.w = line->rect.w;
-		dstrect.h = line->rect.h;
-		//SDL_GetSurfaceBlendMode(textfield->sprite->surface, &saved_mode);
-		//SDL_SetSurfaceBlendMode(textfield->sprite->surface, SDL_BLENDMODE_NONE);
-		SDL_BlitSurface(surface, NULL, textfield->sprite->surface, &dstrect);
-		//SDL_SetSurfaceBlendMode(textfield->sprite->surface, saved_mode);
-
-		SDL_FreeSurface(surface); surface = NULL;
-	}
-}
-
-
-static int drawLines(TextField * textfield)
-{
-	Sprite *sprite = textfield->sprite;
-
-
-	SDL_Surface * surface = sprite->surface;
-	if((surface && (surface->w != textfield->textWidth || surface->h != textfield->textHeight)))
-	{
-		Sprite_destroySurface(sprite);
-		Sprite_destroyTexture(sprite);
-	}
-
-	int fontheight = TTF_FontHeight(textfield->font);
-
-	if((stage->GLEScontext && sprite->surface==NULL && sprite->data3d==NULL))
-	{
-		sprite->surface = Surface_new(textfield->textWidth,textfield->textHeight);
-		if(sprite->w != textfield->textWidth) sprite->w = textfield->textWidth;
-		if(sprite->h != textfield->textHeight) sprite->h = textfield->textHeight;
-
-		int i = 0;
-		while(i<textfield->lines->length)
-		{
-			TextLine * line = Array_getByIndex(textfield->lines,i);
-			if(sprite->surface)
-				setLineTexture(textfield,line);
-			++i;
+		if(Text_lineFull(textfield,line,textword))
+		{//行满,另起一行
+			line = Text_appenNewLine(textfield);
+			if(line->sprite->y + textfield->sprite->y > textfield->h)
+				break;
 		}
+
+		textword->sprite->x = line->sprite->w;
+		line->sprite->w += textword->w;
+
+		Sprite_addChild(line->sprite,textword->sprite);
+
+		line->numbyte += strlen(textword->word);
+		if(line->sprite->h < textword->h){
+			line->sprite->h = textword->h;//line h
+		}
+		if(textfield->sprite->h < line->sprite->y + line->sprite->h)
+			textfield->sprite->h = line->sprite->y + line->sprite->h;
+
+		textfield->dealedlen += strlen(textword->word);
 	}
 
-	Sprite * target = sprite;
-	SDL_Rect *rect = (SDL_Rect*)malloc(sizeof(SDL_Rect));
-	rect->x = textfield->x;
-	rect->y = textfield->y - textfield->textHeight + fontheight;
-	rect->w = 0;
-	rect->h = textfield->textHeight - fontheight;
-	if(target->dragRect)
-		free(target->dragRect);
-	target->dragRect = rect;
-	Sprite_limitPosion(target,target->dragRect);
-	return 0;
+	Sprite * sprite = textfield->sprite;
+	int fontheight = TTF_FontHeight(textfield->font);
+	if(sprite->dragRect==NULL || sprite->dragRect->h != textfield->sprite->h - fontheight)
+	{
+		SDL_Rect * rect = (SDL_Rect*)malloc(sizeof(SDL_Rect));
+		rect->x = textfield->x;
+		rect->y = textfield->y - textfield->sprite->h + fontheight;
+		rect->w = 0;
+		rect->h = textfield->sprite->h - fontheight;
+		if(sprite->dragRect)
+			free(sprite->dragRect);
+		sprite->dragRect = rect;
+		Sprite_limitPosion(sprite,sprite->dragRect);
+	}
 }
-
 
 static void mouseWheels(SpriteEvent*e)
 {
 	SDL_Event *event  = e->e;
 	Sprite *sprite = e->target;
-	TextField * textfield = (TextField*)(sprite->obj);
-	if(textfield->textHeight<1)
+	if(sprite->h<1)
 		return;
 
+	Text * textfield = (Text*)(sprite->obj);
 
+	int lineHeight = TTF_FontHeight(textfield->font);
 	if(textfield && textfield->lines){
-		if(event->type == SDL_MOUSEWHEEL){//
-			int lineHeight = TTF_FontHeight(textfield->font);
-			if(event->wheel.y > 0){
-				sprite->y += lineHeight;
-			}else if(event->wheel.y < 0){
-				sprite->y -= lineHeight;
-			}
-		}else if(event->motion.state){
-			sprite->y += event->motion.yrel;
+		switch(event->type)
+		{
+			case SDL_MOUSEWHEEL:
+				if(event->wheel.y > 0){
+					sprite->y += lineHeight;
+				}else if(event->wheel.y < 0){
+					sprite->y -= lineHeight;
+				}
+				break;
+			case SDL_MOUSEMOTION:
+				if(event->motion.state){
+					sprite->y += event->motion.yrel;
+				}
+				break;
 		}
-		if(sprite->y > textfield->y)//top
-			sprite->y = textfield->y;
-		else if(sprite->y+sprite->h < textfield->y+textfield->h)
-			sprite->y = textfield->y+textfield->h - sprite->h;
+		if(sprite->dragRect) Sprite_limitPosion(sprite,sprite->dragRect);
+		Text_more(textfield);
 		Stage_redraw();
 	}
 
 }
 
-static char * setTextLineText(TextField*textfield,TextLine*line)
-{
-	if(line){
-		if(line->text){
-			free(line->text);
-			line->text = NULL;
-		}
-		if(line->numbyte > 0){
-			line->text = malloc(line->numbyte+1);
-			memset(line->text,0,line->numbyte+1);
-			memcpy(line->text,textfield->text+line->indexInText,line->numbyte);
-		}
-		return line->text;
-	}
-	return NULL;
-}
 
-TextField * TextField_appendText(TextField*textfield,char*s)
+Text * Text_appendText(Text*textfield,char*s)
 {
 	if(s == NULL || strlen(s)==0)
 		return textfield;
 	if(textfield == NULL)
-		textfield = TextField_new();
-
-	int dealedlen = 0;
-	if(textfield->text) {
-		dealedlen = strlen(textfield->text);
-	}
+		textfield = Text_new();
 
 	textfield->text = contact_str(textfield->text,s);
 
-	TextLine * line = TextField_getLastLine(textfield);//最后一行
-	while(dealedlen < strlen(textfield->text))
-	{
-		TextWord * textword = Textword_new(textfield->font,(Uint8*)(textfield->text+dealedlen));
-
-		if(TextField_lineFull(textfield,line,textword)){//行满,另起一行
-			line = TextField_appenNewLine(textfield);
-			line->indexInText = dealedlen;
-		}
-
-		Array_push(line->words,textword);
-
-		line->numbyte += textword->numbyte;
-		line->rect.w += textword->w;// line w
-		if(line->rect.h < textword->h){
-			line->rect.h = textword->h;//line h
-		}
-		if(textfield->textWidth < line->rect.w){
-			textfield->textWidth = line->rect.w;
-		}
-		if(textfield->textHeight < line->rect.y + line->rect.h)
-			textfield->textHeight = line->rect.y + line->rect.h;//textHeight
-
-		dealedlen += textword->numbyte;
-		setTextLineText(textfield,line);
-	}
-
-	//SDL_Log("textfield->textWidth:%d textfield->textHeight:%d \n",textfield->textWidth,textfield->textHeight);fflush(stdout);
-	drawLines(textfield);
+	Text_more(textfield);
 
 	return textfield;
 }
 
-TextField * TextField_new()
+Text * Text_new()
 {
 	if(!TTF_WasInit())
 	{
@@ -339,12 +351,12 @@ TextField * TextField_new()
 		}
 	}
 
-	TextField* textfield = (TextField*)malloc(sizeof(TextField));
-	memset(textfield,0,sizeof(TextField));
+	Text* textfield = (Text*)malloc(sizeof(Text));
+	memset(textfield,0,sizeof(Text));
 	textfield->w = 100;
 	textfield->h = 100;
 	textfield->sprite = Sprite_new();
-	textfield->sprite->mouseChildren = SDL_FALSE;
+	//textfield->sprite->mouseChildren = SDL_FALSE;
 	textfield->sprite->obj = textfield;
 
 	if(textfield->textColor==NULL)
@@ -363,28 +375,24 @@ TextField * TextField_new()
 
 
 
-TextField * TextField_setText(TextField*textfield,char *s)
+Text * Text_setText(Text*textfield,char *s)
 {
 	if(textfield==NULL)
-		textfield = TextField_new();
+		textfield = Text_new();
 
-	textfield->textWidth = 0;
-	textfield->textHeight = 0;
-	textfield->length = 0;
 
-	TextField_clearLines(textfield);
+	Text_clearLines(textfield);
 
 	if(textfield->text) {
 		free(textfield->text);
+		textfield->length = 0;
+		textfield->text = NULL;
 	}
-	textfield->text = NULL;
+	textfield->dealedlen = 0;
 
 	if(textfield->sprite) {
-		Sprite_destroySurface(textfield->sprite);
-		Sprite_destroyTexture(textfield->sprite);
 		textfield->sprite->canDrag = 1;
-	}
-	if(textfield->sprite==NULL){
+	}else{
 		textfield->sprite = Sprite_new();
 		textfield->w = 100;
 		textfield->h = 100;
@@ -392,15 +400,17 @@ TextField * TextField_setText(TextField*textfield,char *s)
 		textfield->sprite->obj = textfield;
 	}
 	textfield->sprite->y = textfield->y;
+	textfield->sprite->x = textfield->x;
 
 
 	Sprite_addEventListener(textfield->sprite,SDL_MOUSEWHEEL,mouseWheels);
-	if(textfield->sprite->canDrag){
+	if(textfield->sprite->canDrag)
+	{
 		Sprite_addEventListener(textfield->sprite,SDL_MOUSEMOTION,mouseWheels);
 	}
 
 	if(s){
-		TextField_appendText(textfield,s);
+		Text_appendText(textfield,s);
 	}
 	return textfield;
 }
@@ -411,7 +421,7 @@ TextField * TextField_setText(TextField*textfield,char *s)
 int main(int argc, char *argv[])
 {
 	Stage_init(1);
-	TextField* txt = TextField_new();//txt = TextField_setText(txt,getLinkedVersionString());
+	Text* txt = Text_new();//txt = Text_setText(txt,getLinkedVersionString());
 	//txt->x = stage->stage_w/4;
 	//txt->y = stage->stage_h/4;
 	//txt->font = getFontByPath("DroidSansFallback.ttf",24);
@@ -421,60 +431,63 @@ int main(int argc, char *argv[])
 	txt->sprite->canDrag = 1;
 
 
+	/*
 	//char *s =NULL;
-	//txt = TextField_setText(txt,SDL_GetBasePath());
-	txt = TextField_setText(txt,"hello");
-	txt=TextField_appendText(txt,"\n");
-	txt = TextField_appendText(txt,SDL_GetBasePath());
-	txt=TextField_appendText(txt,"\n");
-	txt = TextField_setText(txt,"hello");
+	//txt = Text_setText(txt,SDL_GetBasePath());
+	txt = Text_setText(txt,"hello");
+	txt=Text_appendText(txt,"\n");
+	txt = Text_appendText(txt,SDL_GetBasePath());
+	txt=Text_appendText(txt,"\n");
+	txt = Text_setText(txt,"hello");
 	//SDL_Log("basepath:%s\n",s);
-	//TextField_setText(txt,"");
-	//TextField_appendText(txt,"\n");
-	//TextField_appendText(txt,"\n");
-	//TextField_appendText(txt,"1234567890abcdefghijklmnopqrst:" );
-	//txt = TextField_appendText(txt,"1234567890\nabcdefghijklmnopqrstuvwxwz\nABCDEFGHIJKLMNOPQRSTUVWXYZ:" );
-	//txt = TextField_appendText(txt,"1234567890:" );
-	//txt = TextField_setText(txt,getLinkedVersionString());
-	//txt = TextField_appendText(txt,"abcdefghijklmnopqrstuvwxyz:" );
-	txt = TextField_appendText(txt,"ABCDEFGHIJKLMNOPQRSTUVWXYZ_:" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	txt = TextField_appendText(txt,"一二三四五六七八九十一二三四五六七八九十end\n");
-	//txt = TextField_setText(txt,"一二三四五六七八九十一二三四五六七八九十end\n");
-	txt = TextField_appendText(txt,"一二三四五六七八九十一二三四五六七八九十end\n");
+	//Text_setText(txt,"");
+	//Text_appendText(txt,"\n");
+	//Text_appendText(txt,"\n");
+	//Text_appendText(txt,"1234567890abcdefghijklmnopqrst:" );
+	//txt = Text_appendText(txt,"1234567890\nabcdefghijklmnopqrstuvwxwz\nABCDEFGHIJKLMNOPQRSTUVWXYZ:" );
+	//txt = Text_appendText(txt,"1234567890:" );
+	//txt = Text_setText(txt,getLinkedVersionString());
+	//txt = Text_appendText(txt,"abcdefghijklmnopqrstuvwxyz:" );
+	txt = Text_appendText(txt,"ABCD\rEFG\nHIJKLMN\nOPQRSTUVWXYZ_:" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
+	*/
+	txt = Text_appendText(txt,"一二三四五六七八九十一二三四五六七八九十end\n");
+	//txt = Text_setText(txt,"一二三四五六七八九十一二三四五六七八九十end\n");
+	txt = Text_setText(txt,"hello");
+	txt = Text_appendText(txt,"一\r二\n三\r四\n五六七八九十一二三四五六七八九十end\n");
 	Sprite_addChild(stage->sprite,txt->sprite); 
 	Stage_loopEvents(); return 0;
-	//TextField_appendText(txt,"\npref path:\n" );
-	//TextField_appendText(txt,SDL_GetPrefPath("test", "subsystem2"));
+	//Text_appendText(txt,"\npref path:\n" );
+	//Text_appendText(txt,SDL_GetPrefPath("test", "subsystem2"));
 
 }
 #endif

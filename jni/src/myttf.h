@@ -10,8 +10,8 @@
  * @version 1.0.1
  * @date 2015-07-21
  */
-#ifndef _MY_TTF_H
-#define _MY_TTF_H
+#ifndef _MYTTF_H
+#define _MYTTF_H
 
 #include "myfont.h"
 
@@ -21,40 +21,18 @@
 #endif
 
 
-//单个字符
-typedef struct TextWord{
-	int numbyte;//字节数
-	int w;
-	int h;
-	Sprite * sprite;
-}TextWord;
-
-typedef struct TextLine{
-	char * text;//文本开始位置指针
-	int numbyte;//文本行字节数
-
-	int lineId;//行号
-
-	int indexInText;//文本块的开始字符
-	//TextWord * lastWord;//结尾字符
-	SDL_Rect rect;//显示图像大小位置
-	struct TextLine * next;
-	Array * words;
-}TextLine;
 
 
-typedef struct TextField{
+typedef struct Text{
 	char * text ;// 作为文本字段中当前文本的字符串。
 	int length ;// [只读] 文本字段中的字符数。
+	int dealedlen;//文本块的开始字符
 
 	TTF_Font * font;
 
 	SDL_Color * textColor ;// 文本字段中文本的颜色（采用十六进制格式）。
 	SDL_Color * backgroundColor; // 文本字段背景的颜色。
 	SDL_Color * borderColor ;// 文本字段边框的颜色。
-
-	int textHeight ;// [只读] 文本的高度，以像素为单位。
-	int textWidth ;// [只读] 文本的宽度，以像素为单位。
 
 	Sprite * sprite;
 
@@ -65,7 +43,8 @@ typedef struct TextField{
 
 	Array * lines;
 
-}TextField;
+	void (* wordSelect)(char *);//
+}Text;
 /*
  *	
  getCharBoundaries(charIndex:int):Rectangle// 返回一个矩形，该矩形是字符的边框。
@@ -90,11 +69,11 @@ typedef struct TextField{
 
 
 
-TextField * TextField_appendText(TextField*textfield,char *s);// 将字符串追加到文本字段的文本的末尾。
-TextField * TextField_setText(TextField*textfield,char *s);
+Text * Text_appendText(Text * textfield,char *s);// 将字符串追加到文本字段的文本的末尾。
+Text * Text_setText(Text * textfield,char *s);
 
-TextField * TextField_new();
-void TextField_clear();
+Text * Text_new();
+void Text_clear();
 
 
 #endif

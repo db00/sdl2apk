@@ -25,11 +25,24 @@ void TextLine_clear(TextLine*line)
 	if(line== NULL)
 		return;
 
-	TextWord* word = line->lastWord;
-	if(word){
-		TextWord_clear(word);
-		free(word);
-		line->lastWord = NULL;
+	//TextWord* word = line->lastWord;
+	//if(word){
+	//TextWord_clear(word);
+	//free(word);
+	//line->lastWord = NULL;
+	//}
+	if(line->words)
+	{
+		int i = line->words->length;
+		while(i>0)
+		{
+			--i;
+			TextWord* word = Array_getByIndex(line->words,i);
+			if(word)
+				TextWord_clear(word);
+		}
+		Array_clear(line->words);
+		line->words = NULL;
 	}
 
 	if(line->text) {
@@ -38,6 +51,21 @@ void TextLine_clear(TextLine*line)
 	}
 	free(line);
 	line = NULL;
+}
+
+static void TextField_clearLines(TextField * textfield)
+{
+	if(textfield->textLines)
+	{
+		int i = textfield->textLines->length;
+		while(i>0){
+			--i;
+			TextLine* line = Array_getByIndex(textfield->textLines,i);
+			TextLine_clear(line);
+		}
+		Array_clear(textfield->textLines);
+		textfield->textLines = NULL;
+	}
 }
 
 void TextField_clear(TextField*textfield)
@@ -52,11 +80,7 @@ void TextField_clear(TextField*textfield)
 		textfield->font= NULL;
 	}
 
-	TextLine* line = textfield->lines;
-	while(line){
-		TextLine_clear(line);
-		line = line->next;
-	}
+	TextField_clearLines(textfield);
 
 	if(textfield->textColor){
 		free(textfield->textColor);
@@ -123,12 +147,14 @@ TextLine * TextField_getLastLine(TextField * textfield)
 		SDL_Log("TextField_getLastLine Error: textfield is NULL!\n");
 		return NULL;
 	}
-	if(textfield->lastLine == NULL){
+	if(textfield->textLines == NULL){
 		TextLine*line = TextLine_new();
-		textfield->lastLine = line;
-		textfield->lines = line;
+		textfield->textLines = Array_push(NULL,line);
+		//textfield->lastLine = line;
+		//textfield->lines = line;
 	}
-	return textfield->lastLine;
+	//return textfield->lastLine;
+	return Array_getByIndex(textfield->textLines,textfield->textLines->length-1);
 }
 
 TextLine * TextField_appenLine(TextField*textfield)
@@ -138,15 +164,17 @@ TextLine * TextField_appenLine(TextField*textfield)
 		return NULL;
 	}
 	TextLine*line = TextLine_new();
-	if(textfield->lastLine){
-		//line->prev = textfield->lastLine;
-		textfield->lastLine->next = line;
-	}else{
-		textfield->lines = line;
-	}
-	textfield->lastLine = line;
-	textfield->numLines ++;
-	line->lineId= textfield->numLines;
+	//if(textfield->lastLine){
+	//line->prev = textfield->lastLine;
+	//textfield->lastLine->next = line;
+	//}else{
+	//textfield->lines = line;
+	//}
+	//textfield->lastLine = line;
+	//textfield->numLines ++;
+	//line->lineId= textfield->numLines;
+	line->lineId= textfield->textLines->length;
+	textfield->textLines = Array_push(textfield->textLines,line);
 	line->rect.y = textfield->textHeight;
 	textfield->textHeight = line->rect.y + line->rect.h;
 	return line;
@@ -161,7 +189,9 @@ SDL_bool TextField_lineFull(TextField*textfield,TextLine*line,TextWord*textword)
 
 		char *lastWord = line->text + line->numbyte -1;
 
-		if((line->lastWord) && (line->lastWord->numbyte==1) && ((*(lastWord) == '\r') || (*(lastWord) == '\n' ))) {
+		//if((line->lastWord) && (line->lastWord->numbyte==1) && ((*(lastWord) == '\r') || (*(lastWord) == '\n' ))) 
+		if((line->words) && line->words->length>0 && ((*(lastWord) == '\r') || (*(lastWord) == '\n' ))) 
+		{
 			return SDL_TRUE;
 		}
 	}
@@ -285,6 +315,81 @@ void TextField_drawPostionBar(TextField*textfield)
 	Stage_redraw();
 }/*}}}*/
 
+char * TextField_getWordAtPoint(TextField * textfield,int x, int y)// 在 x 和 y 参数指定的位置返回从零开始的字符索引值。
+{
+
+	int lineIndex= TextField_getLineIndexAtPoint(textfield,x,y);
+	/*
+	   char * lineStr = TextField_getLineText(textfield,lineIndex);
+	   if(lineStr==NULL )
+	   return NULL;
+	   */
+
+	TextLine * line = Array_getByIndex(textfield->textLines,lineIndex);
+	Array * words = line->words;
+	int i = 0;
+	int offset = line->indexInText;
+	int w= 0;
+	TextWord * word;
+	while(i<words->length)
+	{
+		word = Array_getByIndex(words,i);
+		w += word->w;
+		if(w>x)
+			break;
+
+		offset += word->numbyte;
+		++i;
+	}
+	char * curWord = getSubStr(textfield->text,offset,word->numbyte);
+	SDL_Log("curWord: %s",curWord);
+	if(curWord==NULL)
+	{
+		return NULL;
+	}
+	if(strlen(curWord)==0)
+	{
+		free(curWord);
+		return NULL;
+	}
+	return curWord;
+}
+char * TextField_getLineText(TextField * textfield,int lineIndex)// 返回 lineIndex 参数指定的行的文本。
+{
+	if(textfield->textLines==NULL || lineIndex>=textfield->textLines->length)
+		return NULL;
+	TextLine * line = Array_getByIndex(textfield->textLines,lineIndex);
+	char * lineStr = getSubStr(textfield->text,line->indexInText,line->numbyte);
+	if(strlen(lineStr)==0)
+	{
+		free(lineStr);
+		return NULL;
+	}
+	SDL_Log("line(%d)%s",lineIndex,lineStr);
+	return lineStr;
+}
+int TextField_getLineIndexAtPoint(TextField * textfield,int x, int y)// 在 x 和 y 参数指定的位置返回从零开始的行索引值。
+{
+	if(textfield->textLines==NULL)
+		return 0;
+	Sprite * sprite = textfield->sprite;
+	int fontheight = TTF_FontHeight(textfield->font);
+	int mouseX = x - sprite->Bounds->x;
+	int mouseY = y - sprite->Bounds->y - textfield->scrollV;
+	int lineIndex= mouseY/fontheight;
+	SDL_Log("sprite->Bounds: (%d,%d,%d,%d)",
+			mouseX,
+			mouseY,
+			sprite->Bounds->w,
+			sprite->Bounds->h
+		   );
+	if(lineIndex>=textfield->textLines->length)
+		lineIndex= textfield->textLines->length-1;
+	return lineIndex;
+}
+
+static int stageMouseY;
+static int stageMouseX;
 static void mouseDown(SpriteEvent*e)
 {
 	SDL_Event *event  = e->e;
@@ -302,25 +407,32 @@ static void mouseDown(SpriteEvent*e)
 */
 	Sprite *sprite = e->target;
 	TextField * textfield = (TextField*)(sprite->obj);
-	if(textfield->textHeight<1)
-		return;
-	int fontheight = TTF_FontHeight(textfield->font);
-	int x = stage->mouse->x - sprite->Bounds->x;
-	int y = stage->mouse->y - sprite->Bounds->y;
-	int line = y/fontheight;
-	SDL_Log("sprite->Bounds: (%d,%d,%d,%d)",
-			x,
-			y,
-			sprite->Bounds->w,
-			sprite->Bounds->h
-		   );
-	SDL_Log("sprite->Bounds: (%d)",line);
-
-	if(textfield->wordSelect)
+	char * curWord = NULL;
+	switch(event->type)
 	{
-
-		//textfield->wordSelect(word);
+		case SDL_MOUSEBUTTONDOWN:
+			stageMouseY = stage->mouse->y;
+			stageMouseX = stage->mouse->x;
+			Sprite_addEventListener(sprite,SDL_MOUSEBUTTONUP,mouseDown);
+			break;
+		case SDL_MOUSEBUTTONUP:
+			if(abs(stageMouseY-stage->mouse->y)>5 || abs(stageMouseX - stage->mouse->x)>5)
+				return;
+			Sprite_removeEventListener(sprite,SDL_MOUSEBUTTONUP,mouseDown);
+			if(textfield->textHeight<1)
+				return;
+			curWord = TextField_getWordAtPoint(textfield,stage->mouse->x,stage->mouse->y);
+			if(curWord){
+				if(textfield->wordSelect)
+				{
+					textfield->wordSelect(curWord);
+				}
+			}else{
+				return;
+			}
 	}
+	if(curWord)
+		free(curWord);
 }
 
 
@@ -377,25 +489,32 @@ int drawLines(TextField*textfield)
 			if(sprite->h != textfield->textHeight) sprite->h = textfield->textHeight;
 		}
 
-		TextLine*line = textfield->lines;
 		if(textfield->staticHeight){
 			//int old_scroll = textfield->scrollV;
 			textfield->scrollV += sprite->y-textfield->y+TextField_getMoreDrawHeight(textfield);
 			sprite->y = textfield->y-TextField_getMoreDrawHeight(textfield);
 		}
-		while(line && sprite->surface){
-			if(textfield->staticHeight){
-				int curY = line->rect.y + textfield->scrollV;
-				int curH = fontheight;
-				if(0 <= curY+curH && curY < textfield->h)
+		int i = 0;
+
+		while(i<textfield->textLines->length)
+		{
+			//TextLine * line = textfield->lines;
+			TextLine * line = Array_getByIndex(textfield->textLines,i);
+			if(line && sprite->surface){
+				if(textfield->staticHeight){
+					int curY = line->rect.y + textfield->scrollV;
+					int curH = fontheight;
+					if(0 <= curY+curH && curY < textfield->h)
+						setLineTexture(textfield,line);
+					if(curY >= textfield->h){
+						break;
+					}
+				}else{
 					setLineTexture(textfield,line);
-				if(curY >= textfield->h){
-					break;
 				}
-			}else{
-				setLineTexture(textfield,line);
+				//line= line->next;
+				++i;
 			}
-			line= line->next;
 		}
 	}
 
@@ -449,7 +568,7 @@ static void mouseWheels(SpriteEvent*e)
 
 
 	int fontheight = TTF_FontHeight(textfield->font);
-	if(textfield && textfield->lines){
+	if(textfield && textfield->textLines && textfield->textLines->length>0){
 		if(textfield->staticHeight){
 			//SDL_Log("drag staticHeight---------------\n");fflush(stdout);
 			sprite->canDrag = 0;
@@ -482,9 +601,11 @@ static void mouseWheels(SpriteEvent*e)
 		}else {
 			if(event->type == SDL_MOUSEWHEEL){
 				if(event->wheel.y > 0){
-					sprite->y += textfield->lines->rect.h;
+					//sprite->y += textfield->lines->rect.h;
+					sprite->y += fontheight;
 				}else if(event->wheel.y < 0){
-					sprite->y -= textfield->lines->rect.h;
+					//sprite->y -= textfield->lines->rect.h;
+					sprite->y -= fontheight;
 				}
 				drawLines(textfield);
 			}else if(event->motion.state){
@@ -556,10 +677,19 @@ TextField *TextField_appendText(TextField*textfield,char*s)
 			line = TextField_appenLine(textfield);
 			line->indexInText = dealedlen;
 		}
-		if(line->lastWord){
-			free(line->lastWord);
-		}
-		line->lastWord = textword;
+		//if(line->lastWord){
+		//free(line->lastWord);
+		//}
+		//line->lastWord = textword;
+		/*
+		   TextWord * lastWord = Array_getByIndex(line->words,line->words->length-1);
+		   if(lastWord!=NULL)
+		   {
+		   free(lastWord);
+		   Array_setByIndex(line->words,line->words->length-1,NULL);
+		   }
+		   */
+		line->words = Array_push(line->words,textword);
 		line->numbyte += textword->numbyte;
 		line->rect.w += textword->w;// line w
 		if(line->rect.h < textword->h){
@@ -674,21 +804,22 @@ TextField * TextField_setText(TextField*textfield,char *s)
 	   }
 	   */
 
-	textfield->numLines = 0;
-	textfield->lines = NULL;
-	textfield->lastLine = NULL;
+	//textfield->numLines = 0;
+	//textfield->lines = NULL;
+	//textfield->lastLine = NULL;
+	TextField_clearLines(textfield);
 	textfield->textWidth = 0;
 	textfield->textHeight = 0;
 	textfield->length = 0;
 	textfield->scrollV= 0;
 	textfield->staticHeight = 0;
 
-	TextLine* line = textfield->lines;
-	while(line){
-		TextLine_clear(line);
-		line = line->next;
-	}
-	textfield->lines = NULL;
+	//TextLine* line = textfield->lines;
+	//while(line){
+	//TextLine_clear(line);
+	//line = line->next;
+	//}
+	//textfield->lines = NULL;
 
 	if(textfield->text) {
 		free(textfield->text);

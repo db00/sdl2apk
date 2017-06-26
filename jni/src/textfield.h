@@ -35,18 +35,21 @@ typedef struct TextLine{
 	int indexInText;//文本块的开始字符
 	int numbyte;//文本行字节数
 	char * text;//文本开始位置指针
-	TextWord * lastWord;//结尾字符
 	SDL_Rect rect;//显示图像大小位置
-	struct TextLine * next;
+
+	Array * words;//Array of TextWord
+	//TextWord * lastWord;//结尾字符
+	//struct TextLine * next;
 }TextLine;
 
 
 typedef struct TextField{
 	//TextFormat * format;//字体
 	TTF_Font * font;
-	TextLine * lines;//
-	TextLine * lastLine;//最后一行
-	int numLines ;// [只读] 定义多行文本字段中的文本行数。
+	Array * textLines;//Array of TextLine
+	//TextLine * lines;//
+	//TextLine * lastLine;//最后一行
+	//int numLines ;// [只读] 定义多行文本字段中的文本行数。
 	char*text ;// 作为文本字段中当前文本的字符串。
 	SDL_Color * textColor ;// 文本字段中文本的颜色（采用十六进制格式）。
 	SDL_Color * backgroundColor; // 文本字段背景的颜色。
@@ -98,18 +101,19 @@ typedef struct TextField{
 	   int useRichTextClipboard ;// 指定在复制和粘贴文本时是否同时复制和粘贴其格式。
 	   */
 }TextField;
+char * TextField_getWordAtPoint(TextField * textfield, int x, int y);// 在 x 和 y 参数指定的位置返回从零开始的字符索引值。
+char * TextField_getLineText(TextField * textfield,int lineIndex);// 返回 lineIndex 参数指定的行的文本。
+int TextField_getLineIndexAtPoint(TextField * textfield,int x, int y);// 在 x 和 y 参数指定的位置返回从零开始的行索引值。
 /*
  *	
+ int TextField_getLineIndexOfChar(int charIndex);// 返回 charIndex 参数指定的字符所在的行的索引值（从零开始）。
  getCharBoundaries(charIndex:int):Rectangle// 返回一个矩形，该矩形是字符的边框。
  getCharIndexAtPoint(x:Number, y:Number):int// 在 x 和 y 参数指定的位置返回从零开始的字符索引值。
  getFirstCharInParagraph(charIndex:int):int// 如果给定一个字符索引，则返回同一段落中第一个字符的索引。
  getImageReference(id:String):DisplayObject// 返回给定 id 或已使用 <img> 标签添加到 HTML 格式文本字段中的图像或 SWF 文件的 DisplayObject 引用。
- getLineIndexAtPoint(x:Number, y:Number):int// 在 x 和 y 参数指定的位置返回从零开始的行索引值。
- getLineIndexOfChar(charIndex:int):int// 返回 charIndex 参数指定的字符所在的行的索引值（从零开始）。
  getLineLength(lineIndex:int):int// 返回特定文本行中的字符数。
  getLineMetrics(lineIndex:int):flash.text:TextLineMetrics// 返回给定文本行的度量信息。
  getLineOffset(lineIndex:int):int// 返回 lineIndex 参数指定的行中第一个字符的字符索引。
- getLineText(lineIndex:int):String// 返回 lineIndex 参数指定的行的文本。
  getParagraphLength(charIndex:int):int// 如果给定一个字符索引，则返回包含给定字符的段落的长度。
  getTextFormat(beginIndex:int = -1, endIndex:int = -1):flash.text:TextFormat// 返回 TextFormat 对象，其中包含 beginIndex 和 endIndex 参数指定的文本范围的格式信息。
  isFontCompatible(fontName:String, fontStyle:String):Boolean// [静态] 如果具有指定的 fontName 和 fontStyle（其中的 Font.fontType 为 flash.text.FontType.EMBEDDED）的嵌入字体可用，则将返回 true。

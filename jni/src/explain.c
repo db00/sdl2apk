@@ -1,10 +1,14 @@
 
+#include "alert.h"
 #include "explain.h"
 #include "readbaidu.h"
 
 static Sprite * explainContainer = NULL;
 static TextField * textfield = NULL;
 static Word * curWord = NULL;
+
+
+
 
 static void show_copied(char * word,int r)
 {
@@ -27,6 +31,41 @@ static void saveWord(char * word)
 	if(regex_match(word,"/^[a-z-]*$/i")){
 		int r= setClipboardText(word);
 		show_copied(word,r);
+	}
+}
+
+static char * selectStr;
+static void * callbackFunc(void * v)
+{
+	if(selectStr==NULL)
+		return NULL;
+	AlertItem * item = v;
+
+	SDL_Log("callbackFunc --------->%s",selectStr);
+	if(strcmp("反查",item->str)==0){
+		SDL_Log("%s:%s",item->str,selectStr);
+		Wordinput_searchWord(selectStr);
+	}else if(strcmp("保存",item->str)==0){
+		SDL_Log("%s:%s",item->str,selectStr);
+		saveWord(selectStr);
+	}
+	free(selectStr);
+	selectStr = NULL;
+	return NULL;
+}
+
+
+static void button_messagebox(char * _word)
+{
+	if(regex_match(_word,"/^[a-z-]*$/i")){
+		selectStr = (char*)contact_str(_word,NULL);
+		//SDL_Log("--------->%s",selectStr);
+		Array * middleBtns = AlertItem_push(NULL,AlertItem_new("反查",callbackFunc));
+		AlertItem_push(middleBtns,AlertItem_new("保存",callbackFunc));
+		Array * bottomBtns = NULL;
+		bottomBtns = AlertItem_push(NULL,AlertItem_new("取消",callbackFunc));
+		//Alert_show("hello",middleBtns,bottomBtns,5000);
+		Alert_show(_word,middleBtns,bottomBtns,0);
 	}
 }
 
@@ -111,7 +150,8 @@ Sprite * Explain_show(Dict * dict,Word * word)
 		enBtn = makeTopBtn(explainContainer,"复制解释",gap,read_out);
 
 		textfield = TextField_new();
-		textfield->wordSelect = saveWord;
+		//textfield->wordSelect = saveWord;
+		textfield->wordSelect = button_messagebox;
 		//textfield->font = getDefaultFont(20);
 		textfield->sprite->canDrag = 1;
 		textfield->w = stage->stage_w;

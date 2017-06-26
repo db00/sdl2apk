@@ -46,6 +46,17 @@ int Wordinput_getHeight()
 	return 0;
 }
 
+
+void Wordinput_setText(char * s)
+{
+	if(input)
+	{
+		if(s==NULL)
+			s = "";
+		Input_setText(input,s);
+	}
+}
+
 Sprite * makeWordBtn(Word * word,void (*selectedEvent)(SpriteEvent *))
 {
 	int fontSize = 20*stage->stage_h/320;
@@ -549,4 +560,12 @@ void Wordinput_show()
 		Sprite_addEventListener(stage->sprite,SDL_KEYUP,keyupEvent); 
 	}
 	stage->focus = input->sprite;
+}
+
+int Wordinput_searchWord(char * v)
+{
+	Word * word = getWordFromDict(v);
+	if(word)
+		getMean(word);
+	return 0;
 }

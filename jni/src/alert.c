@@ -12,7 +12,7 @@ static Sprite * container;
 static SDL_TimerID timer;
 static Array * middleBtns;
 static Array * bottomBtns;
-static TextField * title;
+static Sprite * title;
 static Sprite * bg;
 static Sprite * middleList;
 static Sprite * bottomList;
@@ -143,12 +143,16 @@ void Alert_show(char * _title,Array * _middleBtns,Array * _bottomBtns,int time)
 	container->visible = SDL_TRUE;
 	middleBtns = _middleBtns;
 	bottomBtns = _bottomBtns;
-	if(title==NULL){
-		title = TextField_new();
-		title->font = getDefaultFont(24*stage->stage_h/800);
+	if(title){
+		Sprite_destroy(title);
 	}
-	TextField_setText(title,_title);
-	Sprite_addChild(container,title->sprite);
+
+	//title = TextField_new();
+	//title->font = getDefaultFont(24*stage->stage_h/800);
+	//TextField_setText(title,_title);
+	//Sprite_addChild(container,title->sprite);
+	title = Sprite_newText(_title,24*stage->stage_h/800,0xff000000,0xffffff33);
+	Sprite_addChild(container,title);
 
 	if(middleList ==NULL)
 	{
@@ -165,7 +169,8 @@ void Alert_show(char * _title,Array * _middleBtns,Array * _bottomBtns,int time)
 			++i;
 		}
 	}
-	middleList->y = title->sprite->y + title->sprite->h;
+	//middleList->y = title->sprite->y + title->sprite->h;
+	middleList->y = title->y + title->h;
 	Sprite_addChild(container,middleList);
 	if(bottomList==NULL)
 	{

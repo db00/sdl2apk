@@ -26,4 +26,6 @@ void Wordinput_hideList();
 
 Sprite * makeWordBtn(Word * word,void (*selectedEvent)(SpriteEvent *));
 void List_removeOuts(Sprite * curlistSprite);
+void Wordinput_setText(char * s);
+int Wordinput_searchWord(char * word);
 #endif

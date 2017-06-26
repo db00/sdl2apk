@@ -407,32 +407,30 @@ static void mouseDown(SpriteEvent*e)
 */
 	Sprite *sprite = e->target;
 	TextField * textfield = (TextField*)(sprite->obj);
-	char * curWord = NULL;
-	switch(event->type)
-	{
-		case SDL_MOUSEBUTTONDOWN:
-			stageMouseY = stage->mouse->y;
-			stageMouseX = stage->mouse->x;
-			Sprite_addEventListener(sprite,SDL_MOUSEBUTTONUP,mouseDown);
-			break;
-		case SDL_MOUSEBUTTONUP:
-			if(abs(stageMouseY-stage->mouse->y)>5 || abs(stageMouseX - stage->mouse->x)>5)
-				return;
-			Sprite_removeEventListener(sprite,SDL_MOUSEBUTTONUP,mouseDown);
-			if(textfield->textHeight<1)
-				return;
-			curWord = TextField_getWordAtPoint(textfield,stage->mouse->x,stage->mouse->y);
-			if(curWord){
-				if(textfield->wordSelect)
-				{
+	if(textfield->wordSelect){
+		char * curWord = NULL;
+		switch(event->type)
+		{
+			case SDL_MOUSEBUTTONDOWN:
+				stageMouseY = stage->mouse->y;
+				stageMouseX = stage->mouse->x;
+				Sprite_addEventListener(sprite,SDL_MOUSEBUTTONUP,mouseDown);
+				break;
+			case SDL_MOUSEBUTTONUP:
+				if(abs(stageMouseY-stage->mouse->y)>5 || abs(stageMouseX - stage->mouse->x)>5)
+					return;
+				Sprite_removeEventListener(sprite,SDL_MOUSEBUTTONUP,mouseDown);
+				if(textfield->textHeight<1)
+					return;
+				curWord = TextField_getWordAtPoint(textfield,stage->mouse->x,stage->mouse->y);
+				if(curWord){
 					textfield->wordSelect(curWord);
+				}else{
+					return;
 				}
-			}else{
-				return;
-			}
+		}
+		if(curWord) free(curWord);
 	}
-	if(curWord)
-		free(curWord);
 }
 
 

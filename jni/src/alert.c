@@ -82,7 +82,7 @@ Sprite * AlertItem_newMiddlItem(AlertItem * item)
 	Sprite * sprite = Sprite_new();
 	if(middleList==NULL)
 		middleList = Sprite_new();
-	Sprite * txt = Sprite_newText(item->str,30*stage->stage_h/800,0x0,0x00ffffff);
+	Sprite * txt = Sprite_newText(item->str,36*stage->stage_h/800,0x0,0x00ffffff);
 
 	sprite->y = middleList_H;
 	Sprite_addChild(sprite,txt);
@@ -108,7 +108,7 @@ Sprite * AlertItem_newBottomItem(AlertItem * item)
 	//Sprite * sprite = Sprite_new();
 	if(bottomList==NULL)
 		bottomList = Sprite_new();
-	Sprite * sprite = Sprite_newText(item->str,30*stage->stage_h/800,0xff000000,0xffffff33);
+	Sprite * sprite = Sprite_newText(item->str,32*stage->stage_h/800,0xff000000,0xffffff33);
 	//Sprite_addChild(sprite,txt);
 	sprite->x = BottomList_W;
 	//BottomList_W += txt->w + 1;
@@ -145,13 +145,10 @@ void Alert_show(char * _title,Array * _middleBtns,Array * _bottomBtns,int time)
 	bottomBtns = _bottomBtns;
 	if(title){
 		Sprite_destroy(title);
+		title = NULL;
 	}
 
-	//title = TextField_new();
-	//title->font = getDefaultFont(24*stage->stage_h/800);
-	//TextField_setText(title,_title);
-	//Sprite_addChild(container,title->sprite);
-	title = Sprite_newText(_title,24*stage->stage_h/800,0xff000000,0xffffff33);
+	title = Sprite_newText(_title,28*stage->stage_h/800,0xff000000,0xffffff33);
 	Sprite_addChild(container,title);
 
 	if(middleList ==NULL)
@@ -169,7 +166,6 @@ void Alert_show(char * _title,Array * _middleBtns,Array * _bottomBtns,int time)
 			++i;
 		}
 	}
-	//middleList->y = title->sprite->y + title->sprite->h;
 	middleList->y = title->y + title->h;
 	Sprite_addChild(container,middleList);
 	if(bottomList==NULL)

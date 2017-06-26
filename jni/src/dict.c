@@ -282,8 +282,78 @@ Word * Dict_contains(Dict *dict,char *word)
 
 Word * Dict_getWord(Dict *dict,char * target_word)
 {
-	int id = abs(Dict_getWordIndex(dict,target_word));
-	if(id>dict->wordcount)
+	//+s,+es,y->ies
+	//f->ves,fe->ves,o->os,o->oes
+	//+ing,e->ing,[rptl...]->{2}ing,c->cking
+	//+ed,e->+ed,y->ied,[rptl..]->{2}ed,c->cked,
+	//ox->oxen,child->children,man->men,ouse->ice
+	int index = Dict_getWordIndex(dict,target_word);
+	if(index>0 && index<dict->wordcount){
+		return (Word*)(dict->words+index);
+	}else if(index<0){
+		int len = strlen(target_word);
+		if(len<1)
+			return (Word*)(dict->words+0);
+		if(len<3)
+			return (Word*)(dict->words-index);
+		char word2[len];
+		memset(word2,0,len);
+		int _index;
+		if(target_word[len-1]=='s' || target_word[len-1]=='d'){// +s +d
+			snprintf(word2,len,"%s",target_word);
+			printf("end with \"s\" or \"d\": %s",word2);
+			_index = Dict_getWordIndex(dict,word2);
+			if(_index>0)
+				return (Word*)(dict->words+_index);
+			if(word2[len-2]=='e'){// +es +ed
+				snprintf(word2,len-1,"%s",target_word);
+				_index = Dict_getWordIndex(dict,word2);
+				if(_index>0)
+					return (Word*)(dict->words+_index);
+				if(word2[len-3]=='i'){// +ies +ied
+					word2[len-3]='y';
+					_index = Dict_getWordIndex(dict,word2);
+					printf("end with \"s\" or \"d\": %s",word2);
+					if(_index>0)
+						return (Word*)(dict->words+_index);
+				}else if(word2[len-3]=='v'){// +ves +ved
+					word2[len-3]='f';
+					_index = Dict_getWordIndex(dict,word2);
+					printf("end with \"s\" or \"d\": %s",word2);
+					if(_index>0)
+						return (Word*)(dict->words+_index);
+				}else// if(word2[len-3]=='k')
+				{//c-> ckes cked
+					word2[len-3]='\0';
+					_index = Dict_getWordIndex(dict,word2);
+					printf("end with \"s\" or \"d\": %s",word2);
+					if(_index>0)
+						return (Word*)(dict->words+_index);
+				}
+			}
+		}else if(strcmp(target_word+len-3,"ing")==0){//+ing
+			snprintf(word2,len-2,"%s",target_word);
+			printf("end with \"ing\": %s",word2);
+			_index = Dict_getWordIndex(dict,word2);
+			if(_index>0)
+				return (Word*)(dict->words+_index);
+			word2[strlen(word2)]='e';//e -> ing
+			printf("end with \"ing\": %s",word2);
+			_index = Dict_getWordIndex(dict,word2);
+			if(_index>0)
+				return (Word*)(dict->words+_index);
+			word2[strlen(word2)-2]='\0';//[rnbp]{2} + ing
+			printf("end with \"ing\": %s",word2);
+			_index = Dict_getWordIndex(dict,word2);
+			if(_index>0)
+				return (Word*)(dict->words+_index);
+
+		}
+
+	}
+
+	int id = abs(index);
+	if(id>=dict->wordcount)
 		id=dict->wordcount-1;
 	Word* retword = (Word*)(dict->words+id);
 	return retword;
@@ -419,13 +489,13 @@ char * Dict_getByIndex(Dict * dict,int id){
 	   fflush(stdout);
 	   */
 	/*
-	if( !regex_match(word->word,"/[\\// ,()]/i")
-			&& word->length >maxlen)
-	{
-		maxlen = word->length;
-		printf("\r\n%d==%d,%s:%d\r\n",id,word->index,word->word,maxlen);
-	}
-	*/
+	   if( !regex_match(word->word,"/[\\// ,()]/i")
+	   && word->length >maxlen)
+	   {
+	   maxlen = word->length;
+	   printf("\r\n%d==%d,%s:%d\r\n",id,word->index,word->word,maxlen);
+	   }
+	   */
 	//else if (strlen(word->word)>50) printf("\r\n%s:%d\r\n",word->word,maxlen);
 
 	rewind(dict->file);

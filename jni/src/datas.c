@@ -60,9 +60,13 @@ void add_remembered_word(char * word,int remembered)
 
 void change_word_rights(char * word,int num)
 {
-	char * s ="update list set numTest=%d,date=%d where word=\"%s\";";
-	char sql[100];
-	memset(sql,0,100);
+	char * s;
+	if(num==0)
+		s ="update list set numTest=%d,date=%d,numAccess=max(numAccess,numTest,numError)+1,numError=numError+1 where word=\"%s\";";
+	else
+		s ="update list set numTest=%d,date=%d,numAccess=max(numAccess,numTest,numError)+1 where word=\"%s\";";
+	char sql[200];
+	memset(sql,0,200);
 	sprintf(sql,s,num,time(NULL),word);
 	int rc = DataBase_exec(history_db,sql);
 	if(!rc)printf("\n update sql_result_str:%s",history_db->result_str);
@@ -233,7 +237,11 @@ int init_db()
 
 	history_db = DataBase_new(decodePath("~/sound/test.db"));
 	int rc=0;
-	rc = DataBase_exec(history_db,"create table if not exists list(wordid INTEGER primary key asc,word text UNIQUE, date INTEGER, remembered char(1) default(0), numAccess INTEGER default(0),numTest INTEGER default(0));");
+	//date 最近测试时间
+	//numTest 连续正确次数
+	//numError 测试错误次数
+	//numAccess 测试总次数
+	rc = DataBase_exec(history_db,"create table if not exists list(wordid INTEGER primary key asc,word text UNIQUE, date INTEGER, remembered char(1) default(0), numAccess INTEGER default(0),numTest INTEGER default(0),numError INTEGER default(0));");
 	//rc = DataBase_exec(history_db,"create table if not exists list(wordid INTEGER primary key asc,word varchar(50), date real, remembered char(1), numAccess INTEGER, numTest INTEGER);");
 	//if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
 	//if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
@@ -241,14 +249,29 @@ int init_db()
 	rc = DataBase_exec(history_db,"delete from list where word like \"_\";");
 	rc = DataBase_exec(history_db,"delete from list where word like \"__\";");
 	rc = DataBase_exec(history_db,"delete from list where word like \"% %\";");
+	rc = DataBase_exec(history_db,"delete from list where word like \"-%%\";");
+
+	//添加列
+	Array * result_arr =  datas_query2("select * from sqlite_master where name='list' and sql like '%%numError%%';");
+	if(result_arr==NULL)
+		rc = DataBase_exec(history_db,"alter table list add column numError INTEGER default(0);");
 	/*
-	   rc = DataBase_exec(history_db,"DROP TABLE IF EXISTS history");
-	   rc = DataBase_exec(history_db,"delete from list where remembered=0 and word like \"%×%\" or \"%√%\";");
-	   rc = DataBase_exec(history_db,"create table if not exists history(id INTEGER primary key asc, wordid INTEGER, status varchar(1), date real);");
-	   rc = DataBase_exec(history_db,"delete from list where remembered=0 and word not like \"___%\";");
-	   rc = DataBase_exec(history_db,"delete from list where remembered=0 and word=\"drafman\";");
-	   rc = DataBase_exec(history_db,"delete from list where remembered=0 and word=\"rountine\";");
-	   */
+	 *
+	 * alter table list add column numError INTEGER default(0);
+	 *	select * from sqlite_master;
+	 *	drop table if exists student;
+	 alter table teacher rename to student;
+
+	 select * from sqlite_master where name='list' and sql like '%numError%';
+
+	 *
+	 rc = DataBase_exec(history_db,"DROP TABLE IF EXISTS history");
+	 rc = DataBase_exec(history_db,"delete from list where remembered=0 and word like \"%×%\" or \"%√%\";");
+	 rc = DataBase_exec(history_db,"create table if not exists history(id INTEGER primary key asc, wordid INTEGER, status varchar(1), date real);");
+	 rc = DataBase_exec(history_db,"delete from list where remembered=0 and word not like \"___%\";");
+	 rc = DataBase_exec(history_db,"delete from list where remembered=0 and word=\"drafman\";");
+	 rc = DataBase_exec(history_db,"delete from list where remembered=0 and word=\"rountine\";");
+	 */
 	return 0;
 }
 
@@ -257,7 +280,7 @@ int init_db()
 
 #ifdef debug_datas
 
-static int inserts(sqlite3 * conn,sqlite3_stmt * stmt3,char * word,int date,char * remembered,int numAccess,int numTest)
+static int inserts(sqlite3 * conn,sqlite3_stmt * stmt3,char * word,int date,char * remembered,int numAccess,int numTest,int numError)
 {
 	/*
 	   word text,
@@ -274,6 +297,7 @@ static int inserts(sqlite3 * conn,sqlite3_stmt * stmt3,char * word,int date,char
 	sqlite3_bind_text(stmt3,3,remembered,strlen(remembered),SQLITE_TRANSIENT);
 	sqlite3_bind_int(stmt3,4,numAccess);
 	sqlite3_bind_int(stmt3,5,numTest);
+	sqlite3_bind_int(stmt3,5,numError);
 	if (sqlite3_step(stmt3) != SQLITE_DONE) {
 		sqlite3_finalize(stmt3);
 		sqlite3_close(conn);
@@ -307,6 +331,7 @@ static void _backup()
 		Array * remembereds = NULL;
 		Array * numAccesses = NULL;
 		Array * numTests = NULL;
+		Array * numErrors = NULL;
 		while(i<nCount)
 		{
 			char * curName =Array_getByIndex(names,i);
@@ -320,6 +345,8 @@ static void _backup()
 				numAccesses = Array_getByIndex(data,i+1);
 			}else if(strcmp(curName,"numTest")==0){
 				numTests = Array_getByIndex(data,i+1);
+			}else if(strcmp(curName,"numError")==0){
+				numErrors = Array_getByIndex(data,i+1);
 			}
 			++i;
 		}
@@ -327,7 +354,7 @@ static void _backup()
 			init_db();
 		}
 
-		const char* insertSQL = "replace into list(word,date,remembered,numAccess,numTest) values(?,?,?,?,?);";
+		const char* insertSQL = "replace into list(word,date,remembered,numAccess,numTest,numError) values(?,?,?,?,?,?);";
 		sqlite3_stmt* stmt3 = NULL;
 		sqlite3 * conn = history_db->db;
 		if (sqlite3_prepare_v2(conn,insertSQL,strlen(insertSQL),&stmt3,NULL) != SQLITE_OK) {
@@ -345,7 +372,9 @@ static void _backup()
 					atoi(Array_getByIndex(dates,i)),
 					Array_getByIndex(remembereds,i),
 					atoi(Array_getByIndex(numAccesses,i)),
-					atoi(Array_getByIndex(numTests,i)));
+					atoi(Array_getByIndex(numTests,i)),
+					atoi(Array_getByIndex(numErrors,i))
+					);
 			if(!rc){
 				printf("%d: %s\r\n",i,Array_getByIndex(words,i));fflush(stdout);
 				//printf("\nsql_result_str:%s",db->result_str);
@@ -362,6 +391,15 @@ static void _backup()
 
 int main()
 {
+	init_db();
+	Array * result_arr =  datas_query2("select * from sqlite_master where name='list' and sql like '%%numError%%';");
+	if(result_arr)
+	{
+		printf("result_arr not NULL");
+	}else{
+		printf("result_arr is NULL");
+	}
+	return 0;
 	time_t t = time(NULL)-24*3600;
 	printf("%s,%d",ctime(&t));
 	return 0;
@@ -372,7 +410,6 @@ int main()
 	unsigned int j = -1;
 	//printf("%d\r\n",-(((unsigned int)-1)/4));
 	printf("%d\r\n",((unsigned int)-1)/4);
-	init_db();
 	if(history_db){
 		int rc=0;
 		/*

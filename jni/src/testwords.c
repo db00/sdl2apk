@@ -25,6 +25,8 @@ typedef struct TestWord{
 	char * word;
 	time_t date;
 	int numRight;
+	int numError;
+	int numAccess;
 }TestWord;
 
 static TestWord * TestWord_new()
@@ -123,6 +125,8 @@ static void adds(Array * data,time_t * date)
 		int wordCol=0;
 		int numCol=0;
 		int dateCol=0;
+		int errorCol=0;
+		int accessCol=0;
 		while(i<nCount)
 		{
 			char * curName =Array_getByIndex(names,i);
@@ -132,6 +136,10 @@ static void adds(Array * data,time_t * date)
 				//printf("\r\n column_name:%s:%d,length:%d\r\n",curName,i+1,wordsArr->length);
 			}else if(strcmp(curName,"numTest")==0){
 				numCol = i+1;
+			}else if(strcmp(curName,"numError")==0){
+				errorCol = i+1;
+			}else if(strcmp(curName,"numAccess")==0){
+				accessCol = i+1;
 			}else if(strcmp(curName,"date")==0){
 				dateCol = i+1;
 			}
@@ -141,6 +149,8 @@ static void adds(Array * data,time_t * date)
 		{
 			Array * wordsArr = Array_getByIndex(data,wordCol);
 			Array * numsArr = Array_getByIndex(data,numCol);
+			Array * errorsArr = Array_getByIndex(data,errorCol);
+			Array * accessArr = Array_getByIndex(data,accessCol);
 			Array * dateArr = Array_getByIndex(data,dateCol);
 			if(wordsArr && wordsArr->length>0)
 			{
@@ -171,7 +181,10 @@ static void adds(Array * data,time_t * date)
 						TestWord * testword = TestWord_new();
 						testword->word = append_str(NULL,"%s",word);
 						testword->numRight = atoi((char*)Array_getByIndex(numsArr,j));
+						testword->numError = atoi((char*)Array_getByIndex(errorsArr,j));
+						testword->numAccess = max(atoi((char*)Array_getByIndex(accessArr,j)),testword->numRight);
 						testword->date = atoi((char*)(Array_getByIndex(dateArr,j)));
+						SDL_Log("%s",ctime(&testword->date));
 						Array_push(test_array,testword);
 					}
 					++j;
@@ -225,6 +238,8 @@ static Array * get_test_array(int start,int _numWords)
 					TestWord * testword = TestWord_new();
 					testword->word = append_str(NULL,"%s",_word);
 					testword->numRight = 0;
+					testword->numError = 0;
+					testword->numAccess = 0;
 					testword->date = time(NULL);
 					Array_push(test_array,testword);
 					++i;
@@ -257,6 +272,9 @@ static void change_wordRight(TestWord * word,int i)
 {
 	change_word_rights(word->word,i);
 	word->numRight = i;
+	if(i==0)
+		word->numError=word->numError++;
+	word->numAccess=word->numAccess++;
 	word->date = time(NULL);
 }
 
@@ -302,14 +320,20 @@ static void check_word(char * s)
 		return;
 	}
 	TestWord * origin_word = Array_getByIndex(test_array,numIndex);
+	char wordStr[64]; 
+	memset(wordStr,0,sizeof(wordStr));
+	sprintf(wordStr,"%s",origin_word->word);
 	char * curWord = regex_replace_all(s,"/[^a-z]/i","");
 	char * right_answer = regex_replace_all(origin_word->word,"/[^a-z]/i","");
 	int numRight = origin_word->numRight;
+	int numError = origin_word->numError;
+	int numAccess = origin_word->numAccess;
 	int lasttestTime = origin_word->date;
 	printf("numRight:%d\r\n",numRight);
 	if(strcasecmp(right_answer,curWord)==0)
 	{
 		++numRight;
+		numAccess++;
 		char * right_s = contact_str(s," √ ");
 		Input_setText(input,right_s);
 		free(right_s);;
@@ -324,11 +348,13 @@ static void check_word(char * s)
 			--numIndex;
 		}
 	}else{
-		numRight = 0;
+		numRight=0;
+		numError++;
+		numAccess++;
 		add_remembered_word(origin_word->word,0);
 		change_wordRight(origin_word,0);
 		//TextField_setText(textfield,"");
-		printf("wrong!\r\n");
+		printf("\r\nwrong:%d!\r\n",origin_word->numError);
 		printf("%s\r\n",input->value);
 		char * wrong_s = contact_str(s," × ");
 		char * tmp = regex_replace_all(wrong_s,"/[\r\n]/img","");
@@ -339,6 +365,10 @@ static void check_word(char * s)
 	free(right_answer);
 	free(curWord);
 	TextField_setText(textfield,full_explain);
+	char status[100];
+	memset(status,0,sizeof(status));
+	sprintf(status,"\r\n 正确答案：( %s )\n 连续正确次数: %d, 错误次数: %d, 测试总次数: %d",wordStr,numRight,numError,numAccess);
+	TextField_appendText(textfield,status);
 }
 
 static void keyupEvent(SpriteEvent* e){

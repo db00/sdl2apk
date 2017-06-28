@@ -367,7 +367,7 @@ static void check_word(char * s)
 	TextField_setText(textfield,full_explain);
 	char status[200];
 	memset(status,0,sizeof(status));
-	sprintf(status,"\r\n 正确答案：( %s )\n 连续正确次数: %d, 错误次数: %d, 测试总次数: %d",wordStr,numRight,numError,numAccess);
+	sprintf(status,"\r\n 正确答案：( %s )\n 连续正确次数: %d, 错误次数: %d, 错误率: %d%%",wordStr,numRight,numError,numError*100/numAccess);
 	TextField_appendText(textfield,status);
 }
 

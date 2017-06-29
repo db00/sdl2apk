@@ -203,7 +203,7 @@ static void mouseMoves(SpriteEvent*e)
 			if(tween && tween->sprite){
 				TweenObj * tweenObj;
 				tweenObj = (TweenObj*)TweenObj_new(target);
-				tween = tween_to(target,100,tweenObj);
+				tween = tween_to(target,10,tweenObj);
 				//Tween_kill(tween->sprite,0);
 			}
 			//SDL_Log("down : (%d,%d),%d\r\n",stageX,stageY,timestamp);

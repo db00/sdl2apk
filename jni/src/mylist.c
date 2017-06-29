@@ -87,7 +87,7 @@ void List_rollback(void * list)
 	tween = NULL;
 	Sprite * curlistSprite = list;
 	//Tween * tween = NULL;
-	TweenObj * tweenObj;
+	TweenObj * tweenObj = NULL;
 	int h = curlistSprite->h;
 	if(h<=0)
 	{
@@ -103,15 +103,26 @@ void List_rollback(void * list)
 		return;
 
 
+	tween = NULL;
 	//Point3d * p = Sprite_localToGlobal(curlistSprite,NULL);
 	if(curlistSprite->y > 0*stage->stage_h){
 		tweenObj = (TweenObj*)TweenObj_new(curlistSprite);
 		tweenObj->end->y = 0;//stage->stage_h/3;// (container->y + container->h);
-		tween = tween_to(curlistSprite,300 ,tweenObj);
 	}else if( curlistSprite->y + h < stage->stage_h && h>stage->stage_h){
 		tweenObj = (TweenObj*)TweenObj_new(curlistSprite);
-		tweenObj->end->y = stage->stage_h - h - stage->stage_h/3;
-		tween = tween_to(curlistSprite,300 ,tweenObj);
+		int y = 0;
+		Sprite * parent = curlistSprite->parent;
+		while(parent && parent!=stage->sprite)
+		{
+			y += parent->y;
+			parent = parent->parent;
+		}
+		tweenObj->end->y = stage->stage_h - h - y;
+	}
+	if(tweenObj)
+	{
+		tween = tween_to(curlistSprite,abs(tweenObj->end->y-tweenObj->start->y)*5,tweenObj);
+		tween->ease = easeOut_bounce;
 	}
 }
 
@@ -157,17 +168,30 @@ static void mouseMoves(SpriteEvent*e)
 				//SDL_Log("target->h = %d\r\n",target->Bounds->h);
 				if(tweenObj->end->y>0 || target->Bounds->h<stage->stage_h)
 				{
-					//tweenObj->end->y = stage->stage_h/2;
-					tweenObj->end->y = 0;//stage->stage_h/2;
-					time = max(abs((tweenObj->end->y-target->y)/speed*1000),100);
+					if(tweenObj->end->y > tweenObj->start->y)//down
+						tweenObj->end->y = stage->stage_h/2;
+					else
+						tweenObj->end->y = -stage->stage_h/2;
 				}else if(tweenObj->end->y + target->Bounds->h < stage->stage_h){
-					tweenObj->end->y = stage->stage_h*1.0 - target->Bounds->h;
-					time = max(abs((tweenObj->end->y-target->y)/speed*1000),100);
+					if(tweenObj->end->y > tweenObj->start->y)//down
+						tweenObj->end->y = tweenObj->start->y;
+					else
+						tweenObj->end->y = stage->stage_h*.5 - target->Bounds->h;
 				}
+				SDL_Log("speed:%f",speed);
+				float maxspeed = 3000.0;
+				float minispeed = 50.0;
+				if(abs(speed)>maxspeed)
+					speed = maxspeed;
+				else if(abs(speed)<minispeed)
+					speed = minispeed;
+				time = max(abs((tweenObj->end->y-tweenObj->start->y)/speed*1000),100);
 				tween = tween_to(target,(int)time,tweenObj);
+				tween->ease = easeOut_strong;
+				/*
 				tween->onComplete = List_rollback;
 				tween->onCompleteParas = target;
-				tween->ease = easeOut_strong;
+				*/
 				tween->onEachMove = target->other;
 				tween->onEachMoveParas = NULL;
 			}

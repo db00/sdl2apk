@@ -139,7 +139,7 @@ static void container_new()
 		List_roll(container,addPic);
 	}
 
-	if(container->dragRect==NULL)
+	if(container && container->dragRect==NULL)
 	{
 		SDL_Rect * rect = malloc(sizeof(*rect));
 		rect->x = container->x;

@@ -174,6 +174,8 @@ int main(int argc, char *argv[]) {
     //Sprite_addEventListener(stage->sprite,SDL_MOUSEBUTTONDOWN,slideEvent);
     //Sprite_addEventListener(stage->sprite,SDL_MOUSEBUTTONUP,slideEvent);
     
+	Loading_show(1,"start check update");
+
 	pthread_t thread2;
 	if(pthread_create(&thread2, NULL, update, NULL)!=0)//创建查找更新子线程  
 	{  

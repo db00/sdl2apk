@@ -4,6 +4,11 @@
 static Sprite * curlistSprite = NULL;
 static Word * curSelectWord;
 
+static void * showLoading(void * params)
+{
+	Loading_show(atoi(params),"show loading");
+}
+
 static void open_dict()
 {
 	if(ec_dict==NULL)
@@ -12,8 +17,24 @@ static void open_dict()
 		ec_dict->name = "oxford-gb";
 		if(!fileExists("~/sound/oxford-gb/"))
 		{
+			pthread_t thread2;
+			if(pthread_create(&thread2, NULL, showLoading, "1")!=0)//创建查找更新子线程  
+			{  
+				perror("pthread_create");  
+			}else{
+				pthread_detach(thread2);// do not know why uncommit this line , will occur an ERROR !
+				//pthread_join(thread2,NULL);
+			}
+
 			//Loading_show(1,"loading oxford ......");
 			loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/oxford.zip","~/sound/");
+			if(pthread_create(&thread2, NULL, showLoading, "0")!=0)//创建查找更新子线程  
+			{  
+				perror("pthread_create");  
+			}else{
+				pthread_detach(thread2);// do not know why uncommit this line , will occur an ERROR !
+				//pthread_join(thread2,NULL);
+			}
 		}
 	}
 	//Loading_show(0,NULL);
@@ -30,8 +51,23 @@ int isCE(char * value)
 			ce_dict->name = "ce";
 			if(!fileExists("~/sound/ce/langdao-ce-gb.ifo"))
 			{
+				pthread_t thread2;
+				if(pthread_create(&thread2, NULL, showLoading, "1")!=0)//创建查找更新子线程  
+				{  
+					perror("pthread_create");  
+				}else{
+					pthread_detach(thread2);// do not know why uncommit this line , will occur an ERROR !
+					//pthread_join(thread2,NULL);
+				}
 				//Loading_show(1,"loading ce ......");
 				loadAndunzip("https://git.oschina.net/db0/kodi/raw/master/ce.zip","~/sound/");
+				if(pthread_create(&thread2, NULL, showLoading, "0")!=0)//创建查找更新子线程  
+				{  
+					perror("pthread_create");  
+				}else{
+					pthread_detach(thread2);// do not know why uncommit this line , will occur an ERROR !
+					//pthread_join(thread2,NULL);
+				}
 			}
 		}
 		return 1;

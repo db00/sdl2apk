@@ -88,8 +88,7 @@ void Loading_show(int boolean,char * s)
 		//if(Sprite_contains(stage->sprite,earth_contener)) Sprite_removeChild(stage->sprite,earth_contener);
 		if(tween)
 		{
-			Tween_kill(tween,1);
-			tween = NULL;
+			//Tween_kill(tween,1); tween = NULL;
 		}
 	}
 }

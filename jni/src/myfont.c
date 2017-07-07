@@ -186,9 +186,10 @@ TTF_Font * getFontByPath(char * path,int fontSize)
 	return getDefaultFont(fontSize);
 }
 
+static Array * defaulfFontArr = NULL;
 static char * defaulfFontFile = NULL;
 static TTF_Font * defaulfFont = NULL;
-TTF_Font * getDefaultFont(int fontSize)
+static TTF_Font * _getDefaultFont(int fontSize)
 {
 	if(defaulfFontFile)
 	{
@@ -230,6 +231,54 @@ TTF_Font * getDefaultFont(int fontSize)
 	}
 	return NULL;
 }
+typedef struct DefaultFont{
+	TTF_Font * font;
+	char * path;
+	int fontSize;
+}DefaultFont;
+DefaultFont * DefaultFont_new(int fontSize)
+{
+	TTF_Font * font = NULL;
+	if(defaulfFont==NULL)
+	{
+		font = _getDefaultFont(fontSize);
+		if(font==NULL)
+			return NULL;
+	}
+	DefaultFont * defont = malloc(sizeof(DefaultFont));
+	defont->path = defaulfFontFile;
+	defont->fontSize = fontSize;
+	if(font)
+		defont->font = font;
+	else
+		defont->font = TTF_OpenFont(defaulfFontFile, fontSize);
+	defaulfFontArr = Array_new();
+	Array_push(defaulfFontArr,defont);
+	return defont;
+}
+TTF_Font * getDefaultFont(int fontSize)
+{
+	if(defaulfFont==NULL)
+	{
+		DefaultFont * font = DefaultFont_new(fontSize);
+		if(font==NULL)
+			return NULL;
+		return font->font;
+	}
+	int i = 0;
+	while(i<defaulfFontArr->length)
+	{
+		DefaultFont * defont = Array_getByIndex(defaulfFontArr,i);
+		if(fontSize==defont->fontSize)
+			return defont->font;
+		++i;
+	}
+	DefaultFont * _font = DefaultFont_new(fontSize);
+	if(_font==NULL)
+		return NULL;
+	return _font->font;
+}
+
 
 
 TTF_Font * getFontByName(const char * fontName,int fontSize)

@@ -1116,7 +1116,7 @@ SDL_bool SDL_PointInRect(const SDL_Point *p, const SDL_Rect *r)
 #endif
 
 //is the point in the sprite
-int isPointInSprite(Sprite * sprite,SDL_Point * p)
+static int isPointInSprite(Sprite * sprite,SDL_Point * p)
 {
 	if(sprite->Bounds && Sprite_getVisible(sprite))
 	{

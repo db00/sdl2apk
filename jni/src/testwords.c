@@ -1,6 +1,6 @@
 /**
  * @file testwords.c
- gcc -g -D debug_test_word -I"../SDL2/include/" -I"../SDL2_ttf/" -lSDL2 -lsqlite3 -lz -lssl -lcrypto -lpthread -lSDL2_ttf -lm utf8.c myfont.c matrix.c sprite.c textfield.c input.c urlcode.c dict.c update.c bytearray.c zip.c httploader.c ipstring.c base64.c sqlite.c myregex.c  testwords.c files.c mystring.c array.c datas.c && ./a.out
+ gcc -g -D debug_test_word -I"../SDL2/include/" -I"../SDL2_ttf/" -lSDL2 -lsqlite3 -lz -lssl -lcrypto -lpthread -lSDL2_ttf -lm utf8.c loading.c ease.c tween.c myfont.c matrix.c sprite.c textfield.c input.c urlcode.c dict.c update.c bytearray.c zip.c httploader.c ipstring.c base64.c sqlite.c myregex.c  testwords.c files.c mystring.c array.c datas.c && ./a.out
  * @author db0@qq.com
  * @version 1.0.1
  * @date 2017-05-18
@@ -273,8 +273,8 @@ static void change_wordRight(TestWord * word,int i)
 	change_word_rights(word->word,i);
 	word->numRight = i;
 	if(i==0)
-		word->numError=word->numError++;
-	word->numAccess=word->numAccess++;
+		word->numError=word->numError+1;
+	word->numAccess=word->numAccess+1;
 	word->date = time(NULL);
 }
 

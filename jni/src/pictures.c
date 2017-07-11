@@ -1,6 +1,6 @@
 /**
  * @file pictures.c
- gcc -Wall -g -I"../SDL2/include/" -I"../SDL2_image/" -I"../SDL2_ttf/" matrix.c update.c bytearray.c zip.c utf8.c mysurface.c myfont.c pictures.c sprite.c urlcode.c myregex.c files.c array.c base64.c ipstring.c httploader.c mystring.c -lssl -lcrypto -lm -lz -lSDL2 -lSDL2_image -lSDL2_ttf -D debug_pictures &&./a.out
+ gcc -Wall -g -I"../SDL2/include/" -I"../SDL2_image/" -I"../SDL2_ttf/" loading.c tween.c ease.c mylist.c matrix.c update.c bytearray.c zip.c utf8.c mysurface.c myfont.c pictures.c sprite.c urlcode.c myregex.c files.c array.c base64.c ipstring.c httploader.c mystring.c -lssl -lcrypto -lm -lpthread -lz -lSDL2 -lSDL2_image -lSDL2_ttf -D debug_pictures &&./a.out
  * @author db0@qq.com
  * @version 1.0.1
  * @date 2017-06-01
@@ -99,6 +99,7 @@ static void * load_picture(void * _url)
 	}
 	isLoading = 0;
 	addPic();
+	return NULL;
 }
 static void addPic()
 {
@@ -205,6 +206,8 @@ void search_pic(Sprite * _container,char * _word)
 	sprintf(baiduurl,__url,_word);
 	//URLRequest * urlrequest = Httploader_load(baiduurl); baiduLoaded(urlrequest);
 	URLRequest * urlrequest =  Httploader_asyncload(baiduurl,baiduLoaded);
+	if(urlrequest)
+		printf("%s",baiduurl);
 }
 
 #ifdef debug_pictures

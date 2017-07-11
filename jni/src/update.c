@@ -1,6 +1,6 @@
 /**
  *
- gcc update.c tween.c ease.c array.c textfield.c base64.c ipstring.c mystring.c sprite.c files.c httploader.c matrix.c -lm -I"../SDL2/include/" -I"../SDL2_image/" -I"../SDL2_ttf/" -lSDL2_ttf -lSDL2_image -lSDL2 -lssl -lcrypto -D debug_update && ./a.out
+ gcc update.c tween.c ease.c array.c textfield.c base64.c loading.c utf8.c myregex.c myfont.c urlcode.c bytearray.c zip.c ipstring.c mystring.c sprite.c files.c httploader.c matrix.c -lm -I"../SDL2/include/" -I"../SDL2_image/" -I"../SDL2_ttf/" -lSDL2_ttf -lSDL2_image -lz -lpthread -lSDL2 -lssl -lcrypto -D debug_update && ./a.out
  */
 #include "update.h"
 
@@ -275,6 +275,7 @@ void compareWebAndLocal(char * url , char * local_path, char * update_url)
 static void * showLoading(void * params)
 {
 	Loading_show(atoi(params),"show loading");
+	return NULL;
 }
 
 void * update(void *ptr)

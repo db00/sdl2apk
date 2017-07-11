@@ -7,6 +7,7 @@ static Word * curSelectWord;
 static void * showLoading(void * params)
 {
 	Loading_show(atoi(params),"show loading");
+	return NULL;
 }
 
 static void open_dict()
@@ -116,7 +117,7 @@ void List_removeOuts(Sprite * curlistSprite)
 		lastSprite = Sprite_getChildByIndex(curlistSprite,0);
 		while(lastSprite->y + lastSprite->h + curlistSprite->y<0)
 		{
-			Word * _word = lastSprite->obj;
+			//Word * _word = lastSprite->obj;
 			Sprite_removeChildAt(curlistSprite,0);
 			Sprite_destroy(lastSprite);
 			lastSprite = Sprite_getChildByIndex(curlistSprite,0);
@@ -125,7 +126,7 @@ void List_removeOuts(Sprite * curlistSprite)
 		lastSprite = Sprite_getChildByIndex(curlistSprite,curlistSprite->children->length-1);
 		while(lastSprite->y + curlistSprite->y > stage->stage_h)
 		{
-			Word * _word = lastSprite->obj;
+			//Word * _word = lastSprite->obj;
 			Sprite_removeChild(curlistSprite,lastSprite);
 			Sprite_destroy(lastSprite);
 			lastSprite = Sprite_getChildByIndex(curlistSprite,curlistSprite->children->length-1);
@@ -526,7 +527,7 @@ static void textChangFunc(Input * input){
 static void show_list(SpriteEvent* e){
 	if(Sprite_getVisible(dictContainer)==0)
 		return;
-	Sprite*target = e->target;
+	//Sprite*target = e->target;
 	SDL_Event* event = e->e;
 	switch(event->type)
 	{

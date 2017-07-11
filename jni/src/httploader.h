@@ -1,6 +1,6 @@
 /**
  *
- gcc -Wall -g urlcode.c array.c base64.c ipstring.c httploader.c mystring.c -lssl -lcrypto -lm -D debug_httploader &&./a.out
+ gcc -Wall -g urlcode.c array.c base64.c ipstring.c httploader.c mystring.c -lpthread -lssl -lcrypto -lm -D debug_httploader &&./a.out
  */
 #ifndef _httploader_h
 #define _httploader_h

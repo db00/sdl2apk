@@ -1,6 +1,6 @@
 /**
  * @file searhdict.c
- gcc -D test_searchdict searhdict.c readbaidu.c cJSON.c datas.c sqlite.c sqlite3.c input.c textfield.c dict.c music.c urlcode.c base64.c myregex.c files.c httploader.c ease.c tween.c utf8.c ipstring.c sprite.c array.c mystring.c matrix.c mysurface.c -lssl -lcrypto -lm -ldl -lpthread -lSDL2 -lSDL2_ttf -lSDL2_mixer -lSDL2_image -I"../SDL2_mixer/"  -I"../SDL2_ttf/" -I"../SDL2_image/" -I"../SDL2/include/" && ./a.out 
+ gcc -D test_searchdict searhdict.c readbaidu.c cJSON.c datas.c sqlite.c btnlist.c wordinput.c alert.c explain.c sidebtns.c myfont.c update.c mylist.c pictures.c bytearray.c zip.c loading.c besier.c testwords.c sdlstring.c sqlite3.c input.c textfield.c dict.c music.c urlcode.c base64.c myregex.c files.c httploader.c ease.c tween.c utf8.c ipstring.c sprite.c array.c mystring.c matrix.c mysurface.c -lssl -lcrypto -lm -ldl -lpthread -lSDL2 -lz -lSDL2_ttf -lSDL2_mixer -lSDL2_image -I"../SDL2_mixer/"  -I"../SDL2_ttf/" -I"../SDL2_image/" -I"../SDL2/include/" && ./a.out 
  * @author db0@qq.com
  * @version 1.0.1
  * @date 2016-09-22
@@ -56,7 +56,7 @@ static void stageMouseEvent(SpriteEvent* e)
 {
 	if(Sprite_getVisible(dictContainer)==0)
 		return;
-	Sprite*target = e->target;
+	//Sprite*target = e->target;
 	SDL_Event* event = e->e;
 	int w = Sidebtns_getWidth();
 	if(w==0)

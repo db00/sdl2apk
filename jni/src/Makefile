@@ -24,13 +24,13 @@ LIB:= -lSDL2_image -lSDL2_ttf -lSDL2_mixer -lm -lSDL2 -lssl -lcrypto -lpthread
 SRC:= sprite.c matrix.c input.c myregex.c kodi.c utf8.c jsonrpc.c files.c httploader.c ipstring.c mystring.c cJSON.c \
 		dict.c readbaidu.c update.c testime.c textfield.c myttf.c myfont.c bytearray.c zip.c read_card.c pinyin.c music.c searhdict.c\
 		tween.c ease.c urlcode.c filetypes.c httpserver.c array.c base64.c mysurface.c datas.c sqlite.c besier.c sdlstring.c loading.c pictures.c testwords.c explain.c btnlist.c sidebtns.c wordinput.c mylist.c alert.c# sqlite3.c
-DEFINES:= -D STDC_HEADERS -D test_ime
+DEFINES:= -Wall -D STDC_HEADERS -D test_ime
 TARGET:= ./a.out
 ifeq ($(OS),Darwin)
 INCLUDE:=-I"/usr/local/include/SDL2/" -I"include"
 LIB:=$(LIB) -L"/usr/local/lib/" -ldl -liconv -lsqlite3
 else ifeq ($(OS),Linux)
-INCLUDE:=-I"/usr/include/SDL2/" -I"include" -ldl -lsqlite3 -lz
+INCLUDE:=-I"/usr/include/SDL2/" -ldl -lsqlite3 -lz
 else ifeq ($(OS),Windows_NT)
 DEFINES:= $(DEFINES) -D main=SDL_main
 TARGET:= a.exe

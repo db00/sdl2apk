@@ -81,7 +81,7 @@ static void read_out(SpriteEvent*e)
 	Sprite*target = e->target;
 	if(target==NULL || target->obj==NULL)
 		return;
-	SDL_Event* event = e->e;
+	//SDL_Event* event = e->e;
 
 	if(curWord==NULL)
 		return;

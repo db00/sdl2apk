@@ -1,6 +1,6 @@
 /**
  *
- gcc -g -Wall -D test_ime -Wall -lpthread music.c utf8.c searhdict.c mysurface.c pinyin.c input.c array.c ease.c tween.c kodi.c sqlite.c base64.c urlcode.c filetypes.c httpserver.c httploader.c readbaidu.c ipstring.c testime.c dict.c myregex.c files.c mystring.c sprite.c read_card.c matrix.c textfield.c -lcrypto -lssl -ldl -lm -I"../SDL2_mixer/" -I"../SDL2_image/" -I"../SDL2/include/" -I"../libxml/include/" -I"../SDL2_ttf/" -lsqlite3 -lSDL2 -lSDL2_ttf -lSDL2_mixer -lSDL2_image && ./a.out
+ gcc -g -Wall -D test_ime -Wall -lpthread music.c utf8.c sidebtns.c testwords.c update.c datas.c loading.c zip.c myfont.c btnlist.c mylist.c explain.c alert.c besier.c pictures.c sdlstring.c wordinput.c bytearray.c searhdict.c mysurface.c pinyin.c input.c array.c ease.c tween.c kodi.c sqlite.c base64.c urlcode.c filetypes.c httpserver.c httploader.c readbaidu.c ipstring.c testime.c dict.c myregex.c files.c mystring.c sprite.c read_card.c matrix.c textfield.c -lcrypto -lssl -ldl -lz -lm -I"../SDL2_mixer/" -I"../SDL2_image/" -I"../SDL2/include/" -I"../libxml/include/" -I"../SDL2_ttf/" -lsqlite3 -lSDL2 -lSDL2_ttf -lSDL2_mixer -lSDL2_image && ./a.out
  gcc -Wall -D test_ime -Wall -lpthread mysurface.c array.c ease.c tween.c kodi.c base64.c urlcode.c filetypes.c httpserver.c httploader.c readbaidu.c ipstring.c testime.c dict.c update.c myregex.c files.c mystring.c sprite.c matrix.c textfield.c regex.c -DSTDC_HEADERS -lpthread -lwsock32 lib/libeay32.dll.a lib/libssl32.dll.a -L"lib" -lcrypto -lssl -lgdi32 -lm -I"../SDL2_mixer/" -I"../SDL2_image/" -I"../SDL2/include/" -I"include/" -I"../SDL2_ttf/" -lSDL2_ttf -lSDL2_mixer -lSDL2_image -lmingw32 -lSDL2_test -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_image && a
  gcc -Wall -D test_ime -Wall -lpthread ease.c tween.c kodi.c sqlite.c base64.c urlcode.c filetypes.c httpserver.c httploader.c readbaidu.c ipstring.c testime.c regex.c dict.c update.c myregex.c files.c mystring.c sprite.c matrix.c textfield.c -lcrypto -lssl -ldl -lm -I"../SDL2_mixer/" -I"../SDL2_image/" -I"../SDL2/include/" -I"../libxml/include/" -I"../SDL2_ttf/" -lsqlite3 -lSDL2 -lSDL2_ttf -lSDL2_mixer -lSDL2_image && ./a.out
  gcc testime.c -I"../SDL2/include/" -I"../SDL2_ttf/"  -lmingw32 -lSDL2_test -lSDL2main -lSDL2 -lSDL2_ttf -lSDL2_image && a
@@ -127,6 +127,7 @@ static void keyupEvent(SpriteEvent* e){
 
 
 
+/*
 static void slideEvent(SpriteEvent* e){
     SDL_Event *event = e->e;
     static int mouseX;
@@ -148,6 +149,7 @@ static void slideEvent(SpriteEvent* e){
     }
     //Stage_redraw();
 }
+*/
 
 
 

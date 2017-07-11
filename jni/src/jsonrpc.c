@@ -1,6 +1,6 @@
 /**
  * @file jsonrpc.c
- gcc -D test_jsonrpc jsonrpc.c files.c httploader.c ipstring.c mystring.c cJSON.c base64.c -lssl -lcrypto -lm && ./a.out  
+ gcc -I"../SDL2/include/" -D test_jsonrpc jsonrpc.c files.c httploader.c ipstring.c mystring.c cJSON.c base64.c myregex.c array.c urlcode.c -lSDL2 -lpthread -lssl -lcrypto -lm && ./a.out  
  * @author db0@qq.com
  * @version 1.0.1
  * @date 2015-09-09

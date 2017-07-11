@@ -16,6 +16,7 @@ int add_new_word(char * word,time_t t)
 	sprintf(sql,s,word,t);
 	int rc = DataBase_exec(history_db,sql);
 	//if(!rc)printf("\n insert sql_result_str:%s",history_db->result_str);
+	printf("\r\n%d",rc);
 	return 0;
 }
 
@@ -79,6 +80,7 @@ int get_word_id(char * word)
 	memset(sql,0,200);
 	sprintf(sql,s,word);
 	int rc = DataBase_exec(history_db,sql);
+	printf("\r\n%d",rc);
 	if(regex_match(history_db->result_str,"/:\"[0-9]+\"/"))
 	{
 		//if(!rc)printf("\nsql_result_str:%s",history_db->result_str);
@@ -272,6 +274,7 @@ int init_db()
 	 rc = DataBase_exec(history_db,"delete from list where remembered=0 and word=\"drafman\";");
 	 rc = DataBase_exec(history_db,"delete from list where remembered=0 and word=\"rountine\";");
 	 */
+	printf("\r\n%d",rc);
 	return 0;
 }
 

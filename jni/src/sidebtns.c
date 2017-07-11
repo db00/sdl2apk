@@ -7,7 +7,7 @@ static void read_out(SpriteEvent*e)
 	Sprite*target = e->target;
 	if(target==NULL || target->obj==NULL)
 		return;
-	SDL_Event* event = e->e;
+	//SDL_Event* event = e->e;
 
 
 	if(strcmp(target->obj,"粘贴")==0){
@@ -57,7 +57,7 @@ static void show_history_list(SpriteEvent*e)
 	if(Sprite_getVisible(sideBtns)==0)
 		return;
 	Sprite*target = e->target;
-	SDL_Event* event = e->e;
+	//SDL_Event* event = e->e;
 
 
 	//Array * data = NULL;

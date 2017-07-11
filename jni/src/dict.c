@@ -374,7 +374,7 @@ int matchs(char * word,char *s)
 		{
 			if(word[i]==s2[j])
 			{
-				int l = strlen(s2)-j-1;
+				//int l = strlen(s2)-j-1;
 				char a[strlen(s2)+1];
 				memset(a,0,strlen(s2)+1);
 

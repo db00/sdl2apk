@@ -1,6 +1,7 @@
 /*
  *
  gcc cmdutils.c ffplay.c -lSDL2 -I"/usr/include/ffmpeg" -L"/usr/local/lib/" -I"../SDL2/include/" -l"avformat" -l"avcodec" -l"avdevice" -l"avutil" -l"avfilter" -l"swresample" -l"swscale" -lm -lpthread -lz -lbz2 -ldl && ./a.out  http://live.cgtn.com/500d/prog_index.m3u8 
+ffplay http://live.cgtn.com/500d/prog_index.m3u8 
 ffplay http://125.88.92.166:30001/PLTV/88888956/224/3221227704/1.m3u8
 * Copyright (c) 2003 Fabrice Bellard
  *

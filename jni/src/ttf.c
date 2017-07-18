@@ -1,6 +1,6 @@
 /**
  * @file ttf.c
- gcc -g -D debug_ttf -Wall -I"../SDL2/include/" -I"../SDL2_image" -I"../SDL2_ttf/" -lSDL2_ttf -lSDL2_image -lSDL2 utf8.c textfield.c httpserver.c array.c filetypes.c urlcode.c dict.c sqlite.c tween.c ease.c sprite.c matrix.c myregex.c ttf.c files.c httploader.c ipstring.c mystring.c base64.c -lssl -lsqlite3 -lpthread -ldl -lcrypto -lm && ./a.out  
+ gcc -g -D debug_ttf -Wall -I"../SDL2/include/" -I"../SDL2_image" -I"../SDL2_ttf/" -lSDL2_ttf -lSDL2_image -lSDL2 utf8.c myfont.c update.c loading.c zip.c bytearray.c textfield.c httpserver.c array.c filetypes.c urlcode.c dict.c sqlite.c tween.c ease.c sprite.c matrix.c myregex.c ttf.c files.c httploader.c ipstring.c mystring.c base64.c -lz -lssl -lsqlite3 -lpthread -ldl -lcrypto -lm && ./a.out  
  gcc -Wall ttf.c && ./a.out  
  * @author db0@qq.com
  * @version 1.0.1

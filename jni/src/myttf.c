@@ -421,7 +421,7 @@ Text * Text_setText(Text*textfield,char *s)
 int main(int argc, char *argv[])
 {
 	Stage_init(1);
-	Text* txt = Text_new();//txt = Text_setText(txt,getLinkedVersionString());
+	Text * txt = Text_new();//txt = Text_setText(txt,getLinkedVersionString());
 	//txt->x = stage->stage_w/4;
 	//txt->y = stage->stage_h/4;
 	//txt->font = getFontByPath("DroidSansFallback.ttf",24);

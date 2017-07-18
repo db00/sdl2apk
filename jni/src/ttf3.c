@@ -28,7 +28,7 @@ void control(int *xx,int *yy,unsigned char controlWord,int nowxRange,
 void showHanzi(char *fontfileName,int qw,int wm);
 void b3_4(int *x,int *y,int col);
 void b3_3(int *x,int *y,int col);
-void main(void)
+int main(void)
 {
 	unsigned char qm,wm;
 	int i,a,b;
@@ -57,6 +57,7 @@ void main(void)
 	X0=Y0=1;
 	//cleardevice();
 	//closegraph();
+	return 0;
 }
 void showHanzi(char *fontFileName,int qm,int wm)
 {

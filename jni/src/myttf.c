@@ -1,6 +1,6 @@
 /**
  * @file myttf.c
- gcc -Wall -I"../SDL2/include/"  -I"../SDL2_ttf/" myfont.c array.c utf8.c update.c httploader.c ipstring.c urlcode.c base64.c  bytearray.c zip.c files.c myregex.c sdlstring.c myttf.c matrix.c sprite.c mystring.c  -lSDL2_ttf -lz -lssl -lcrypto -lpthread -lm -lSDL2 -D debugtext  && ./a.out
+ gcc -Wall -I"../SDL2/include/"  -I"../SDL2_ttf/" myfont.c array.c utf8.c update.c httploader.c ipstring.c urlcode.c base64.c loading.c tween.c ease.c  bytearray.c zip.c files.c myregex.c sdlstring.c myttf.c matrix.c sprite.c mystring.c  -lSDL2_ttf -lz -lssl -lcrypto -lpthread -lm -lSDL2 -D debugtext  && ./a.out
  gcc -g -Wall -I"../SDL2/include/" -I"../SDL2_image/" -I"../SDL2_ttf/" array.c tween.c ease.c myttf.c matrix.c sprite.c sdlstring.c mystring.c files.c -lSDL2_ttf -lmingw32 -lSDL2main -lSDL2 -D debugtext && a
  *  
  * @author db0@qq.com
@@ -337,6 +337,12 @@ Text * Text_appendText(Text*textfield,char*s)
 
 	Text_more(textfield);
 
+	Sprite_addEventListener(textfield->sprite,SDL_MOUSEWHEEL,mouseWheels);
+	if(textfield->sprite->canDrag)
+	{
+		Sprite_addEventListener(textfield->sprite,SDL_MOUSEMOTION,mouseWheels);
+	}
+
 	return textfield;
 }
 
@@ -396,18 +402,12 @@ Text * Text_setText(Text*textfield,char *s)
 		textfield->sprite = Sprite_new();
 		textfield->w = 100;
 		textfield->h = 100;
-		textfield->sprite->mouseChildren = SDL_FALSE;
+		//textfield->sprite->mouseChildren = SDL_FALSE;
 		textfield->sprite->obj = textfield;
 	}
 	textfield->sprite->y = textfield->y;
 	textfield->sprite->x = textfield->x;
 
-
-	Sprite_addEventListener(textfield->sprite,SDL_MOUSEWHEEL,mouseWheels);
-	if(textfield->sprite->canDrag)
-	{
-		Sprite_addEventListener(textfield->sprite,SDL_MOUSEMOTION,mouseWheels);
-	}
 
 	if(s){
 		Text_appendText(textfield,s);
@@ -438,7 +438,8 @@ int main(int argc, char *argv[])
 	txt=Text_appendText(txt,"\n");
 	txt = Text_appendText(txt,SDL_GetBasePath());
 	txt=Text_appendText(txt,"\n");
-	txt = Text_setText(txt,"hello");
+	*/
+	//txt = Text_setText(txt,"hello");
 	//SDL_Log("basepath:%s\n",s);
 	//Text_setText(txt,"");
 	//Text_appendText(txt,"\n");
@@ -479,10 +480,9 @@ int main(int argc, char *argv[])
 	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
 	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
 	txt = Text_appendText(txt,"01234567890abcdefghijklmnopqrstuvwxyz,< >中间:ABCDEFGHIJKLMNOPQRSTUVWXYZ==" );
-	*/
 	txt = Text_appendText(txt,"一二三四五六七八九十一二三四五六七八九十end\n");
 	//txt = Text_setText(txt,"一二三四五六七八九十一二三四五六七八九十end\n");
-	txt = Text_setText(txt,"hello");
+	//txt = Text_setText(txt,"hello");
 	txt = Text_appendText(txt,"一\r二\n三\r四\n五六七八九十一二三四五六七八九十end\n");
 	Sprite_addChild(stage->sprite,txt->sprite); 
 	Stage_loopEvents(); return 0;

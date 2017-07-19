@@ -343,7 +343,7 @@ static void events(SpriteEvent * e)
 //#include "files.h"
 int main(int argc, char *argv[])
 {
-	Stage_init(1);
+	Stage_init();
 
 	Sprite*m1 = Sprite_new(NULL);
 	m1->x = stage->stage_w/2;

@@ -505,7 +505,7 @@ int main()
 
 
 
-	Stage_init(1);
+	Stage_init();
 
 
 	Sprite*sprite2 = Sprite_new();

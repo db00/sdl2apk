@@ -137,7 +137,7 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "Couldn't initialize SDL: %s\n",SDL_GetError());
 		return(255);
 	}
-	Stage_init(1);
+	Stage_init();
 	//SDL_Log("%s",loadUrl("http://www.baidu.com/",NULL));
 	//fflush(stdout);
 	Sound_playEng("black",1);

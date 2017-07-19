@@ -381,7 +381,7 @@ void makeNewAsk(int askIndex,int keyIndex)
 #ifdef test_readcard
 int main()
 {
-	Stage_init(1);
+	Stage_init();
 	if(stage==NULL)return 1;
 	stage->sound = Sound_new(16000);
 

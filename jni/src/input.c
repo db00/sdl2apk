@@ -193,7 +193,7 @@ void Input_clear(Input * input)
 
 #ifdef debug_ime
 int main(int argc, char *argv[]) {
-	Stage_init(1);
+	Stage_init();
 	if(stage==NULL)return 0;
 
 	SDL_StartTextInput();

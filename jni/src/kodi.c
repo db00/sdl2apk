@@ -440,7 +440,7 @@ int Kodi_initBtns(int v)
 #ifdef debug_kodi
 int main(int argc, char *argv[])
 {
-	Stage_init(1);
+	Stage_init();
 
 
 	pthread_t thread1;

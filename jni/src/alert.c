@@ -214,7 +214,7 @@ void * callbackFunc(void * v)
 }
 int main()
 {
-	Stage_init(1);
+	Stage_init();
 	Array * middleBtns = AlertItem_push(NULL,AlertItem_new("hello1",callbackFunc));
 	AlertItem_push(middleBtns,AlertItem_new("hello2",callbackFunc));
 	AlertItem_push(middleBtns,AlertItem_new("hello3",NULL));

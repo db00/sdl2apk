@@ -17,7 +17,7 @@ gcc -Wall -I"../SDL2/include/" array.c sprite.c matrix.c files.c mystring.c myre
 #include "array.h"
 
 //#define HAVE_OPENGL
-#if defined(__MACOS__) || ( !defined(__IPHONEOS__) && !defined(__ANDROID__) && !defined(__EMSCRIPTEN__) && !defined(__NACL__)) && !defined(linux) && !defined(__WIN32__)
+#if defined(__MACOS__) || ( !defined(__IPHONEOS__) && !defined(__ANDROID__) && !defined(__EMSCRIPTEN__) && !defined(__NACL__)) && !defined(linux) && !defined(__WIN32__) && !defined(__WIN64__)
 #ifndef HAVE_OPENGL
 #define HAVE_OPENGL
 #endif
@@ -191,7 +191,7 @@ void Data3d_set(Data3d * data3D,Data3d * _data3D);
 
 
 extern Stage *stage;
-Stage * Stage_init(int is3D);
+Stage * Stage_init();
 void Stage_loopEvents();
 
 extern GLES2_Context gles2;

@@ -46,7 +46,7 @@ void mouseDown(SpriteEvent*e)
 
 int main(int argc, char *argv[])
 {
-	Stage_init(1);
+	Stage_init();
 	Sprite_addEventListener(stage->sprite,SDL_MOUSEBUTTONDOWN,mouseDown);
 	if(stage->GLEScontext == NULL){
 		//return 0;

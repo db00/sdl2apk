@@ -420,7 +420,7 @@ Text * Text_setText(Text*textfield,char *s)
 #include "sdlstring.h"
 int main(int argc, char *argv[])
 {
-	Stage_init(1);
+	Stage_init();
 	Text * txt = Text_new();//txt = Text_setText(txt,getLinkedVersionString());
 	//txt->x = stage->stage_w/4;
 	//txt->y = stage->stage_h/4;

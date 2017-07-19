@@ -140,7 +140,7 @@ void showSearchDict(int b)
 #ifdef test_searchdict
 int main()
 {
-	Stage_init(1);
+	Stage_init();
 	if(stage==NULL)return 0;
 	showSearchDict(1);
 

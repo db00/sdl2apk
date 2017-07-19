@@ -568,7 +568,7 @@ int main(int argc, char *argv[])
 	URLRequest * urlrequest = NULL;
 	int statusCode;
 #ifdef SDL2
-	Stage_init(1);
+	Stage_init();
 	Sprite * sprite = Sprite_new();
 	sprite->surface = Httploader_loadimg("http://res1.huaien.com/images/tx.jpg");
 	Sprite_addChild(stage->sprite,sprite);

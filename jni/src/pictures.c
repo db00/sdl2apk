@@ -213,7 +213,7 @@ void search_pic(Sprite * _container,char * _word)
 #ifdef debug_pictures
 int main()
 {
-	Stage_init(1);
+	Stage_init();
 
 	search_pic(stage->sprite,"kitten");
 

@@ -1907,7 +1907,7 @@ int main(int argc, char **argv)
 #endif
 	}
 
-	Stage_init(1);
+	Stage_init();
 
 	Video * video = Video_new(input_filename,NULL);
 	//Video * video = Video_new("/dev/video0","video4linux2");

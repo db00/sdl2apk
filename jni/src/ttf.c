@@ -119,7 +119,6 @@ static void showBox(int x,int y,int w)
 	sprite->name = malloc(sizeof(sname)+1);
 	memset(sprite->name,0,sizeof(sname)+1);
 	strcpy(sprite->name,sname);
-	stage->is3D = 1;
 	sprite->surface = IMG_Load(decodePath("~/sound/1.bmp"));
 	Data3d*_data3D = sprite->data3d;
 	if(_data3D==NULL){
@@ -170,7 +169,7 @@ static void mousehandl(SpriteEvent*e)
 }
 int main(int argc,char** argv)
 {
-	Stage_init(1);
+	Stage_init();
 	container = Sprite_new();
 	Sprite_addChild(stage->sprite,container);
 	container->mouseChildren = 0;

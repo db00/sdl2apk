@@ -101,7 +101,7 @@ void Loading_show(int boolean,char * s)
 
 int main(int argc, char *argv[])
 {
-	Stage_init(1);
+	Stage_init();
 
 
 	Loading_show(1,"show");

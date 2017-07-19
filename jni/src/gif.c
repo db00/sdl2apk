@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
 	size_t fileLen;
 	char * data = readfile("~/sound/wait.gif",&fileLen);
 
-	Stage_init(1);
+	Stage_init();
 
 	int numSurface = 0;
 	int delay= 0;

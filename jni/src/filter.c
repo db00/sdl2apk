@@ -334,7 +334,7 @@ int main()
 	printf("%x\n",*p);
 	printf("%x\n",*(p+3));
 
-	Stage_init(1);
+	Stage_init();
 
 	//SDL_SetWindowOpacity(stage->window,.5);
 	//SDL_SetWindowBrightness(stage->window,1.0);

@@ -647,7 +647,7 @@ char * num2hzs(int num)
 #include "sprite.h"
 int main()
 {
-	Stage_init(1);
+	Stage_init();
 	printf("%s\n",hz2pinyin("好"));
 	printf("%s\n",num2hzs(8));
 	printf("%s\n",num2hzs(44));

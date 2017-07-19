@@ -116,7 +116,7 @@ int main(void)
 
 	showHanzi("/home/libiao/sound/DroidSansFallback.ttf",qm,wm);
 
-	Stage_init(1);
+	Stage_init();
 	Sprite*sprite = Sprite_new();
 
 

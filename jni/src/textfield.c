@@ -745,7 +745,7 @@ TextField* TextField_new()
 	textfield->mouseWheelEnabled = 1;
 
 	if(stage==NULL)
-		Stage_init(0);
+		Stage_init();
 
 	if(textfield->textColor==NULL)
 		textfield->textColor = uintColor(0x00ff0000);
@@ -785,7 +785,7 @@ TextLine * TextLine_new()
 	memset(textline,0,sizeof(TextLine));
 	memset(&(textline->rect) ,0 ,sizeof(SDL_Rect));
 	if(stage==NULL)
-		Stage_init(0);
+		Stage_init();
 	return textline;
 }
 
@@ -843,7 +843,7 @@ TextField * TextField_setText(TextField*textfield,char *s)
 		textfield->mouseWheelEnabled = 1;
 
 		if(stage==NULL)
-			Stage_init(1);
+			Stage_init();
 	}
 	textfield->sprite->y = textfield->y;
 	/*
@@ -869,7 +869,7 @@ TextField * TextField_setText(TextField*textfield,char *s)
 #include "sdlstring.h"
 int main(int argc, char *argv[])
 {
-	Stage_init(1);
+	Stage_init();
 	TextField* txt = TextField_new();//txt = TextField_setText(txt,getLinkedVersionString());
 	//txt->x = stage->stage_w/4;
 	//txt->y = stage->stage_h/4;

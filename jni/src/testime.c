@@ -157,7 +157,7 @@ static void slideEvent(SpriteEvent* e){
 
 
 int main(int argc, char *argv[]) {
-    Stage_init(1);
+    Stage_init();
     if(stage==NULL)return 0;
 
     pthread_t thread1;

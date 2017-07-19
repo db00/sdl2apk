@@ -512,7 +512,7 @@ void Test_start(Sprite * dictContainer,Dict * dict)
 
 int main()
 {
-	Stage_init(1);
+	Stage_init();
 
 	Dict * dict  = Dict_new();
 

@@ -26,6 +26,7 @@ LOCAL_SRC_FILES := $(SDL_PATH)/src/main/android/SDL_android_main.c \
 	tween.c ease.c mysurface.c androidcam.c map.c\
 	testime.c besier.c sdlstring.c\
 	zip.c myfont.c bytearray.c loading.c testwords.c pictures.c explain.c  btnlist.c sidebtns.c wordinput.c mylist.c alert.c\
+	freetype.c
 #sqlite3.c
 
 
@@ -43,6 +44,7 @@ LOCAL_SHARED_LIBRARIES := \
 LOCAL_LDLIBS := -lGLESv1_CM -lGLESv2 -llog -landroid -lsqlite -lm -lz -lssl -lcrypto -ljnigraphics
 LOCAL_EXPORT_LDLIBS := -Wl,--undefined=Java_my_test_Test_nativeInit -ldl -lGLESv1_CM -lGLESv2 -llog -lz -landroid -lft2
 LOCAL_CFLAGS += -D test_ime
+#LOCAL_CFLAGS += -D debug_freetyp
 
 include $(BUILD_SHARED_LIBRARY)
 

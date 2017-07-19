@@ -1,6 +1,6 @@
 /**
  *
-  gcc -g -D debug_ttf -Wall -I"../SDL2/include/" -I"/usr/include/freetype2/" -lfreetype -I"../SDL2_image" -I"../SDL2_ttf/" -lSDL2_ttf -lSDL2_image -lSDL2 myfont.c bytearray.c loading.c update.c zip.c textfield.c httpserver.c array.c filetypes.c urlcode.c utf8.c dict.c sqlite.c tween.c ease.c sprite.c matrix.c myregex.c freetype.c files.c httploader.c ipstring.c mystring.c base64.c -lssl -lsqlite3 -lpthread -ldl -lz -lcrypto -lm && ./a.out
+  gcc -g -D debug_freetyp -Wall -I"../SDL2/include/" -I"/usr/include/freetype2/" -lfreetype -I"../SDL2_image" -I"../SDL2_ttf/" -lSDL2_ttf -lSDL2_image -lSDL2 myfont.c bytearray.c loading.c update.c zip.c textfield.c httpserver.c array.c filetypes.c urlcode.c utf8.c dict.c sqlite.c tween.c ease.c sprite.c matrix.c myregex.c freetype.c files.c httploader.c ipstring.c mystring.c base64.c -lssl -lsqlite3 -lpthread -ldl -lz -lcrypto -lm && ./a.out
   gcc freetype.c -lfreetype -I"/usr/include/freetype2/" -lm && ./a.out DroidSansFallback.ttf 天
 https://www.freetype.org/freetype2/docs/tutorial/step1.html#section-4
 */
@@ -192,6 +192,7 @@ static void mousehandl(SpriteEvent*e)
 	}
 }
 
+#ifdef debug_freetyp
 int main( int argc, char**  argv )
 {
 	FT_Library    library;
@@ -298,5 +299,6 @@ int main( int argc, char**  argv )
 	Stage_loopEvents();
 	return 0;
 }
+#endif
 
 /* EOF */

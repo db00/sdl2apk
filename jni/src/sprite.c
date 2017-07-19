@@ -130,12 +130,22 @@ SDL_Surface * Surface_size3D(SDL_Surface * surface)
 }
 #endif
 
-GLuint SDL_GL_LoadTexture(SDL_Surface * surface, GLfloat * texcoord)
+GLuint SDL_GL_LoadTexture(Sprite * sprite, GLfloat * texcoord)
 {
+	SDL_Surface * surface = sprite->surface;
+	GLint maxRenderbufferSize;
+	GL_CHECK(gles2.glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &maxRenderbufferSize));
+	if((maxRenderbufferSize <= surface->w) || (maxRenderbufferSize <= surface->h))
+	{
+		SDL_Log("cannot use framebuffer objects as we need to create a depth buffer as a renderbuffer object");
+		return 0;
+	}
+
 	GLuint texture;
 	SDL_Surface *image;
 	SDL_Rect area;
 	SDL_BlendMode saved_mode;
+
 
 	/* Use the surface width and height expanded to powers of 2 */
 	int w, h;
@@ -176,11 +186,66 @@ GLuint SDL_GL_LoadTexture(SDL_Surface * surface, GLfloat * texcoord)
 
 	/* Create an OpenGL texture for the image */
 	GL_CHECK(gles2.glGenTextures(1, &texture));
+
 	GL_CHECK(gles2.glBindTexture(GL_TEXTURE_2D, texture));
 	GL_CHECK(gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
 	GL_CHECK(gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+	GL_CHECK(gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+	GL_CHECK(gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
 	GL_CHECK(gles2.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, image->pixels));
+	GL_CHECK(gles2.glBindTexture(GL_TEXTURE_2D, 0));
+
+
 	SDL_FreeSurface(image);     /* No longer needed */
+
+
+
+
+	/*
+	GL_CHECK(gles2.glGenFramebuffers(1, &sprite->framebuffer));
+	GL_CHECK(gles2.glGenRenderbuffers(1, &sprite->renderbuffer));
+    GL_CHECK(gles2.glBufferData(GL_ARRAY_BUFFER, w*h*4,image->pixels , GL_STATIC_DRAW));  
+    GL_CHECK(gles2.glBindBuffer(GL_ARRAY_BUFFER, 0));  
+
+	// bind sprite->renderbuffer and create a 16-bit depth buffer
+	// width and height of sprite->renderbuffer = width and height of
+	// the texture
+	GL_CHECK(gles2.glBindRenderbuffer(GL_RENDERBUFFER, sprite->renderbuffer));
+	GL_CHECK(gles2.glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, surface->w, surface->h));
+	// bind the sprite->framebuffer
+	GL_CHECK(gles2.glBindFramebuffer(GL_FRAMEBUFFER, sprite->framebuffer));
+
+	// specify texture as color attachment
+	GL_CHECK(gles2.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, sprite->textureId, 0));
+	//glFramebufferTexture3DOES(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset)
+	// specify depth_renderbufer as depth attachment
+	GL_CHECK(gles2.glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, sprite->renderbuffer));
+	// check for sprite->framebuffer complete
+	GLenum status = GL_CHECK(gles2.glCheckFramebufferStatus(GL_FRAMEBUFFER));
+	if(status == GL_FRAMEBUFFER_COMPLETE)
+	{
+		// render to texture using FBO
+		// clear color and depth buffer
+		//GL_CHECK(gles2.glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
+		//GL_CHECK(gles2.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+		// load uniforms for vertex and fragment shader
+		// used to render to FBO. The vertex shader is the
+		// ES 1.1 vertex shader described as Example 8-8 in
+		// Chapter 8. The fragment shader outputs the color
+		// computed by vertex shader as fragment color and
+		// is described as Example 1-2 in Chapter 1.
+		//set_fbo_texture_shader_and_uniforms();
+		// drawing commands to the sprite->framebuffer object
+		//draw_teapot();
+		// render to window system provided sprite->framebuffer
+		GL_CHECK(gles2.glBindFramebuffer(GL_FRAMEBUFFER, 0));
+	}
+	*/
+
+
+
+
+
 	return texture;
 }
 
@@ -569,6 +634,7 @@ Point3d * Sprite_GlobalToLocal(Sprite*sprite,Point3d*p)
 	return p;
 }
 
+
 static int Sprite_getTextureId(Sprite * sprite)
 {
 	if(sprite->textureId == 0){
@@ -590,9 +656,9 @@ static int Sprite_getTextureId(Sprite * sprite)
 			}else{
 				sprite->texCoords = malloc(4*sizeof(GLfloat));
 			}
-			sprite->textureId = SDL_GL_LoadTexture(sprite->surface, sprite->texCoords);
+			sprite->textureId = SDL_GL_LoadTexture(sprite, sprite->texCoords);
 #else
-			sprite->textureId = SDL_GL_LoadTexture(sprite->surface, NULL);
+			sprite->textureId = SDL_GL_LoadTexture(sprite, NULL);
 #endif
 			if(sprite->textureId==0)
 				//return _data3D;
@@ -1288,6 +1354,9 @@ void Sprite_destroyTexture(Sprite*sprite)
 	}
 	if(sprite->textureId){
 		GL_CHECK(gles2.glDeleteTextures(1,&(sprite->textureId)));
+		GL_CHECK(gles2.glDeleteRenderbuffers(1, &sprite->renderbuffer));
+		GL_CHECK(gles2.glDeleteFramebuffers(1, &sprite->framebuffer));
+
 		sprite->textureId = 0;
 	}
 
@@ -2102,21 +2171,19 @@ SDL_Surface * Stage_readpixel(Sprite *sprite,SDL_Rect* rect)
 			GL_CHECK(gles2.glReadPixels(x,  y+line,  w,  1,  GL_RGBA, GL_UNSIGNED_BYTE,  (char*)(image->pixels)+w*(h-line-1)*4));
 		}
 	}
-	/*
-	   else{
-	   if (!stage->renderer) {
-	   return NULL;
-	   }
-//SDL_RenderGetViewport(stage->renderer, rect);//get entire rect
-if (SDL_RenderReadPixels(stage->renderer, rect, image->format->format,
-image->pixels, image->pitch) < 0) {
-fprintf(stderr, "Couldn't read screen: %s\n", SDL_GetError());
-SDL_free(image);
-return NULL;
-}
-}
-*/
-return image;
+	else{
+		if (!stage->renderer) {
+			return NULL;
+		}
+		//SDL_RenderGetViewport(stage->renderer, rect);//get entire rect
+		if (SDL_RenderReadPixels(stage->renderer, rect, image->format->format,
+					image->pixels, image->pitch) < 0) {
+			fprintf(stderr, "Couldn't read screen: %s\n", SDL_GetError());
+			SDL_free(image);
+			return NULL;
+		}
+	}
+	return image;
 }
 
 #ifdef debug_sprite

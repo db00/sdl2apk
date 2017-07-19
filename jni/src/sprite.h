@@ -126,7 +126,11 @@ typedef struct Sprite{
 	Matrix3D *globeToLocalMatrix;
 	Matrix3D *localToGlobeMatrix;
 	Matrix3D  mvpMatrix;
+
 	GLuint textureId;
+	GLuint renderbuffer;
+	GLuint framebuffer;
+
 	void *data3d;//默认是 Data3d 结构体
 	void (*showFunc)(struct Sprite*);// 其他3d显示
 	void (*destroyFunc)(struct Sprite*);// 其他3d销毁
@@ -255,7 +259,7 @@ void Sprite_translate(Sprite*sprite,int _x,int _y,int _z);
 void Sprite_rotate(Sprite*sprite,int _rotationX,int _rotationY,int _rotationZ);
 void Sprite_scale(Sprite*sprite,float scaleX,float scaleY,float scaleZ);
 
-GLuint SDL_GL_LoadTexture(SDL_Surface * surface, GLfloat * texcoord);
+GLuint SDL_GL_LoadTexture(Sprite * sprite, GLfloat * texcoord);
 SDL_Surface * Surface_new(int width,int height);
 SDL_Surface * RGBA_surface(SDL_Surface * surface);
 SDL_Surface * Stage_readpixel(Sprite *stage,SDL_Rect* rect);

@@ -1,0 +1,95 @@
+又是一个很重要的功能，Framebuffer，也就是帧缓存，这是实现很多特效的基础。比如，我们在写一个赛车的游戏，一切都按照正常的方式渲染，但是后视镜怎么办？？？后视镜里面的东西是朝后看的场景，我们怎么做？？？这个就可以用Framebuffer来实现。
+
+我们之前讲的这些东西，其实都是往一个默认的缓存渲染的，也就是后缓存(Backbuffer)。对后缓存的渲染结束后，就把后缓存的内容显示到屏幕上。Framebuffer不一样，设置好Framebuffer之后，我们会把内容渲染到另一个地方，可能是另一个缓存，也可能是一张贴图(Texture)。多数情况下都会是一张贴图。然后我们就可以使用这张贴图来贴到其他物体上了。这个过程也叫做渲染到贴图，对应英文Render to Texture，简称RTT。以刚才的赛车为例，我们先设置一个Framebuffer，在后视镜的角度把场景渲染一遍，这样就得到了一张后面场景的贴图，然后把这个贴图贴在后视镜的位置，那么就有了镜子的效果。这样的话，其实一帧中场景被画了两次，很影响效率。没办法，要实现特效，总是有牺牲的。。。
+
+讲了一些Framebuffer的作用，我们从代码来看看怎么实现Framebuffer吧。这里我们做不了赛车和后视镜，弄简单点，我们先把一个立方体画在Framebuffer的贴图里，然后把这个贴图贴在屏幕上的一个平面。其实效果看起来和直接画在屏幕上一个效果，感觉像是多此一举，但是我们这里是为了展示Framebuffer的用法嘛~~
+
+首先创建一些贴图，Framebuffer和Framebuffer的贴图的句柄，以及立方体和平面的指针
+
+    GLuint cube_buffers[2] = {0};  
+    GLuint quad_buffers[2] = {0};  
+    GLuint tex;  
+    GLuint fbo, fbo_tex;  
+
+画一个平面的代码已经有了，画一个立方体的代码我们可以直接用之前的
+
+    glGenBuffers(2, cube_buffers);  
+      
+    glBindBuffer(GL_ARRAY_BUFFER, cube_buffers[VERTEX]);  
+    float cube[] =  
+    {  
+        -0.5f,      -0.5f,      -0.5f,      1.0f,   0.0f, 0.0f,  
+        0.5f,       -0.5f,      -0.5f,      1.0f,   1.0f, 0.0f,  
+        -0.5f,      0.5f,       -0.5f,      1.0f,   0.0f, 1.0f,  
+        0.5f,       0.5f,       -0.5f,      1.0f,   1.0f, 1.0f,  
+          
+        -0.5f,      -0.5f,      0.5f,       1.0f,   0.0f, 0.0f,  
+        0.5f,       -0.5f,      0.5f,       1.0f,   1.0f, 0.0f,  
+        -0.5f,      0.5f,       0.5f,       1.0f,   0.0f, 1.0f,  
+        0.5f,       0.5f,       0.5f,       1.0f,   1.0f, 1.0f,  
+    };  
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cube), cube, GL_STATIC_DRAW);  
+    glBindBuffer(GL_ARRAY_BUFFER, 0);  
+      
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, cube_buffers[INDEX]);  
+    unsigned short cube_index[] =  
+    {  
+        0, 1, 2, 1, 2, 3,  
+        0, 4, 2, 6, 4, 2,  
+        0, 1, 4, 1, 5, 4,  
+        1, 3, 5, 3, 5, 7,  
+        2, 3, 6, 3, 6, 7,  
+        4, 5, 6, 5, 6, 7,  
+    };  
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube_index), cube_index, GL_STATIC_DRAW);  
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);  
+
+
+贴图我们用上一章的木纹贴图，这里还需要多创建一个Framebuffer的贴图，我们要把Framebuffer中的内容全部画到这个贴图上面来
+
+    glGenTextures(1, &fbo_tex);  
+    glBindTexture(GL_TEXTURE_2D, fbo_tex);  
+      
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 256, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);  
+      
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);  
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);  
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);  
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);  
+      
+    glBindTexture(GL_TEXTURE_2D, 0);  
+
+上面的代码中，glTexImage2D的最后一个参数是0，在木纹贴图中，这个参数是木纹的RGBA数据指针，而这里的0代表我们只想创建256x256大小的贴图，里面并不需要内容，因为我们后面要自己把内容画进去，而不是用已有的东西。
+
+然后就是创建Framebuffer的了
+
+    glGenFramebuffers(1, &fbo);  
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);  
+
+我们用一个api来关联Framebuffer和刚创建的贴图
+
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fbo_tex, 0);  
+
+看看第二个参数，是COLOR_ATTACHMENT0，就是说我们把颜色画到贴图里面，所以这个参数也可以深度值。
+
+初始化部分的东西就这么多，看看渲染的代码怎么写。首先，要画在Framebuffer里面，就要先绑定它，然后用Clear来初始化，并设置viewport。因为我们之前贴图创建的是256x256，所以viewport也要设置成256x256。
+
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);  
+      
+    glClearColor(0, 0, 0, 1);  
+    glClearDepthf(1.0);  
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  
+      
+    glViewport(0, 0, 256, 256);  
+
+接下来的事情就和平时渲染的一模一样，设置uniform和attribute，还有设置贴图，然后画一个立方体，画完之后，我们调用glBindFramebuffer并设置第二个参数为0，表示我们结束了Framebuffer的渲染，接下来的内容就是画到后缓存上面。
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);  
+
+但是有一点，我们这里还需要重新绑定一下buffer，这是我们第一课创建好的一个Render buffer，我们显示也是显示的这个Render buffer的内容
+
+    glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);  
+
+接下来就按照以前的方式来画平面，这里使用的贴图就不再是木纹的贴图啦，而是直接使用Framebuffer关联的那个贴图。为了区分，我们把clear的颜色换成暗红色
+
+    glBindTexture(GL_TEXTURE_2D, fbo_tex);  

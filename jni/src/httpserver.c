@@ -12,6 +12,8 @@
  curl -F Filedata=@/home/libiao/icon.png -F Filename=android.png localhost:8809/home/libiao/test/ -u test:test
  将/home/libiao/icon.png 上传到 /home/libiao/test/android.png
 
+ curl -F Filedata=@/home/libiao/screenshot.png -F Filename=screenshot.png 192.168.1.67:8809/sdcard/ -u test:test
+
  zip -r c.zip *.c
 http://www.macromedia.com/support/documentation/en/flashplayer/help/settings_manager04.html
 

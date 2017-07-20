@@ -1,6 +1,6 @@
 /**
  *
- gcc -g -Wall -lpthread httpserver.c array.c myregex.c filetypes.c dict.c files.c mystring.c  urlcode.c base64.c -ldl -lm -D DEBUG -D debug_httpserver -o ~/a && ~/a
+ gcc -g -Wall -I"../SDL2/include/" -lSDL2 -lpthread httpserver.c array.c myregex.c filetypes.c dict.c files.c mystring.c  urlcode.c base64.c -ldl -lm -D DEBUG -D debug_httpserver -o ~/a && ~/a
  gcc -g -Wall -I"." httpserver.c array.c myregex.c regex.c filetypes.c dict.c files.c mystring.c urlcode.c base64.c -lpthread -lwsock32 -lm -DSTDC_HEADERS -D DEBUG -D debug_httpserver && a
  gdb ~/a
  gcc -g -Wall -lpthread httpserver.c filetypes.c mystring.c urlcode.c base64.c -ldl -lm -D debug_httpserver -o ~/a && ~/a

@@ -24,6 +24,17 @@
 int
 main(int argc, char *argv[])
 {
+	/*
+	int a[10],i;
+	for(i=1;i<=10;i++)
+	{
+		a[i]=0;
+		//printf("a[%d]=%d\r\n",i,a[i]);
+	}
+	return 0;
+	*/
+
+
     SDL_version compiled;
     SDL_version linked;
 

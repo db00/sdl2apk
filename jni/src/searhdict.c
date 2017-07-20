@@ -77,7 +77,7 @@ static void stageMouseEvent(SpriteEvent* e)
 				if(event->button.x>stage->stage_w*2/10)
 				{
 					Sidebtns_hide();
-					printf("\r\nfrom left"); fflush(stdout);
+					//printf("\r\nfrom left"); fflush(stdout);
 					Stage_redraw();
 					Sprite_removeEventListener(stage->sprite,SDL_MOUSEMOTION,stageMouseEvent); 
 				}
@@ -85,7 +85,7 @@ static void stageMouseEvent(SpriteEvent* e)
 				if(event->button.x<stage->stage_w-w)
 				{
 					Sidebtns_show();
-					printf("\r\nfrom right"); fflush(stdout);
+					//printf("\r\nfrom right"); fflush(stdout);
 					Stage_redraw();
 					Sprite_removeEventListener(stage->sprite,SDL_MOUSEMOTION,stageMouseEvent); 
 				}
@@ -111,7 +111,7 @@ static void stageMouseEvent(SpriteEvent* e)
 		if(event->button.x>stage->stage_w-w/2)
 		{
 			Sidebtns_hide();
-			printf("\r\n to right"); fflush(stdout);
+			//printf("\r\n to right"); fflush(stdout);
 			Stage_redraw();
 			Sprite_removeEventListener(stage->sprite,SDL_MOUSEMOTION,stageMouseEvent); 
 		}

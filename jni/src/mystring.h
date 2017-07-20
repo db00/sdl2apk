@@ -19,6 +19,7 @@ typedef struct String
 
 
 char * mysystem(char *cmd,int * retlen);
+//char * getenv(char * _name);
 int vspf(char*buffer,char *fmt, ...);
 char * append_str(char*old,const char*fmt, ...);
 int freeArr(char**arr,int *len);

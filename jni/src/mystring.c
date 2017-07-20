@@ -342,6 +342,21 @@ char * mysystem(char *cmd,int * retlen)
 	return output;  
 }
 
+/*
+char * getenv(char * _name)
+{
+	if(_name!=NULL && strlen(_name)>0)
+	{
+		char cmd[strlen(_name)+16];
+		memset(cmd,0,sizeof(_name));
+		sprintf(cmd,"echo $%s",_name);
+		char * s = mysystem(cmd);
+		return s;
+	}
+	return NULL;
+}
+		*/
+
 char *string_concat(Array*arr,char *cstr)
 {
 	if(arr == NULL)

@@ -1,11 +1,10 @@
 /**
  *
- gcc -g -I"../SDL2/include/" files.c myregex.c mystring.c array.c -lm  -D debug_files -lSDL2_image -lSDL2 && ./a.out
+ gcc -g -Wall files.c myregex.c mystring.c array.c -lm  -D debug_files  && ./a.out
  gcc files.c  -D debug_files && a
  */
 #include "files.h"
-#include "SDL_platform.h"
-#include "SDL_stdinc.h"
+//#include "SDL_platform.h"
 
 char * decodePath(char * path)
 {
@@ -14,7 +13,7 @@ char * decodePath(char * path)
 	char * p = path;
 	int needfree = 0;
 	if(*p=='~'){
-		char * home = SDL_getenv("HOME");
+		char * home = getenv("HOME");
 #if defined(__ANDROID__)
 		home = "/sdcard";
 #elif defined(__IPHONEOS__)
@@ -263,7 +262,7 @@ int writefile(char * path,char *data,size_t data_length)
 #ifdef debug_files
 int main(int argc, char *argv[])
 {
-	char * _home = SDL_getenv("HOME");
+	char * _home = getenv("HOME");
 	printf("HOME:%s\r\n",_home);
 	//return 0;
 	char* filename="~//hello//hi/test/dd////test";

@@ -111,6 +111,8 @@ char * utf2gbk(char* inbuf,size_t * outlen){
 }
 #endif
 
+static GLuint textureId;
+
 Sprite * container;
 static void showBox(int x,int y,int w)
 {
@@ -119,7 +121,21 @@ static void showBox(int x,int y,int w)
 	sprite->name = malloc(sizeof(sname)+1);
 	memset(sprite->name,0,sizeof(sname)+1);
 	strcpy(sprite->name,sname);
-	sprite->surface = IMG_Load(decodePath("~/sound/1.bmp"));
+	if(1)
+	{
+		sprite->surface = IMG_Load(decodePath("~/sound/1.bmp"));
+	}else{
+		if(textureId){
+			sprite->textureId = textureId;
+		}else{
+			sprite->surface = IMG_Load(decodePath("~/sound/1.bmp"));
+			textureId = Sprite_getTextureId(sprite);
+			SDL_Log("textureId-------------:%d",textureId);
+			sprite->textureId = textureId;
+			Sprite_destroySurface(sprite);
+			sprite->surface = NULL;
+		}
+	}
 	Data3d*_data3D = sprite->data3d;
 	if(_data3D==NULL){
 		_data3D = (Data3d*)malloc(sizeof(Data3d));

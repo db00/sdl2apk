@@ -98,7 +98,7 @@ static int LoadContext(GLES2_Context * data)
 
 /* Call this instead of exit(), so we can clean up SDL: atexit() is evil. */
 static void quit(int rc)
-{
+{/*{{{*/
 	if (stage->context != NULL) {
 		if (stage->context) {
 			SDL_GL_DeleteContext(stage->context);
@@ -109,13 +109,13 @@ static void quit(int rc)
 	SDL_VideoQuit();
 	SDL_Quit();
 	exit(rc);
-}
+}/*}}}*/
 /* 
  * Simulates desktop's glRotatef. The matrix is returned in column-major 
  * order. 
  */
 static void rotate_matrix(float angle, float x, float y, float z, float *r)
-{
+{/*{{{*/
 	float radians, c, s, c1, u[3], length;
 	int i, j;
 
@@ -148,13 +148,13 @@ static void rotate_matrix(float angle, float x, float y, float z, float *r)
 			r[i * 4 + j] += c1 * u[i] * u[j] + (i == j ? c : 0.0f);
 		}
 	}
-}
+}/*}}}*/
 
 /* 
  * Simulates gluPerspectiveMatrix 
  */
 static void perspective_matrix(float fovy, float aspect, float znear, float zfar, float *r)
-{
+{/*{{{*/
 	int i;
 	float f;
 
@@ -171,14 +171,14 @@ static void perspective_matrix(float fovy, float aspect, float znear, float zfar
 	r[11] = -1.0f;
 	r[14] = (2.0f * znear * zfar) / (znear - zfar);
 	r[15] = 0.0f;
-}
+}/*}}}*/
 
 /* 
  * Multiplies lhs by rhs and writes out to r. All matrices are 4x4 and column
  * major. In-place multiplication is supported.
  */
 static void multiply_matrix(float *lhs, float *rhs, float *r)
-{
+{/*{{{*/
 	int i, j, k;
 	float tmp[16];
 
@@ -195,7 +195,7 @@ static void multiply_matrix(float *lhs, float *rhs, float *r)
 	for (i = 0; i < 16; i++) {
 		r[i] = tmp[i];
 	}
-}
+}/*}}}*/
 
 /* 
  * Create shader, load in source, compile, dump debug as necessary.

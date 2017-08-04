@@ -28,7 +28,7 @@ DEFINES:= -Wall -D STDC_HEADERS -D test_ime
 TARGET:= ./a.out
 ifeq ($(OS),Darwin)
 INCLUDE:=-I"/usr/local/include/SDL2/" -I"include"
-LIB:=$(LIB) -L"/usr/local/lib/" -ldl -liconv -lsqlite3
+LIB:=$(LIB) -L"/usr/local/lib/" -ldl -lz -liconv -lsqlite3
 else ifeq ($(OS),Linux)
 INCLUDE:=-I"/usr/include/SDL2/" -ldl -lsqlite3 -lz
 else ifeq ($(OS),Windows_NT)

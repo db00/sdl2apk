@@ -1,18 +1,13 @@
 /**
- * @file sprite.c
- gcc -g -Wall -I"../SDL2/include/"  sprite.c matrix.c array.c -lSDL2 -lm -Ddebug_sprite && ./a.out
- gcc -g -Wall -I"../SDL2/include/" -I"." -D GLchar=char sprite.c array.c matrix.c -lGLESv2 -lmingw32 -lSDL2main -lSDL2 -Ddebug_sprite && a
- gcc -g -Wall -I"/usr/include/SDL2" array.c sprite.c matrix.c files.c mystring.c myregex.c -lSDL2 -lm -Ddebug_sprite && ./a.out
+ * @file sprite2.c
+ gcc -g  -I"../SDL2/include/" -I"../SDL2_image/" sprite2.c matrix.c array.c -lSDL2 -lSDL2_image -lm -Ddebug_sprite && ./a.out
+ gcc -g -Wall -I"../SDL2/include/" -I"." -D GLchar=char sprite2.c array.c matrix.c -lGLESv2 -lmingw32 -lSDL2main -lSDL2 -Ddebug_sprite && a
  apt-get install -y libpcap-dev libsqlite3-dev sqlite3 libpcap0.8-dev libssl-dev build-essential iw tshark
- * @author db0@qq.com
- * @version 1.0.1
- * @date 2015-07-21
  */
 #include "sprite.h"
 
 GLES2_Context gles2;
 Stage * stage = NULL;
-//static SDL_mutex *mutex = NULL;
 
 static int _Stage_redraw();
 
@@ -51,7 +46,6 @@ static Data3d * data2D;
 
 void quit(int rc)
 {
-	//SDL_DestroyMutex(mutex);
 	if(stage){
 		if (stage->GLEScontext != NULL) {
 			if (stage->GLEScontext) {
@@ -65,8 +59,6 @@ void quit(int rc)
 		free(stage);
 		stage=NULL;
 	}
-
-	//TTF_Quit();
 	SDL_VideoQuit();
 	SDL_Quit();
 	exit(rc);
@@ -74,9 +66,7 @@ void quit(int rc)
 
 static int power_of_two(int input)
 {
-	/*return input;*/
 	int value = 1;
-
 	while (value < input) {
 		value <<= 1;
 	}
@@ -84,41 +74,8 @@ static int power_of_two(int input)
 } 
 
 
-SDL_Color * uintColor(Uint32 _color)
-{
-	SDL_Color * color = (SDL_Color*)malloc(sizeof(SDL_Color));
-	memset(color,0,sizeof(*color));
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN     /* OpenGL RGBA masks */
-	color->r = (Uint8)((_color>>24) & 0xff);
-	color->g = (Uint8)((_color>>16) & 0xff);
-	color->b = (Uint8)((_color>>8) & 0xff);
-	color->a = (Uint8)((_color) & 0xff);
-#else
-	color->r = (Uint8)((_color>>24) & 0xff);
-	color->g = (Uint8)((_color>>16) & 0xff);
-	color->b = (Uint8)((_color>>8) & 0xff);
-	color->a = (Uint8)((_color) & 0xff);
-#endif
-	return color;
-}
-
-//need free
-SDL_Surface * RGBA_surface(SDL_Surface * surface)
-{
-	if(surface==NULL)
-		return NULL;
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN
-	return SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_ABGR8888, 0);
-#else
-	return SDL_ConvertSurfaceFormat(surface, SDL_PIXELFORMAT_RGBA8888, 0);//
-#endif
-	//SDL_Surface * image = Surface_new(surface->w,surface->h);
-	//SDL_BlitSurface(surface, NULL, image, NULL);
-	//return image;
-}
-
 #ifdef __IPHONEOS__
-SDL_Surface * Surface_size3D(SDL_Surface * surface)
+static SDL_Surface * Surface_size3D(SDL_Surface * surface)
 {
 	int w, h;
 	w = power_of_two(surface->w);
@@ -146,8 +103,6 @@ GLuint SDL_GL_LoadTexture(Sprite * sprite, GLfloat * texcoord)
 	SDL_Rect area;
 	SDL_BlendMode saved_mode;
 
-
-	/* Use the surface width and height expanded to powers of 2 */
 	int w, h;
 	if(texcoord){//change size
 		w = power_of_two(surface->w);
@@ -169,9 +124,6 @@ GLuint SDL_GL_LoadTexture(Sprite * sprite, GLfloat * texcoord)
 	/* Save the alpha blending attributes */
 	SDL_GetSurfaceBlendMode(surface, &saved_mode);
 	SDL_SetSurfaceBlendMode(surface, SDL_BLENDMODE_NONE);
-	//SDL_SetSurfaceBlendMode(surface, SDL_BLENDMODE_BLEND);
-	//SDL_SetSurfaceBlendMode(surface, SDL_BLENDMODE_ADD);
-	//SDL_SetSurfaceBlendMode(surface, SDL_BLENDMODE_MOD);
 
 	/* Copy the surface into the GL texture image */
 	area.x = 0;
@@ -179,7 +131,6 @@ GLuint SDL_GL_LoadTexture(Sprite * sprite, GLfloat * texcoord)
 	area.w = surface->w;
 	area.h = surface->h;
 	SDL_BlitSurface(surface, &area, image, &area);
-	//SDL_SetColorKey(image,SDL_TRUE,0x000000ff);
 
 	/* Restore the alpha blending attributes */
 	SDL_SetSurfaceBlendMode(surface, saved_mode);
@@ -197,50 +148,6 @@ GLuint SDL_GL_LoadTexture(Sprite * sprite, GLfloat * texcoord)
 
 
 	SDL_FreeSurface(image);     /* No longer needed */
-
-
-
-
-	/*
-	   GL_CHECK(gles2.glGenFramebuffers(1, &sprite->framebuffer));
-	   GL_CHECK(gles2.glGenRenderbuffers(1, &sprite->renderbuffer));
-	   GL_CHECK(gles2.glBufferData(GL_ARRAY_BUFFER, w*h*4,image->pixels , GL_STATIC_DRAW));  
-	   GL_CHECK(gles2.glBindBuffer(GL_ARRAY_BUFFER, 0));  
-
-	// bind sprite->renderbuffer and create a 16-bit depth buffer
-	// width and height of sprite->renderbuffer = width and height of
-	// the texture
-	GL_CHECK(gles2.glBindRenderbuffer(GL_RENDERBUFFER, sprite->renderbuffer));
-	GL_CHECK(gles2.glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, surface->w, surface->h));
-	// bind the sprite->framebuffer
-	GL_CHECK(gles2.glBindFramebuffer(GL_FRAMEBUFFER, sprite->framebuffer));
-
-	// specify texture as color attachment
-	GL_CHECK(gles2.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, sprite->textureId, 0));
-	//glFramebufferTexture3DOES(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset)
-	// specify depth_renderbufer as depth attachment
-	GL_CHECK(gles2.glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, sprite->renderbuffer));
-	// check for sprite->framebuffer complete
-	GLenum status = GL_CHECK(gles2.glCheckFramebufferStatus(GL_FRAMEBUFFER));
-	if(status == GL_FRAMEBUFFER_COMPLETE)
-	{
-	// render to texture using FBO
-	// clear color and depth buffer
-	//GL_CHECK(gles2.glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
-	//GL_CHECK(gles2.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-	// load uniforms for vertex and fragment shader
-	// used to render to FBO. The vertex shader is the
-	// ES 1.1 vertex shader described as Example 8-8 in
-	// Chapter 8. The fragment shader outputs the color
-	// computed by vertex shader as fragment color and
-	// is described as Example 1-2 in Chapter 1.
-	//set_fbo_texture_shader_and_uniforms();
-	// drawing commands to the sprite->framebuffer object
-	//draw_teapot();
-	// render to window system provided sprite->framebuffer
-	GL_CHECK(gles2.glBindFramebuffer(GL_FRAMEBUFFER, 0));
-	}
-	*/
 
 
 
@@ -347,15 +254,6 @@ SDL_Rect * Sprite_getBorder(Sprite*sprite,SDL_Rect*rect)
 	}else{
 		sprite->Bounds= rect;//SDL_UnionRect(rect,sprite->Bounds,sprite->Bounds);
 	}
-	/*
-	   SDL_Log("sprite->Bounds:%d,%d,%d,%d\n",
-	   sprite->Bounds->x,
-	   sprite->Bounds->y,
-	   sprite->Bounds->w,
-	   sprite->Bounds->h
-	   );
-	   */
-
 
 	Sprite*curParent = sprite->parent;
 	while(curParent && curParent!=stage->sprite)
@@ -426,8 +324,6 @@ static void initGL()
 	SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 1);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-
-	//#ifndef __MACOS__
 #if !defined(__MACOS__)
 	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);//or -1
 #endif
@@ -449,13 +345,11 @@ int Window_resize(int w,int h)
 	SDL_SetWindowSize(stage->window,w,h);
 	if(stage->world){
 		stage->world->aspect = (GLfloat)stage->stage_w/stage->stage_h; // Compute the window aspect ratio
-		//stage->world->fovy = 53.13010235415598; //atan(1/stage->world->aspect)*180/M_PI; // Generate a perspective matrix with a 53.13010235415598 degree FOV
 		stage->world->fovy = atan(4.0/3)*180/M_PI; // Generate a perspective matrix with a 53.13010235415598 degree FOV
 		stage->world->nearZ = 1.0f;
 		stage->world->farZ = 20.0f;
 		Matrix_identity(&stage->world->perspective);
 		esPerspective( &stage->world->perspective, stage->world->fovy, stage->world->aspect, stage->world->nearZ, stage->world->farZ);
-		// Translate away from the viewer
 		esTranslate(&stage->world->perspective,0,0,-2.0);
 	}
 #endif
@@ -464,29 +358,18 @@ int Window_resize(int w,int h)
 
 Stage * Stage_init() 
 {
-	int is3D = 1;
 	SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);
 	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO) < 0) {
 		SDL_SetError("SDL_INIT_VIDEO ERROR!\n");
 		return NULL;
 	}
-	/*
-	   if(!TTF_WasInit())
-	   {
-	   if ( TTF_Init() < 0 ) {
-	   SDL_SetError("Couldn't initialize TTF: %s\n",SDL_GetError());
-	   quit(0);
-	   return NULL;
-	   }
-	   }
-	   */
 	if(stage==NULL)
 	{
 		stage = malloc(sizeof(Stage));
 		memset(stage,0,sizeof(Stage));
 
 		stage->sprite = Sprite_new();
-		if(stage->renderer==NULL && stage->GLEScontext == NULL)
+		if(stage->GLEScontext == NULL)
 		{
 			SDL_DisplayMode mode;
 			SDL_GetCurrentDisplayMode(0, &mode);
@@ -502,7 +385,7 @@ Stage * Stage_init()
 			stage->window = SDL_CreateWindow("title",
 					SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
 					stage->stage_w, stage->stage_h,
-					(is3D?SDL_WINDOW_OPENGL:0)|SDL_WINDOW_RESIZABLE);
+					SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
 			if(stage->window){
 				SDL_ShowWindow(stage->window);
 				SDL_GetWindowSize(stage->window, &stage->stage_w, &stage->stage_h);
@@ -511,67 +394,46 @@ Stage * Stage_init()
 				return NULL;
 			}
 
-			if(is3D)
-			{
-				initGL();
-				stage->GLEScontext = SDL_GL_CreateContext(stage->window);
-				if (LoadContext(&gles2) < 0) {
-					SDL_Log("Could not load GLES2 functions\n");
-					quit(2);
-					return stage;
-				}
-				//SDL_GL_SetSwapInterval(1);
-				SDL_GL_SetSwapInterval(0);  /* disable vsync. */
-#ifdef HAVE_OPENGL
-				SDL_Log("OpenGL2.0");
-				gles2.glMatrixMode(GL_PROJECTION);//gl
-				gles2.glLoadIdentity();//gl
-				gles2.glOrtho(-1.0, 1.0, -1.0, 1.0, 1.0, 20.0);//gl
-				//gles2.glMatrixMode(GL_MODELVIEW);//gl
-				gles2.glMatrixMode(GL_PROJECTION);
-				gles2.glLoadIdentity();//gl
-				//gles2.glEnable(GL_DEPTH_TEST);
-				gles2.glDepthFunc(GL_LESS);
-				gles2.glShadeModel(GL_SMOOTH);//gl
-				gles2.glTranslatef(0,0,-2.0);
-#endif
-				if(stage->world == NULL)
-				{
-					//SDL_Log("init 3d world");
-					stage->world = (World3d *)malloc(sizeof(World3d));
-					stage->world->aspect = (GLfloat)stage->stage_w/stage->stage_h; // Compute the window aspect ratio
-					//stage->world->fovy = 53.13010235415598; //atan(1/stage->world->aspect)*180/M_PI; // Generate a perspective matrix with a 53.13010235415598 degree FOV
-					stage->world->fovy = atan(4.0/3)*180/M_PI; // Generate a perspective matrix with a 53.13010235415598 degree FOV
-					stage->world->nearZ = 1.0f;
-					stage->world->farZ = 20.0f;
-					Matrix_identity(&stage->world->perspective);
-					esPerspective( &stage->world->perspective, stage->world->fovy, stage->world->aspect, stage->world->nearZ, stage->world->farZ);
-					// Translate away from the viewer
-					esTranslate(&stage->world->perspective,0,0,-2.0);
-#if 1
-					stage->lightDirection[0]=1.0;
-					stage->lightDirection[1]=1.0;
-					stage->lightDirection[2]=-.0;
-#endif
-					//esRotate( &stage->world->perspective, 10, .0, 0.0, 1.0);
-					//esMatrixMultiply(&stage->world->perspective,&stage->world->perspective,);
-
-				}
-				//int w,h; SDL_GetWindowSize(stage->window, &w, &h);
-				//SDL_GL_MakeCurrent(stage->window, stage->GLEScontext);
-				//SDL_GL_GetDrawableSize(stage->window, &stage->stage_w, &stage->stage_h);
-				//GL_CHECK(gles2.glViewport(0, 0, stage->stage_w , stage->stage_h));
-				//return NULL;
-				Data3D_init();
+			initGL();
+			stage->GLEScontext = SDL_GL_CreateContext(stage->window);
+			if (LoadContext(&gles2) < 0) {
+				SDL_Log("Could not load GLES2 functions\n");
+				quit(2);
+				return stage;
 			}
-			/*
-			   else
-			   {
-			   stage->renderer = SDL_CreateRenderer(stage->window, -1, SDL_RENDERER_ACCELERATED);
-			   SDL_SetRenderDrawColor(stage->renderer, 0x0f, 0xf, 0xf, 0x0);
-			   SDL_RenderClear(stage->renderer);
-			   }
-			   */
+			SDL_GL_SetSwapInterval(0);  /* disable vsync. */
+#ifdef HAVE_OPENGL
+			SDL_Log("OpenGL2.0");
+			gles2.glMatrixMode(GL_PROJECTION);//gl
+			gles2.glLoadIdentity();//gl
+			gles2.glOrtho(-1.0, 1.0, -1.0, 1.0, 1.0, 20.0);//gl
+			//gles2.gl(-1.0, 1.0, -1.0, 1.0, 1.0, 20.0);//gl
+			//gles2.glMatrixMode(GL_MODELVIEW);//gl
+			gles2.glMatrixMode(GL_PROJECTION);
+			gles2.glLoadIdentity();//gl
+			//gles2.glEnable(GL_DEPTH_TEST);
+			gles2.glDepthFunc(GL_LESS);
+			gles2.glShadeModel(GL_SMOOTH);//gl
+			gles2.glTranslatef(0,0,-2.0);
+#endif
+			if(stage->world == NULL)
+			{
+				stage->world = (World3d *)malloc(sizeof(World3d));
+				stage->world->aspect = (GLfloat)stage->stage_w/stage->stage_h; // Compute the window aspect ratio
+				stage->world->fovy = atan(4.0/3)*180/M_PI; // Generate a perspective matrix with a 53.13010235415598 degree FOV
+				stage->world->nearZ = 1.0f;
+				stage->world->farZ = 20.0f;
+				Matrix_identity(&stage->world->perspective);
+				esPerspective( &stage->world->perspective, stage->world->fovy, stage->world->aspect, stage->world->nearZ, stage->world->farZ);
+				esTranslate(&stage->world->perspective,0,0,-2.0);
+#if 1
+				stage->lightDirection[0]=1.0;
+				stage->lightDirection[1]=1.0;
+				stage->lightDirection[2]=-.0;
+#endif
+
+			}
+			Data3D_init();
 		}
 		stage->sprite->visible = 1;
 	}
@@ -587,15 +449,10 @@ Point3d * Sprite_localToGlobal(Sprite*sprite,Point3d *p)
 	if(p==NULL)
 	{
 		p = (Point3d*)malloc(sizeof(Point3d));
-		p->x = 0;
-		p->y = 0;
-		p->z = 0;
+		memset(p,0,sizeof(Point3d));
 		p->scaleX = 1.0;
 		p->scaleY = 1.0;
 		p->scaleZ = 1.0;
-		p->rotationX = 0;
-		p->rotationY = 0;
-		p->rotationZ = 0;
 	}
 
 	Sprite * cur = sprite;
@@ -641,31 +498,21 @@ int Sprite_getTextureId(Sprite * sprite)
 {
 	if(sprite->textureId == 0){
 		if(sprite->surface == NULL) {
-			//SDL_Log("no surface!\n");
-			//return _data3D;
 			return 0;
-		}else{
-			//SDL_Log("has surface!\n");
 		}
 		if(sprite->surface ) {
 #ifdef __IPHONEOS__
-			if(sprite->is3D){
-				if(sprite->texCoords){
-					free(sprite->texCoords);
-					sprite->texCoords = NULL;
-				}
-				sprite->surface = Surface_size3D(sprite->surface);
-			}else{
-				sprite->texCoords = malloc(4*sizeof(GLfloat));
+			if(sprite->texCoords){
+				free(sprite->texCoords);
+				sprite->texCoords = NULL;
 			}
+			sprite->surface = Surface_size3D(sprite->surface);
 			sprite->textureId = SDL_GL_LoadTexture(sprite, sprite->texCoords);
 #else
 			sprite->textureId = SDL_GL_LoadTexture(sprite, NULL);
 #endif
 			if(sprite->textureId==0)
-				//return _data3D;
 				return 0;
-			//sprite->x = 0; sprite->y = 0;
 			if((sprite->w==0 && sprite->h==0) || sprite==stage->sprite){
 				sprite->w = sprite->surface->w;
 				sprite->h = sprite->surface->h;
@@ -673,7 +520,6 @@ int Sprite_getTextureId(Sprite * sprite)
 			Sprite_destroySurface(sprite);
 		}else{
 			SDL_Log("notexture!\n");
-			//return _data3D;
 			return 0;
 		}
 	}
@@ -697,23 +543,20 @@ static GLfloat * Sprite_getVertices(Sprite * sprite)
 {
 	Data3d*_data3D = sprite->data3d;
 	// Load the vertex position
-	if(_data3D->positionLoc>=0){
-		if(_data3D->vertices==NULL)
-		{
-			float _x=0.0,_y=0.0,_w,_h;
-			_w = wto3d(sprite->w);
-			_h = hto3d(sprite->h);
+	if(_data3D->positionLoc>=0 && _data3D->vertices==NULL){
+		float _x=0.0,_y=0.0,_w,_h;
+		_w = wto3d(sprite->w);
+		_h = hto3d(sprite->h);
 
-			GLfloat vertices[] = {
-				_x,		_y,		0.0f,	// Position 0	//top left
-				_x,		_y-_h,	0.0f,	// Position 1	//bottom left
-				_x+_w,	_y-_h,	0.0f,	// Position 2	//bottom right
-				_x+_w,	_y,		0.0f	// Position 3	//top right
-			};
+		GLfloat vertices[] = {
+			_x,		_y,		0.0f,	// Position 0	//top left
+			_x,		_y-_h,	0.0f,	// Position 1	//bottom left
+			_x+_w,	_y-_h,	0.0f,	// Position 2	//bottom right
+			_x+_w,	_y,		0.0f	// Position 3	//top right
+		};
 
-			_data3D->vertices = (GLfloat*)malloc(sizeof(vertices));
-			memcpy(_data3D->vertices,vertices,sizeof(vertices));
-		}
+		_data3D->vertices = (GLfloat*)malloc(sizeof(vertices));
+		memcpy(_data3D->vertices,vertices,sizeof(vertices));
 	}
 	return _data3D->vertices;
 }
@@ -784,7 +627,7 @@ static void Sprite_getAmbient(Sprite * sprite)
 }
 
 static void Data3d_show(Sprite*sprite)
-{/*{{{*/
+{
 	Data3d*_data3D = sprite->data3d;
 
 	//printf("%s\n",sprite->name);
@@ -800,6 +643,8 @@ static void Data3d_show(Sprite*sprite)
 	sprite->textureId = Sprite_getTextureId(sprite);
 	if(sprite->textureId==0)
 		return;
+
+
 
 	//贴图透明度
 	GL_CHECK(gles2.glEnable(GL_BLEND));
@@ -818,7 +663,6 @@ static void Data3d_show(Sprite*sprite)
 	if(sprite->mask)
 	{
 		GL_CHECK(gles2.glEnable( GL_SCISSOR_TEST));
-		//gles2.glScissor((sprite->mask->x),stage->stage_h-(sprite->mask->y),(sprite->mask->w),(sprite->mask->h));
 		gles2.glScissor(sprite->mask->x,stage->stage_h-(sprite->mask->y+sprite->mask->h),sprite->mask->w,sprite->mask->h);
 	}
 
@@ -829,11 +673,46 @@ static void Data3d_show(Sprite*sprite)
 		return;
 	}
 
-	_data3D->vertices = Sprite_getVertices(sprite);
-	if(_data3D->vertices)
+	if(_data3D->vertices==NULL)
 	{
+		_data3D->vertices = Sprite_getVertices(sprite);
+	}
+	if(sprite->framebuffer==0)
+	{
+		GL_CHECK(gles2.glGenFramebuffers(1, &sprite->framebuffer));
+		GL_CHECK(gles2.glGenRenderbuffers(1, &sprite->renderbuffer));
+
+		GL_CHECK(gles2.glBindRenderbuffer(GL_RENDERBUFFER, sprite->renderbuffer));
+		//GL_CHECK(gles2.glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, surface->w, surface->h));
+		GL_CHECK(gles2.glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8_OES, sprite->w, sprite->h));
+
+		//GL_COLOR_ATTACHMENT0 GL_DEPTH_ATTACHMENT GL_STENCIL_ATTACHMENT
+		GL_CHECK(gles2.glBindFramebuffer(GL_FRAMEBUFFER, sprite->framebuffer));
+		GL_CHECK(gles2.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, sprite->textureId, 0));
+		GL_CHECK(gles2.glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, sprite->renderbuffer));
+
+		//GL_CHECK(gles2.glGenbuffers(1, &sprite->buffer));
+		//GL_CHECK(gles2.glBufferData(GL_ARRAY_BUFFER,9*sizeof(GLfloat),_data3D->vertices, GL_STATIC_DRAW GL_DYNAMIC_DRAW GL_STREAM_DRAW));  
+		//GL_CHECK(gles2.glBufferSubData(GL_ARRAY_BUFFER or GL_ELEMENT_ARRAY_BUFFER,  GLintptr offset,  GLsizeiptr size,  const GLvoid * data));
+		//GL_CHECK(gles2.glBindBuffer(GL_ARRAY_BUFFER, sprite->buffer));  
+		
+	}
+	GL_CHECK(gles2.glBindFramebuffer(GL_FRAMEBUFFER, 0));
+	GLenum status = GL_CHECK(gles2.glCheckFramebufferStatus(GL_FRAMEBUFFER));
+	if(status == GL_FRAMEBUFFER_COMPLETE)
+	{
+		GL_CHECK(gles2.glBindRenderbuffer(GL_RENDERBUFFER, 0));
+	}else{
+		return;
+	}
+
+	if(_data3D->positionLoc>0){
 		GL_CHECK(gles2.glVertexAttribPointer ( _data3D->positionLoc, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), _data3D->vertices));
 		GL_CHECK(gles2.glEnableVertexAttribArray ( _data3D->positionLoc ));
+	}
+	if(sprite->textureId>0){
+		GL_CHECK(gles2.glActiveTexture ( GL_TEXTURE0 ));
+		GL_CHECK(gles2.glBindTexture ( GL_TEXTURE_2D, sprite->textureId ));
 	}
 
 	_data3D->normals = Sprite_getNormals(sprite);
@@ -850,11 +729,6 @@ static void Data3d_show(Sprite*sprite)
 		GL_CHECK(gles2.glEnableVertexAttribArray ( _data3D->texCoordLoc ));
 	}
 
-	// Bind the texture
-	if(sprite->textureId>0){
-		GL_CHECK(gles2.glActiveTexture ( GL_TEXTURE0 ));
-		GL_CHECK(gles2.glBindTexture ( GL_TEXTURE_2D, sprite->textureId ));
-	}
 	// Set the sampler texture unit to 0
 	if(_data3D->samplerLoc>=0)
 		GL_CHECK(gles2.glUniform1i( _data3D->samplerLoc, 0));
@@ -875,8 +749,9 @@ static void Data3d_show(Sprite*sprite)
 	}
 
 	_data3D->indices = Sprite_getIndices(sprite);
-	if(_data3D->numIndices>0)
+	if(_data3D->numIndices>0){
 		GL_CHECK(gles2.glDrawElements(GL_TRIANGLES, _data3D->numIndices, GL_UNSIGNED_INT, _data3D->indices));
+	}
 
 	if(_data3D->positionLoc>=0)
 		GL_CHECK(gles2.glDisableVertexAttribArray(_data3D->positionLoc));
@@ -886,9 +761,10 @@ static void Data3d_show(Sprite*sprite)
 		GL_CHECK(gles2.glDisableVertexAttribArray(_data3D->texCoordLoc));
 	GL_CHECK(gles2.glDisable( GL_SCISSOR_TEST));
 	//GL_CHECK(gles2.glEnable ( GL_DEPTH_TEST));
+	GL_CHECK(gles2.glUseProgram (0));
 	//return _data3D;
 	return ;
-}/*}}}*/
+}
 
 
 Sprite * Sprite_show(Sprite*sprite)
@@ -899,31 +775,18 @@ Sprite * Sprite_show(Sprite*sprite)
 		return sprite;
 	}
 
-	//SDL_Log("show:%s\n",sprite->name);
 	if(stage->GLEScontext){
 		if(sprite->showFunc == NULL){
 			sprite->showFunc = Data3d_show;
 		}
 		sprite->showFunc(sprite);
-		//return sprite;
-	}else if(sprite->texture || sprite->surface){
-		if(sprite->texture==NULL){
-			if(sprite->surface){
-				if((sprite->w) * (sprite->h)==0) {
-					sprite->w = sprite->surface->w;
-					sprite->h = sprite->surface->h;
-				}
-				sprite->texture = SDL_CreateTextureFromSurface(stage->renderer, sprite->surface);
-				Sprite_destroySurface(sprite);
-			}
-		}
+	}else{
+		return sprite;
 	}
 
 	SDL_Rect* rect =(SDL_Rect*)malloc(sizeof(SDL_Rect));
 	memset(rect,0,sizeof(SDL_Rect));
 	int rotation=0;
-	int centerX=0;
-	int centerY=0;
 	float scaleX = 1.0;
 	float scaleY = 1.0;
 
@@ -942,25 +805,6 @@ Sprite * Sprite_show(Sprite*sprite)
 	rect->w = sprite->w * scaleX;
 	rect->h = sprite->h * scaleY;
 	Sprite_getBorder(sprite,rect);
-	//SDL_Log("Sprite_getBorder:%s,%d,%d,%d,%d\n",sprite->name,rect->x,rect->y,rect->w,rect->h);
-
-	if(sprite->texture){
-		SDL_SetTextureAlphaMod(sprite->texture, sprite->alpha*0xff);
-		SDL_SetTextureColorMod(sprite->texture, sprite->alpha*0xff, sprite->alpha*0xff, sprite->alpha*0xff);
-		if(rotation!=0){
-			SDL_Point center;
-			center.x = centerX;
-			center.y = centerY;
-			{//绕中心旋转
-				//center.x = sprite->w/2;
-				//center.y = sprite->h/2;
-			}
-			SDL_RendererFlip flip = SDL_FLIP_NONE;
-			SDL_RenderCopyEx(stage->renderer, sprite->texture, NULL, rect, rotation,&center,flip);
-		}else{
-			SDL_RenderCopy(stage->renderer, sprite->texture, NULL, rect);
-		}
-	}
 
 	if(sprite->children){
 		int i = 0;
@@ -1066,6 +910,7 @@ SDL_UserEvent * UserEvent_new(Uint32 type,Sint32 code,void*func,void*param)
 		event = NULL;
 	return (SDL_UserEvent*)event;
 }
+
 void UserEvent_clear(SDL_UserEvent * event)
 {
 	if(event)
@@ -1338,7 +1183,6 @@ static void Data3d_destroy(Sprite * sprite)
 		free(data3d);
 	}
 	sprite->data3d= NULL;
-	//sprite->is3D = 0;
 }
 
 
@@ -1440,10 +1284,6 @@ static int _Stage_redraw()
 		//GL_CHECK(gles2.glClearDepthf(1.0));
 		Sprite_show(stage->sprite);
 		SDL_GL_SwapWindow(stage->window);
-	}else if(stage && stage->renderer){
-		SDL_RenderClear(stage->renderer);
-		Sprite_show(stage->sprite);
-		SDL_RenderPresent(stage->renderer);
 	}
 	return 0;
 }
@@ -1507,10 +1347,6 @@ int Sprite_limitPosion(Sprite*target,SDL_Rect*rect)
 	return 0;
 }
 
-void Sprite_preventDefault(Sprite * target)
-{
-}
-
 static int stopPropagation=0;
 void Sprite_stopPropagation(Sprite * target)
 {
@@ -1549,59 +1385,6 @@ static void bubbleEvent(Sprite*target,SDL_Event*event)
 }
 
 
-static int button_messagebox(void *eventNumber)
-{
-	const SDL_MessageBoxButtonData buttons[] = {
-		{
-			SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
-			0,
-			"取消"
-		},
-		{
-			SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,
-			1,
-			"确定"
-		},
-	};
-
-	SDL_MessageBoxData data = {
-		SDL_MESSAGEBOX_INFORMATION,
-		NULL, /* no parent window */
-		"退出",
-		"click the button '确定' to quit!",
-		2,
-		buttons,
-		NULL /* Default color scheme */
-	};
-
-	int button = -1;
-	int success = 0;
-	if (eventNumber) {
-		data.message = "This is a custom messagebox from a background thread.";
-	}
-
-	success = SDL_ShowMessageBox(&data, &button);
-	if (success == -1) {
-		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Error Presenting MessageBox: %s\n", SDL_GetError());
-		if (eventNumber) {
-			SDL_UserEvent event;
-			event.type = (intptr_t)eventNumber;
-			SDL_PushEvent((SDL_Event*)&event);
-			return 1;
-		} else {
-			quit(2);
-		}
-	}
-	SDL_Log("Pressed button: %d, %s\n", button, button == 0 ? "Cancel" : "OK");
-
-	if (eventNumber) {
-		SDL_UserEvent event;
-		event.type = (intptr_t)eventNumber;
-		SDL_PushEvent((SDL_Event*)&event);
-	}
-
-	return button;
-}
 
 void setStageMouse(int x,int y){
 	if(stage->mouse == NULL){
@@ -1667,25 +1450,8 @@ int PrintEvent(const SDL_Event * event)
 			if(event->type==SDL_KEYUP && event->key.repeat==0)
 			{
 				if(event->key.keysym.sym== SDLK_AC_BACK || event->key.keysym.sym == SDLK_ESCAPE){
-#if defined(__IPHONEOS__) || defined(__ANDROID__)
-#else
 					return 1;
-#endif
-					return button_messagebox(NULL);
-					int success = SDL_ShowSimpleMessageBox(
-							SDL_MESSAGEBOX_ERROR,
-							"退出!",
-							"退出!",
-							NULL);
-					if (success == -1) {
-						SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Error Presenting MessageBox: %s\n", SDL_GetError());
-					}else{
-						return 1;
-					}
-				}else{
-					//destroyQuitSprite();
 				}
-				//_Stage_redraw();
 			}
 			//break;
 		case SDL_TEXTINPUT:
@@ -1783,48 +1549,21 @@ int PrintEvent(const SDL_Event * event)
 			SDL_Log("unknown event XXXXXXXXXX \n");
 			return 0;
 	}
-	//SDL_SpinLock lock = 0;
-	//SDL_AtomicLock(&lock);
-	/*
-	   if (SDL_LockMutex(mutex) < 0) {
-	   SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't lock mutex: %s", SDL_GetError());
-	   quit(1);
-	   }
-	   */
-	//mouse event:
 	if(target) {
 		bubbleEvent(target,(SDL_Event*)event);//事件冒泡
 	}
-	/*
-	   if (SDL_UnlockMutex(mutex) < 0) {
-	   SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't unlock mutex: %s", SDL_GetError());
-	   quit(1);
-	   }
-	   */
-	//SDL_AtomicUnlock(&lock);
 	return 0;
 }
 
 
 void Stage_loopEvents()
 {
-	/*
-	   if ((mutex = SDL_CreateMutex()) == NULL) {
-	   SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create mutex: %s\n", SDL_GetError());
-	   quit(1);
-	   }
-	   */
-
 	if(stage && stage->sprite->children)_Stage_redraw();
 	int done=0;
 	while (!done) {
 		SDL_Event event;
-		//memset(&event,0,sizeof(event));
-		//#if SDL_VIDEO_DRIVER_RPI || defined(__ANDROID__)
 		if(SDL_WaitEvent(&event))//embed device
-			//#else
 			//if(SDL_PollEvent(&event)) //pc
-			//#endif
 		{
 			if(SDL_QUIT == event.type) {
 				done = 1;
@@ -1997,11 +1736,9 @@ Data3d * Data3D_init()
 			"	vec4 vsampler = texture2D( s_texture, v_texCoord );\n"
 			"	vec4 color = vsampler*Ambient;"//环境光
 			"	float alpha = color.w;"//环境光
-			//"	gl_FragColor = min(color,1.0);\n"
 			"	\n"
 			"	if( v_normal!=vec3(0.0)){\n"
-			//"		float l = dot(vec4(u_mvpMatrix*vec4(v_normal,1.0)),vec4(lightDirection,1.0));\n"//单面光照\n"
-			"		float l = dot(normalize(vec4(v_matrix*vec4(v_normal,1.0))),normalize(vec4(lightDirection,1.0)))*.5;"//dot(vec4(u_mvpMatrix*vec4(v_normal,1.0)),vec4(lightDirection,1.0));\n"//单面光照\n"
+			"		float l = dot(normalize(vec4(v_matrix*vec4(v_normal,1.0))),normalize(vec4(lightDirection,1.0)))*.5;"
 			"		if(lightDirection!=vec3(0.0))"
 			"			color += max(0.0,l);\n"//单面光照
 			"	}\n"
@@ -2011,25 +1748,16 @@ Data3d * Data3D_init()
 			"}                                                  \n";
 
 		data2D->programObject = esLoadProgram ( vShaderStr, fShaderStr );
-		//SDL_Log("programObject:%d\n",data2D->programObject);
 
 		if(data2D->programObject){
 			data2D->normalLoc= GL_CHECK(gles2.glGetAttribLocation( data2D->programObject, "a_normal"));
-			//SDL_Log("normalLoc:%d\n",data2D->normalLoc);
 			data2D->texCoordLoc = GL_CHECK(gles2.glGetAttribLocation ( data2D->programObject, "a_texCoord" ));
-			//SDL_Log("texCoordLoc:%d\n",data2D->texCoordLoc);
 			data2D->samplerLoc = GL_CHECK(gles2.glGetUniformLocation ( data2D->programObject, "s_texture" ));
-			//SDL_Log("samplerLoc:%d\n",data2D->samplerLoc);
 			data2D->alphaLoc = GL_CHECK(gles2.glGetUniformLocation (data2D->programObject, "u_alpha"));
-			//SDL_Log("alphaLoc:%d\n",data2D->alphaLoc);
 			data2D->mvpLoc = GL_CHECK(gles2.glGetUniformLocation( data2D->programObject, "u_mvpMatrix" ));
-			//SDL_Log("mvpLoc:%d\n",data2D->mvpLoc);
 			data2D->positionLoc = GL_CHECK(gles2.glGetAttribLocation ( data2D->programObject, "a_position" ));
-			//SDL_Log("positionLoc:%d\n",data2D->positionLoc);
 			data2D->ambientLoc = GL_CHECK(gles2.glGetUniformLocation ( data2D->programObject, "Ambient" ));
-			//SDL_Log("ambientLoc:%d\n",data2D->ambientLoc);
 			data2D->lightDirection= GL_CHECK(gles2.glGetUniformLocation( data2D->programObject, "lightDirection"));
-			//SDL_Log("lightDirection:%d\n",data2D->lightDirection);
 		}
 	}
 	return data2D;
@@ -2100,7 +1828,6 @@ void Sprite_setSurface(Sprite*sprite,SDL_Surface * surface)
 {
 	if(sprite==NULL)
 		return;
-	//sprite->w=0; sprite->h=0;
 	sprite->textureId = 0;
 	Sprite_destroySurface(sprite);
 	Sprite_destroyTexture(sprite);
@@ -2163,15 +1890,78 @@ SDL_Surface * Stage_readpixel(Sprite *sprite,SDL_Rect* rect)
 	int h = rect->h;
 	int x = rect->x;
 	int y = rect->y;
-	SDL_Surface * image = Surface_new(w,h);
-	if (image == NULL) {
+
+	Uint32 rmask, gmask, bmask, amask;
+
+	GLint readType, readFormat;
+	GL_CHECK(gles2.glGetIntegerv(GL_IMPLEMENTATION_COLOR_READ_TYPE, &readType));
+	GL_CHECK(gles2.glGetIntegerv(GL_IMPLEMENTATION_COLOR_READ_FORMAT, &readFormat));
+	unsigned int bytesPerPixel = 0;
+	switch(readType)
+	{
+		case GL_UNSIGNED_BYTE:
+			switch(readFormat)
+			{
+				case GL_RGBA:
+					bytesPerPixel = 4;
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+					rmask = 0xff000000;
+					gmask = 0x00ff0000;
+					bmask = 0x0000ff00;
+					amask = 0x000000ff;
+#else
+					rmask = 0x000000ff;
+					gmask = 0x0000ff00;
+					bmask = 0x00ff0000;
+					amask = 0xff000000;
+#endif
+					break;
+				case GL_RGB:
+					bytesPerPixel = 3;
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+					rmask = 0xff0000;
+					gmask = 0x00ff00;
+					bmask = 0x0000ff;
+					amask = 0x0;
+#else
+					rmask = 0x0;
+					gmask = 0x0000ff;
+					bmask = 0x00ff00;
+					amask = 0xff0000;
+#endif
+					break;
+				case GL_LUMINANCE_ALPHA:
+					bytesPerPixel = 2;
+					break;
+				case GL_ALPHA:
+				case GL_LUMINANCE:
+					bytesPerPixel = 1;
+					break;
+			}
+			break;
+		case GL_UNSIGNED_SHORT_4_4_4_4:
+		case GL_UNSIGNED_SHORT_5_5_5_1:
+		case GL_UNSIGNED_SHORT_5_6_5:
+			bytesPerPixel = 2;
+			break;
+			// GL_RGBA format
+			// GL_RGBA format
+			// GL_RGB format
+	}
+	SDL_Surface *surface;
+	surface = SDL_CreateRGBSurface(0, w, h, bytesPerPixel*8, rmask, gmask, bmask, amask);
+	if(surface == NULL) {
+		fprintf(stderr, "CreateRGBSurface failed: %s\n", SDL_GetError());
 		return NULL;
 	}
+
+
 	int line = 0;
 	for(line=0;line<h;line++){
-		GL_CHECK(gles2.glReadPixels(x,  y+line,  w,  1,  GL_RGBA, GL_UNSIGNED_BYTE,  (char*)(image->pixels)+w*(h-line-1)*4));
+		GL_CHECK(gles2.glReadPixels(x,  y+line,  w,  1,  GL_RGBA, GL_UNSIGNED_BYTE,  (GLubyte*)(surface->pixels)+w*(h-line-1)*4));
 	}
-	return image;
+	//GL_CHECK(gles2.glReadPixels(x,  y,  w,  h,  GL_RGBA, GL_UNSIGNED_BYTE,  (GLubyte*)(surface->pixels)));
+	return surface;
 }
 
 #ifdef debug_sprite
@@ -2200,31 +1990,22 @@ static void mouseMove(SpriteEvent*e)
 	if(e->target->parent)
 		Sprite_addChild(e->target->parent,e->target);
 
-	/*
-	   event->motion.timestamp,
-	   event->motion.windowID,
-	   event->motion.which,
-	   event->motion.state,
-	   event->motion.xrel,
-	   event->motion.yrel
-	   */
 	if(event->motion.state){
 		sprite->rotationX += event->motion.yrel;
 		sprite->rotationY += event->motion.xrel;
 		Sprite_rotate(sprite  ,sprite->rotationX,sprite->rotationY,sprite->rotationZ);
-		//Sprite_translate(sprite ,sprite->x + event->motion.xrel ,sprite->y + event->motion.yrel ,sprite->z);
-		//Sprite_scale(sprite ,sprite->scaleX *(1 + event->motion.yrel*.01) ,sprite->scaleY *(1 + event->motion.yrel*.01),sprite->scaleZ *(1 + event->motion.yrel*.001));
 		Stage_redraw();
 	}
 }
 
+#include "teapot.h"
 #include "files.h"
+#include "SDL_image.h"
 int main(int argc, char *argv[])
 {
 	Stage_init();
 #if SDL_VERSION_ATLEAST(2,0,5)
 	printf("set opacity\n");
-	//SDL_SetWindowOpacity(stage->window,.5);
 #endif
 #ifdef HAVE_OPENGL
 	printf("HAVE_OPENGL\n");
@@ -2232,12 +2013,12 @@ int main(int argc, char *argv[])
 	printf("OPENGL_ES\n");
 #endif
 	Sprite_addEventListener(stage->sprite,SDL_MOUSEBUTTONDOWN,mouseDown);
-	//char * path = decodePath("~/sound/1.bmp");
 	char * path = ("1.bmp");
 	if(stage->GLEScontext){
 		Sprite*sprite = Sprite_new();
 		sprite->is3D = 1;
-		sprite->surface = (SDL_LoadBMP(path));
+		//sprite->surface = (SDL_LoadBMP(path));
+		sprite->surface = (IMG_Load("1.jpg"));
 		SDL_Log("surface size:%dx%d",sprite->surface->w,sprite->surface->h);
 		Data3d*_data3D = sprite->data3d;
 		if(_data3D==NULL){
@@ -2246,10 +2027,20 @@ int main(int argc, char *argv[])
 				data2D = Data3D_init();
 				Data3d_set(_data3D,data2D);
 			}
-			sprite->data3d = _data3D;
 			_data3D->numIndices = esGenSphere ( 20, .75f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
-			//_data3D->numIndices = esGenSphere ( 20, 15.f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
-			//_data3D->numIndices = esGenCube(  0.75f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
+			sprite->data3d = _data3D;
+			/*
+			_data3D->vertices = teapotPositions;
+			_data3D->normals = teapotBinormals;
+			_data3D->normals = teapotNormals;
+			_data3D->texCoords = teapotTexCoords;
+			_data3D->indices = teapotIndices;
+			_data3D->numIndices = sizeof(teapotIndices)/sizeof(int)/3;
+			//_data3D->numIndices = sizeof(teapotPositions)/sizeof(float)/3;
+
+			SDL_Log("%f,%f,%d",teapotBinormals[0],teapotTangents[0],_data3D->numIndices);
+
+			*/
 		}
 		sprite->alpha = 0.5;
 		Sprite*contener= Sprite_new();
@@ -2260,33 +2051,6 @@ int main(int argc, char *argv[])
 		contener->w = stage->stage_w;
 		contener->h = stage->stage_h;
 		Sprite_addEventListener(sprite,SDL_MOUSEMOTION,mouseMove);
-		/***
-		  Sprite*sprite2 = Sprite_new();
-		  sprite2->surface = SDL_LoadBMP(path);
-		//sprite2->texture = SDL_CreateTextureFromSurface(stage->renderer,sprite2->surface);
-		//sprite2->filter= 3;
-		sprite2->rotationZ =90;
-		sprite2->x =0;
-		sprite2->y =0;
-		//sprite2->w =stage->stage_w;
-		//sprite2->h =stage->stage_h;
-		//sprite2->scaleX =2.0;
-		//sprite2->scaleY =2.0;
-		sprite2->mouseChildren = SDL_FALSE;
-		sprite2->canDrag = SDL_TRUE;
-		SDL_Rect rect;
-		rect.x = 0;
-		rect.y = 0;
-		rect.w = 0;
-		rect.h = stage->stage_h-sprite2->h;
-		sprite2->dragRect = &rect;
-		Sprite_addChild(stage->sprite,sprite2);
-
-		Sprite_addEventListener(sprite2,SDL_MOUSEBUTTONDOWN,mouseDown);
-		//Sprite_removeEventListener(sprite2,SDL_MOUSEBUTTONDOWN,mouseDown);
-		*/
-	}else{
-		printf("-------------\n");
 	}
 	Sprite*sprite3 = Sprite_new();
 	sprite3->surface = (SDL_LoadBMP(path));
@@ -2304,32 +2068,8 @@ int main(int argc, char *argv[])
 	sprite3->mask= &rect;
 	sprite3->canDrag = SDL_TRUE;
 	Sprite_addChild(stage->sprite,sprite3);
-	//sprite3->visible = 0;
 	Sprite_addEventListener(sprite3,SDL_MOUSEBUTTONDOWN,mouseDown);
-	/***
-	  SDL_Log("stage ----------- size:%dx%d\n",stage->stage_w,stage->stage_h);
-	  Sprite *sprite4 = Sprite_new();
-	  sprite4->surface = Httploader_loadimg("http://res1.huaien.com/images/tx.jpg");
-	  sprite4->alpha = .9;
-	  sprite4->filter= 1;
-	  sprite4->w =stage->stage_w;
-	  sprite4->h =stage->stage_h;
-	  if(sprite4->surface){
-	//sprite4->rotationZ = 180;
-	Sprite_center(sprite4,0,0,stage->stage_w,stage->stage_h);
-	Sprite_addChildAt(stage,sprite4,0);
-	}else{
-	Sprite_destroy(sprite4);
-	}
-	*/
-	//Stage_redraw();
-	//Sprite_alertText("hello,一切正常！");
 	Stage_loopEvents();
-	//SDL_Delay(20);
-	//exit(0);
 	return 0;
-	/**
-	  SDL_SaveBMP(Stage_readpixel(stage,sprite4->Bounds),"stage.bmp");
-	  */
 }
 #endif

@@ -168,7 +168,6 @@ typedef struct Sprite{
 } Sprite;
 
 typedef struct Stage{
-	int is3D;
 	Sprite * currentTarget;
 	SDL_GLContext GLEScontext;
 	SDL_Renderer * renderer;//renderer
@@ -260,6 +259,7 @@ void Sprite_rotate(Sprite*sprite,int _rotationX,int _rotationY,int _rotationZ);
 void Sprite_scale(Sprite*sprite,float scaleX,float scaleY,float scaleZ);
 
 GLuint SDL_GL_LoadTexture(Sprite * sprite, GLfloat * texcoord);
+int Sprite_getTextureId(Sprite * sprite);
 SDL_Surface * Surface_new(int width,int height);
 SDL_Surface * RGBA_surface(SDL_Surface * surface);
 SDL_Surface * Stage_readpixel(Sprite *stage,SDL_Rect* rect);

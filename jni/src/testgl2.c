@@ -35,7 +35,7 @@ int LoadContext(GL_Context * data)
 	do { \
 		data->func = SDL_GL_GetProcAddress(#func); \
 		if ( ! data->func ) { \
-			return SDL_SetError("Couldn't load GLES2 function %s: %s\n", #func, SDL_GetError()); \
+			return SDL_SetError("Couldn't load GL2 function %s: %s\n", #func, SDL_GetError()); \
 		} \
 	} while ( 0 );
 #endif /* _SDL_NOGETPROCADDR_ */

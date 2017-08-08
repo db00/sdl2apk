@@ -4,7 +4,228 @@
  gcc -g -Wall -I"../SDL2/include/" -I"." -D GLchar=char sprite2.c array.c matrix.c -lGLESv2 -lmingw32 -lSDL2main -lSDL2 -Ddebug_sprite && a
  apt-get install -y libpcap-dev libsqlite3-dev sqlite3 libpcap0.8-dev libssl-dev build-essential iw tshark
  */
-#include "sprite.h"
+#ifndef sprite_h
+#define sprite_h
+
+#include "SDL_platform.h"
+#include "matrix.h"
+#include "array.h"
+
+#if defined(__MACOS__) || ( !defined(__IPHONEOS__) && !defined(__ANDROID__) && !defined(__EMSCRIPTEN__) && !defined(__NACL__)) && !defined(linux) && !defined(__WIN32__) && !defined(__WIN64__)
+#ifndef HAVE_OPENGL
+#define HAVE_OPENGL
+#endif
+#endif
+
+#ifndef HAVE_OPENGL
+#include "SDL_opengles2.h"
+#else
+#include "SDL_opengl.h"
+#endif
+
+#ifdef __EMSCRIPTEN__
+#include <emscripten/emscripten.h>
+#endif
+
+typedef struct GLES2_Context
+{
+#define SDL_PROC(ret,func,params) ret (APIENTRY *func) params;
+#ifndef HAVE_OPENGL
+#include "SDL_gles2funcs.h"
+#else
+#include "SDL_glfuncs.h"
+#endif
+#undef SDL_PROC
+} GLES2_Context;
+
+
+#define GL_CHECK(x) \
+	x; \
+{ \
+	GLenum glError = gles2.glGetError(); \
+	if(glError != GL_NO_ERROR) { \
+		SDL_Log("glGetError() = %i (0x%.8x) at line %i\t", glError, glError, __LINE__); \
+		quit(1);\
+	} \
+}
+
+typedef struct SpriteEvent{
+	Uint32 type;
+	SDL_Event *e;//对应SDL_Event
+	void(*func)(struct SpriteEvent*);//
+	struct Sprite*target;
+	unsigned int lastEventTime;//ensure not dispatch only once
+}SpriteEvent;
+
+typedef struct Point3d{
+	int x;
+	int y;
+	int z;
+	float scaleX;
+	float scaleY;
+	float scaleZ;
+	int rotationX;
+	int rotationY;
+	int rotationZ;
+}Point3d;
+
+typedef struct Data3d
+{//默认3d结构体
+	GLuint vboIds[2];
+	GLuint programObject;
+	GLint  positionLoc;
+	GLint  texCoordLoc;
+	GLint  samplerLoc;
+	GLint  mvpLoc;
+	GLint  alphaLoc;
+
+	int numVertices;
+	int      numIndices;
+	GLfloat *vertices;
+	GLfloat *normals;
+	GLfloat *texCoords;
+	GLuint  *indices;
+} Data3d;
+
+typedef struct World3d{//
+	float fovy;
+	float aspect;
+	float nearZ;
+	float farZ;
+	Matrix3D perspective;
+} World3d;
+
+typedef struct Sprite{
+	int is3D;//1:is3D,0:2d;
+	char * name;
+	int visible;
+	SDL_Rect * Bounds;//鼠标响应区,(窗口坐标)
+	SDL_Rect * mask;//遮罩区域，(窗口坐标)
+	SDL_Surface * surface;//
+	SDL_Texture * texture;//显示信息
+	SDL_Rect * dragRect;//非null可拖拽,(窗口坐标)
+	SDL_bool canDrag;//可拖拽
+	struct Sprite*parent;//显示在舞台的父节点
+	Array *children;//Sprite Array 子节点数组;
+	SDL_bool mouseChildren;//鼠标可点击到子节点
+
+	Array *events;//SpriteEvent Array;添加的事件
+
+	//gl data
+	Matrix3D *globeToLocalMatrix;
+	Matrix3D *localToGlobeMatrix;
+	Matrix3D  mvpMatrix;
+
+	GLuint textureId;
+	GLuint renderbuffer;
+	GLuint framebuffer;
+
+	void *data3d;//默认是 Data3d 结构体
+	void (*showFunc)(struct Sprite*);// 其他3d显示
+	void (*destroyFunc)(struct Sprite*);// 其他3d销毁
+#ifdef __IPHONEOS__
+	GLfloat *texCoords;//
+#endif
+	void * tween;//动画效果
+	void (*Tween_kill)(void*,int);//动画效果清除,arguments[0]:tween,arguments[1]:toEnd
+
+	int x;//(窗口坐标)
+	int y;//(窗口坐标)
+	int z;//(窗口坐标)
+
+	int w;//(窗口坐标)
+	int h;//(窗口坐标)
+
+	GLfloat alpha;
+
+	float scaleX;
+	float scaleY;
+	float scaleZ;
+
+	int rotationX;
+	int rotationY;
+	int rotationZ;
+
+	void * obj;//继承属性
+	void * other;//其他属性
+} Sprite;
+
+typedef struct Stage{
+	Sprite * currentTarget;
+	SDL_GLContext * GLEScontext;
+	SDL_Renderer * renderer;//renderer
+	SDL_Window * window;//
+	Sprite * focus;//舞台焦点
+	Sprite * sprite;//舞台焦点
+	SDL_Point*mouse;//鼠标位置
+	int stage_w;
+	int stage_h;
+	unsigned int lastEventTime;
+	unsigned int numsprite;//
+	World3d * world;
+	void * sound;
+}Stage;
+
+typedef void (*EventFunc)(SpriteEvent*); 
+
+Data3d * Data3D_init();
+Data3d * Data3D_new();
+void Data3d_reset(Data3d * data3D);
+void Data3d_set(Data3d * data3D,Data3d * _data3D);
+
+
+extern Stage *stage;
+Stage * Stage_init();
+void Stage_loopEvents();
+
+extern GLES2_Context gles2;
+
+Sprite * Sprite_new();
+float Sprite_getAlpha(Sprite * sprite);
+Point3d *Sprite_localToGlobal(Sprite*sprite,Point3d *p);
+Sprite*Sprite_removeChild(Sprite*parent,Sprite*sprite);
+Sprite * Sprite_getChildByIndex(Sprite * sprite,int index);
+int Sprite_getChildIndex(Sprite*parent,Sprite*sprite);
+SDL_bool Sprite_contains(Sprite*parent,Sprite*sprite);
+Sprite* Sprite_getChildByName(Sprite*sprite,const char*name);
+int Sprite_dispatchEvent(Sprite*sprite,const SDL_Event *event);
+int Sprite_addEventListener(Sprite*sprite,Uint32 type,EventFunc func);
+int Sprite_removeEventListener(Sprite*sprite,Uint32 type,EventFunc func);
+void Sprite_removeEvents(Sprite * sprite);
+Sprite * Sprite_addChildAt(Sprite*parent,Sprite*sprite,int index);
+Sprite * Sprite_addChild(Sprite*parent,Sprite*sprite);
+Sprite * getSpriteByStagePoint(int x,int y);
+Sprite * Sprite_removeChildAt(Sprite*sprite,int index);
+int Sprite_destroy(Sprite*sprite);
+
+int Sprite_removeChildren(Sprite*sprite);
+int Stage_redraw();
+int Sprite_limitPosion(Sprite*target,SDL_Rect*rect);
+SDL_Rect * Sprite_getBorder(Sprite*sprite,SDL_Rect*rect);
+
+void Sprite_destroySurface(Sprite*sprite);
+void Sprite_destroyTexture(Sprite*sprite);
+
+float xto3d(int x);
+float yto3d(int y);
+float zto3d(int z);
+float wto3d(int x);
+float hto3d(int x);
+
+SDL_UserEvent * UserEvent_new(Uint32 type,Sint32 code,void*data1,void*data2);
+
+GLuint LoadShader(GLenum type, GLbyte *shaderSrc);
+
+void Sprite_rotate(Sprite*sprite,int _rotationX,int _rotationY,int _rotationZ);
+
+GLuint SDL_GL_LoadTexture(Sprite * sprite, GLfloat * texcoord);
+int Sprite_getTextureId(Sprite * sprite);
+SDL_Surface * Surface_new(int width,int height);
+void quit(int rc);
+void Sprite_matrix(Sprite *sprite);
+int Window_resize(int w,int h);
+int Sprite_getVisible(Sprite*sprite);
+#endif
 
 GLES2_Context gles2;
 Stage * stage = NULL;
@@ -146,13 +367,7 @@ GLuint SDL_GL_LoadTexture(Sprite * sprite, GLfloat * texcoord)
 	GL_CHECK(gles2.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, image->pixels));
 	GL_CHECK(gles2.glBindTexture(GL_TEXTURE_2D, 0));
 
-
 	SDL_FreeSurface(image);     /* No longer needed */
-
-
-
-
-
 	return texture;
 }
 
@@ -322,7 +537,7 @@ static void initGL()
 	SDL_GL_SetAttribute(SDL_GL_ACCUM_ALPHA_SIZE, 0);
 	SDL_GL_SetAttribute(SDL_GL_STEREO, 0);
 	SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 1);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 #if !defined(__MACOS__)
 	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);//or -1
@@ -426,11 +641,6 @@ Stage * Stage_init()
 				Matrix_identity(&stage->world->perspective);
 				esPerspective( &stage->world->perspective, stage->world->fovy, stage->world->aspect, stage->world->nearZ, stage->world->farZ);
 				esTranslate(&stage->world->perspective,0,0,-2.0);
-#if 1
-				stage->lightDirection[0]=1.0;
-				stage->lightDirection[1]=1.0;
-				stage->lightDirection[2]=-.0;
-#endif
 
 			}
 			Data3D_init();
@@ -473,25 +683,6 @@ Point3d * Sprite_localToGlobal(Sprite*sprite,Point3d *p)
 }
 
 
-
-Point3d * Sprite_GlobalToLocal(Sprite*sprite,Point3d*p)
-{
-	if(sprite == NULL)
-		return NULL;
-	if(p==NULL)
-		p = malloc(sizeof(Point3d));
-	p->x -= sprite->x;
-	p->y -= sprite->y;
-
-	Sprite * curParent = sprite->parent;
-	while(curParent)
-	{
-		p->x -=curParent->x;
-		p->y -=curParent->y;
-		curParent = curParent->parent;
-	}
-	return p;
-}
 
 
 int Sprite_getTextureId(Sprite * sprite)
@@ -555,31 +746,12 @@ static GLfloat * Sprite_getVertices(Sprite * sprite)
 			_x+_w,	_y,		0.0f	// Position 3	//top right
 		};
 
+		_data3D->numVertices = 4;
 		_data3D->vertices = (GLfloat*)malloc(sizeof(vertices));
 		memcpy(_data3D->vertices,vertices,sizeof(vertices));
 	}
 	return _data3D->vertices;
 }
-
-static GLfloat * Sprite_getNormals(Sprite * sprite)
-{
-	Data3d*_data3D = sprite->data3d;
-	// Load the vertex normals 
-	if(_data3D->normalLoc>=0){
-		if(_data3D->normals==NULL){
-			GLfloat normals[] = {
-				0.0f,0.0f,0.0f,	// Position 0	//top left
-				0.0f,0.0f,0.0f,	// Position 1	//bottom left
-				0.0f,0.0f,0.0f,	// Position 2	//bottom right
-				0.0f,0.0f,0.0f	// Position 3	//top right
-			};
-			_data3D->normals = (GLfloat*)malloc(sizeof(normals));
-			memcpy(_data3D->normals,normals,sizeof(normals));
-		}
-	}
-	return _data3D->normals;
-}
-
 
 static GLfloat * Sprite_getTexCoords(Sprite * sprite)
 {
@@ -607,24 +779,6 @@ static GLfloat * Sprite_getTexCoords(Sprite * sprite)
 	return _data3D->texCoords;
 }
 
-static void Sprite_getAmbient(Sprite * sprite)
-{
-	Data3d*_data3D = sprite->data3d;
-	if(_data3D->ambientLoc >=0){
-		if( stage->ambient[0]==0 && stage->ambient[1]==0 && stage->ambient[2]==0 && stage->ambient[3]==0){
-			stage->ambient[0]=.9;
-			stage->ambient[1]=.9;
-			stage->ambient[2]=.9;
-			stage->ambient[3]=1.0;
-		}
-		if( sprite->ambient[0]==0 && sprite->ambient[1]==0 && sprite->ambient[2]==0 && sprite->ambient[3]==0){
-			sprite->ambient[0]=stage->ambient[0];
-			sprite->ambient[1]=stage->ambient[1];
-			sprite->ambient[2]=stage->ambient[2];
-			sprite->ambient[3]=stage->ambient[3];
-		}
-	}
-}
 
 static void Data3d_show(Sprite*sprite)
 {
@@ -677,56 +831,54 @@ static void Data3d_show(Sprite*sprite)
 	{
 		_data3D->vertices = Sprite_getVertices(sprite);
 	}
-	if(sprite->framebuffer==0)
-	{
-		GL_CHECK(gles2.glGenFramebuffers(1, &sprite->framebuffer));
-		GL_CHECK(gles2.glGenRenderbuffers(1, &sprite->renderbuffer));
+	_data3D->indices = Sprite_getIndices(sprite);
 
-		GL_CHECK(gles2.glBindRenderbuffer(GL_RENDERBUFFER, sprite->renderbuffer));
-		//GL_CHECK(gles2.glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, surface->w, surface->h));
-		GL_CHECK(gles2.glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8_OES, sprite->w, sprite->h));
+	/*
+	   if(sprite->framebuffer==0)
+	   {
+	   GL_CHECK(gles2.glGenFramebuffers(1, &sprite->framebuffer));
+	   GL_CHECK(gles2.glGenRenderbuffers(1, &sprite->renderbuffer));
 
-		//GL_COLOR_ATTACHMENT0 GL_DEPTH_ATTACHMENT GL_STENCIL_ATTACHMENT
-		GL_CHECK(gles2.glBindFramebuffer(GL_FRAMEBUFFER, sprite->framebuffer));
-		GL_CHECK(gles2.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, sprite->textureId, 0));
-		GL_CHECK(gles2.glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, sprite->renderbuffer));
+	   GL_CHECK(gles2.glBindRenderbuffer(GL_RENDERBUFFER, sprite->renderbuffer));
+	//GL_CHECK(gles2.glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, surface->w, surface->h));
+	GL_CHECK(gles2.glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA8_OES, sprite->w, sprite->h));
 
-		//GL_CHECK(gles2.glGenbuffers(1, &sprite->buffer));
-		//GL_CHECK(gles2.glBufferData(GL_ARRAY_BUFFER,9*sizeof(GLfloat),_data3D->vertices, GL_STATIC_DRAW GL_DYNAMIC_DRAW GL_STREAM_DRAW));  
-		//GL_CHECK(gles2.glBufferSubData(GL_ARRAY_BUFFER or GL_ELEMENT_ARRAY_BUFFER,  GLintptr offset,  GLsizeiptr size,  const GLvoid * data));
-		//GL_CHECK(gles2.glBindBuffer(GL_ARRAY_BUFFER, sprite->buffer));  
-		
+	//GL_COLOR_ATTACHMENT0 GL_DEPTH_ATTACHMENT GL_STENCIL_ATTACHMENT
+	GL_CHECK(gles2.glBindFramebuffer(GL_FRAMEBUFFER, sprite->framebuffer));
+	GL_CHECK(gles2.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, sprite->textureId, 0));
+	GL_CHECK(gles2.glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, sprite->renderbuffer));
+
+	//GL_CHECK(gles2.glGenbuffers(1, &sprite->buffer));
+	//GL_CHECK(gles2.glBufferData(GL_ARRAY_BUFFER,9*sizeof(GLfloat),_data3D->vertices, GL_STATIC_DRAW GL_DYNAMIC_DRAW GL_STREAM_DRAW));  
+	//GL_CHECK(gles2.glBufferSubData(GL_ARRAY_BUFFER or GL_ELEMENT_ARRAY_BUFFER,  GLintptr offset,  GLsizeiptr size,  const GLvoid * data));
+	//GL_CHECK(gles2.glBindBuffer(GL_ARRAY_BUFFER, sprite->buffer));  
+
 	}
 	GL_CHECK(gles2.glBindFramebuffer(GL_FRAMEBUFFER, 0));
 	GLenum status = GL_CHECK(gles2.glCheckFramebufferStatus(GL_FRAMEBUFFER));
 	if(status == GL_FRAMEBUFFER_COMPLETE)
 	{
-		GL_CHECK(gles2.glBindRenderbuffer(GL_RENDERBUFFER, 0));
+	GL_CHECK(gles2.glBindRenderbuffer(GL_RENDERBUFFER, 0));
 	}else{
-		return;
+	return;
 	}
+	*/
 
 	if(_data3D->positionLoc>0){
-		GL_CHECK(gles2.glVertexAttribPointer ( _data3D->positionLoc, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), _data3D->vertices));
 		GL_CHECK(gles2.glEnableVertexAttribArray ( _data3D->positionLoc ));
+		GL_CHECK(gles2.glVertexAttribPointer ( _data3D->positionLoc, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), _data3D->vertices));
 	}
 	if(sprite->textureId>0){
 		GL_CHECK(gles2.glActiveTexture ( GL_TEXTURE0 ));
 		GL_CHECK(gles2.glBindTexture ( GL_TEXTURE_2D, sprite->textureId ));
 	}
 
-	_data3D->normals = Sprite_getNormals(sprite);
-	if(_data3D->normals)
-	{
-		GL_CHECK(gles2.glVertexAttribPointer ( _data3D->normalLoc, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), _data3D->normals));
-		GL_CHECK(gles2.glEnableVertexAttribArray ( _data3D->normalLoc));
-	}
 
 	_data3D->texCoords = Sprite_getTexCoords(sprite);
 	if(_data3D->texCoords)
 	{
-		GL_CHECK(gles2.glVertexAttribPointer ( _data3D->texCoordLoc, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), _data3D->texCoords));
 		GL_CHECK(gles2.glEnableVertexAttribArray ( _data3D->texCoordLoc ));
+		GL_CHECK(gles2.glVertexAttribPointer ( _data3D->texCoordLoc, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), _data3D->texCoords));
 	}
 
 	// Set the sampler texture unit to 0
@@ -737,28 +889,36 @@ static void Data3d_show(Sprite*sprite)
 		GL_CHECK(gles2.glUniform1f( _data3D->alphaLoc, Sprite_getAlpha(sprite)));
 
 
-	Sprite_getAmbient(sprite);
-	GL_CHECK(gles2.glUniform4f( _data3D->ambientLoc, sprite->ambient[0], sprite->ambient[1], sprite->ambient[2], sprite->ambient[3]));
-	if(_data3D->lightDirection>=0){
-		GL_CHECK(gles2.glUniform3f(_data3D->lightDirection, stage->lightDirection[0], stage->lightDirection[1], stage->lightDirection[2]));
-	}
 
 	if(_data3D->mvpLoc>=0){
 		Sprite_matrix(sprite);
 		GL_CHECK(gles2.glUniformMatrix4fv( _data3D->mvpLoc, 1, GL_FALSE, (GLfloat*) &sprite->mvpMatrix.rawData[0][0]));
 	}
 
-	_data3D->indices = Sprite_getIndices(sprite);
+	if ( _data3D->vboIds[0] == 0 && _data3D->vboIds[1] == 0 )
+	{
+		GL_CHECK(gles2.glGenBuffers ( 2, _data3D->vboIds));
+		GL_CHECK(gles2.glBindBuffer ( GL_ARRAY_BUFFER, _data3D->vboIds[0] ));
+		GL_CHECK(gles2.glBufferData ( GL_ARRAY_BUFFER, 3*sizeof(GLfloat)*_data3D->numVertices, _data3D->vertices, GL_STATIC_DRAW ));
+		GL_CHECK(gles2.glBindBuffer ( GL_ELEMENT_ARRAY_BUFFER, _data3D->vboIds[1] ));
+		GL_CHECK(gles2.glBufferData ( GL_ELEMENT_ARRAY_BUFFER, 3*sizeof(GLushort)*_data3D->numIndices, _data3D->indices, GL_STATIC_DRAW ));
+	}
+	GL_CHECK(gles2.glBindBuffer ( GL_ARRAY_BUFFER, _data3D->vboIds[0] ));
+	GL_CHECK(gles2.glBindBuffer ( GL_ELEMENT_ARRAY_BUFFER, _data3D->vboIds[1] ));
+
 	if(_data3D->numIndices>0){
-		GL_CHECK(gles2.glDrawElements(GL_TRIANGLES, _data3D->numIndices, GL_UNSIGNED_INT, _data3D->indices));
+		//GL_CHECK(gles2.glDrawElements(GL_TRIANGLES, _data3D->numIndices, GL_UNSIGNED_INT, _data3D->indices));
+		GL_CHECK(gles2.glDrawElements(GL_TRIANGLES, _data3D->numIndices, GL_UNSIGNED_INT, 0));
 	}
 
 	if(_data3D->positionLoc>=0)
 		GL_CHECK(gles2.glDisableVertexAttribArray(_data3D->positionLoc));
-	if(_data3D->normalLoc>=0)
-		GL_CHECK(gles2.glDisableVertexAttribArray(_data3D->normalLoc));
 	if(_data3D->texCoordLoc>=0)
 		GL_CHECK(gles2.glDisableVertexAttribArray(_data3D->texCoordLoc));
+
+	GL_CHECK(gles2.glBindBuffer ( GL_ARRAY_BUFFER, 0 ));
+	GL_CHECK(gles2.glBindBuffer ( GL_ELEMENT_ARRAY_BUFFER, 0));
+
 	GL_CHECK(gles2.glDisable( GL_SCISSOR_TEST));
 	//GL_CHECK(gles2.glEnable ( GL_DEPTH_TEST));
 	GL_CHECK(gles2.glUseProgram (0));
@@ -883,8 +1043,6 @@ Sprite * Sprite_getChildByName(Sprite*sprite,const char*name)
 	return NULL;
 }
 
-
-
 SDL_UserEvent * UserEvent_new(Uint32 type,Sint32 code,void*func,void*param)
 {
 	if(type==0){//SDL_USEREVENT
@@ -909,12 +1067,6 @@ SDL_UserEvent * UserEvent_new(Uint32 type,Sint32 code,void*func,void*param)
 	if(type == SDL_USEREVENT)//no need free
 		event = NULL;
 	return (SDL_UserEvent*)event;
-}
-
-void UserEvent_clear(SDL_UserEvent * event)
-{
-	if(event)
-		free(event);
 }
 
 void Sprite_removeEvents(Sprite * sprite)
@@ -1067,7 +1219,7 @@ Sprite * Sprite_addChildAt(Sprite*parent,Sprite*sprite,int index)
 	return sprite;
 }
 
-Sprite*Sprite_addChild(Sprite*parent,Sprite*sprite)
+Sprite * Sprite_addChild(Sprite*parent,Sprite*sprite)
 {
 	if(parent==NULL)
 		return sprite;
@@ -1151,11 +1303,6 @@ Sprite * Sprite_removeChildAt(Sprite*sprite,int index)
 	}
 	return child;
 }
-/**
- *
- * surface->refcount--;
- * Sprite_setSurface():surface->refcount ++;
- */
 void Sprite_destroySurface(Sprite*sprite)
 {
 	if(sprite->surface){
@@ -1347,12 +1494,6 @@ int Sprite_limitPosion(Sprite*target,SDL_Rect*rect)
 	return 0;
 }
 
-static int stopPropagation=0;
-void Sprite_stopPropagation(Sprite * target)
-{
-	//target->stopPropagation = 1;
-	stopPropagation = 1;
-}
 
 static void bubbleEvent(Sprite*target,SDL_Event*event)
 {
@@ -1364,14 +1505,6 @@ static void bubbleEvent(Sprite*target,SDL_Event*event)
 			//SDL_Log("bubbleEvent:%s",target->name);
 			if(target==stage->currentTarget)
 				Sprite_dispatchEvent(target,event);
-		}
-		if(stopPropagation){
-			stopPropagation = 0;
-			return;
-		}
-		if(target->stopPropagation){
-			target->stopPropagation = 0;
-			return;
 		}
 		if(target && stage->currentTarget==target)
 		{
@@ -1665,10 +1798,7 @@ void Data3d_reset(Data3d * data3D)
 	if(data3D)
 	{
 		data3D->alphaLoc = -1;
-		data3D->ambientLoc= -1;
-		data3D->lightDirection = -1;
 		data3D->mvpLoc= -1;
-		data3D->normalLoc = -1;
 		data3D->positionLoc = -1;
 		data3D->samplerLoc = -1;
 		data3D->texCoordLoc = -1;
@@ -1681,10 +1811,7 @@ void Data3d_set(Data3d * data3D,Data3d * _data3D)
 		data3D->programObject = _data3D->programObject;
 
 		data3D->alphaLoc = _data3D->alphaLoc;
-		data3D->ambientLoc = _data3D->ambientLoc;
-		data3D->lightDirection = _data3D->lightDirection;
 		data3D->mvpLoc= _data3D->mvpLoc;
-		data3D->normalLoc = _data3D->normalLoc;
 		data3D->positionLoc = _data3D->positionLoc;
 		data3D->samplerLoc = _data3D->samplerLoc;
 		data3D->texCoordLoc = _data3D->texCoordLoc;
@@ -1706,42 +1833,29 @@ Data3d * Data3D_init()
 			"uniform mat4 u_mvpMatrix;    \n"
 			"attribute vec2 a_texCoord;   \n"
 			"attribute vec3 a_position;   \n"
-			"attribute vec3 a_normal;   \n"
 			"varying vec2 v_texCoord;     \n"
-			"varying vec3 v_normal;     \n"
 			"varying mat4 v_matrix;     \n"
 			"void main()                  \n"
 			"{                            \n"
 			"	gl_Position = u_mvpMatrix * vec4(a_position,1.0);  \n"//
 			"	v_texCoord = a_texCoord;  \n"
-			"	v_normal = a_normal;  \n"
 			"	v_matrix = u_mvpMatrix;  \n"
 			"}                            \n";
 
-		/* fragment shader */
 		GLbyte fShaderStr[] =  
 #ifndef HAVE_OPENGL
 			"precision mediump float;                            \n"
 #endif
-			//"uniform mat4 u_mvpMatrix;    \n"
 			"varying mat4 v_matrix;     \n"
-			"uniform vec3 lightDirection;    \n"
 			"uniform float u_alpha;   		\n"
 			"uniform sampler2D s_texture;                        \n"
-			"uniform vec4 Ambient;" // sets lighting level, same across many vertices
 			"varying vec2 v_texCoord;                            \n"
-			"varying vec3 v_normal;     \n"
 			"void main()                                         \n"
 			"{                                                   \n"
 			"	vec4 vsampler = texture2D( s_texture, v_texCoord );\n"
-			"	vec4 color = vsampler*Ambient;"//环境光
+			"	vec4 color = vsampler;"//环境光
 			"	float alpha = color.w;"//环境光
 			"	\n"
-			"	if( v_normal!=vec3(0.0)){\n"
-			"		float l = dot(normalize(vec4(v_matrix*vec4(v_normal,1.0))),normalize(vec4(lightDirection,1.0)))*.5;"
-			"		if(lightDirection!=vec3(0.0))"
-			"			color += max(0.0,l);\n"//单面光照
-			"	}\n"
 			"	if(u_alpha>=0.0&&u_alpha<1.0)\n"
 			"		color =vec4(vec3(color),alpha*u_alpha);\n"
 			"	gl_FragColor = min(color,1.0);\n"
@@ -1750,31 +1864,14 @@ Data3d * Data3D_init()
 		data2D->programObject = esLoadProgram ( vShaderStr, fShaderStr );
 
 		if(data2D->programObject){
-			data2D->normalLoc= GL_CHECK(gles2.glGetAttribLocation( data2D->programObject, "a_normal"));
 			data2D->texCoordLoc = GL_CHECK(gles2.glGetAttribLocation ( data2D->programObject, "a_texCoord" ));
 			data2D->samplerLoc = GL_CHECK(gles2.glGetUniformLocation ( data2D->programObject, "s_texture" ));
 			data2D->alphaLoc = GL_CHECK(gles2.glGetUniformLocation (data2D->programObject, "u_alpha"));
 			data2D->mvpLoc = GL_CHECK(gles2.glGetUniformLocation( data2D->programObject, "u_mvpMatrix" ));
 			data2D->positionLoc = GL_CHECK(gles2.glGetAttribLocation ( data2D->programObject, "a_position" ));
-			data2D->ambientLoc = GL_CHECK(gles2.glGetUniformLocation ( data2D->programObject, "Ambient" ));
-			data2D->lightDirection= GL_CHECK(gles2.glGetUniformLocation( data2D->programObject, "lightDirection"));
 		}
 	}
 	return data2D;
-}
-
-void Sprite_translate(Sprite*sprite,int _x,int _y,int _z)
-{
-	sprite->x = _x;
-	sprite->y = _y;
-	sprite->z = _z;
-}
-
-void Sprite_scale(Sprite*sprite,float scaleX,float scaleY,float scaleZ)
-{
-	sprite->scaleX = scaleX;
-	sprite->scaleY = scaleY;
-	sprite->scaleZ = scaleZ;
 }
 
 
@@ -1802,167 +1899,9 @@ float yto3d(int y){
 float zto3d(int z){
 	return z*1.0/stage->stage_w;
 }
-int zfrom3d(float z){
-	return (int)((z)*stage->stage_w);
-}
-int xfrom3d(float x){
-	return (int)((x/stage->world->aspect + 1.0)*stage->stage_w/2.0);
-}
-int yfrom3d(float y){
-	return (int)((1.0 - y)*stage->stage_h/2.0);
-}
-int wfrom3d(float w){
-	return (int)((w/stage->world->aspect)*stage->stage_w/2.0);
-}
-int hfrom3d(float h){
-	return (int)((h)*stage->stage_h/2.0);
-}
 
 
-/**
- *
- * surface->refcount ++;
- * Sprite_destroySurface():surface->refcount--;
- */
-void Sprite_setSurface(Sprite*sprite,SDL_Surface * surface)
-{
-	if(sprite==NULL)
-		return;
-	sprite->textureId = 0;
-	Sprite_destroySurface(sprite);
-	Sprite_destroyTexture(sprite);
-	if(surface){
-		sprite->surface = surface;
-		surface->refcount++;
-	}
 
-}
-
-
-void Sprite_center(Sprite*sprite,int x,int y,int w,int h)
-{
-	if(sprite == NULL)return;
-	if(sprite->w * sprite->h > 0){
-	}else if(sprite->surface){
-		sprite->w = sprite->surface->w;
-		sprite->h = sprite->surface->h;
-	}
-	sprite->x = x + w/2 - sprite->w/2;
-	sprite->y = y + h/2 - sprite->h/2;
-}
-void Sprite_centerRect(Sprite*sprite,SDL_Rect*rect)
-{
-	if(sprite && rect)
-	{
-		Sprite_center(sprite,rect->x,rect->y,rect->w,rect->h);
-	}
-}
-
-void Sprite_fullcenter(Sprite*sprite,int x,int y,int w,int h)
-{
-	if(sprite == NULL)return;
-	if(sprite->w * sprite->h == 0){
-		if(sprite->surface){
-			sprite->w = sprite->surface->w;
-			sprite->h = sprite->surface->h;
-		}else{
-			return;
-		}
-	}
-	float scaleX = (float)w/sprite->w;
-	float scaleY = (float)h/sprite->h;
-	float scale = scaleX<scaleY?scaleX:scaleY;
-	sprite->w = scale*sprite->w;
-	sprite->h = scale*sprite->h;
-	Sprite_center(sprite,x,y,w,h);
-}
-void Sprite_fullcenterRect(Sprite*sprite,SDL_Rect*rect)
-{
-	if(sprite && rect)
-	{
-		Sprite_fullcenter(sprite,rect->x,rect->y,rect->w,rect->h);
-	}
-}
-
-SDL_Surface * Stage_readpixel(Sprite *sprite,SDL_Rect* rect)
-{
-	int w = rect->w;
-	int h = rect->h;
-	int x = rect->x;
-	int y = rect->y;
-
-	Uint32 rmask, gmask, bmask, amask;
-
-	GLint readType, readFormat;
-	GL_CHECK(gles2.glGetIntegerv(GL_IMPLEMENTATION_COLOR_READ_TYPE, &readType));
-	GL_CHECK(gles2.glGetIntegerv(GL_IMPLEMENTATION_COLOR_READ_FORMAT, &readFormat));
-	unsigned int bytesPerPixel = 0;
-	switch(readType)
-	{
-		case GL_UNSIGNED_BYTE:
-			switch(readFormat)
-			{
-				case GL_RGBA:
-					bytesPerPixel = 4;
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-					rmask = 0xff000000;
-					gmask = 0x00ff0000;
-					bmask = 0x0000ff00;
-					amask = 0x000000ff;
-#else
-					rmask = 0x000000ff;
-					gmask = 0x0000ff00;
-					bmask = 0x00ff0000;
-					amask = 0xff000000;
-#endif
-					break;
-				case GL_RGB:
-					bytesPerPixel = 3;
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-					rmask = 0xff0000;
-					gmask = 0x00ff00;
-					bmask = 0x0000ff;
-					amask = 0x0;
-#else
-					rmask = 0x0;
-					gmask = 0x0000ff;
-					bmask = 0x00ff00;
-					amask = 0xff0000;
-#endif
-					break;
-				case GL_LUMINANCE_ALPHA:
-					bytesPerPixel = 2;
-					break;
-				case GL_ALPHA:
-				case GL_LUMINANCE:
-					bytesPerPixel = 1;
-					break;
-			}
-			break;
-		case GL_UNSIGNED_SHORT_4_4_4_4:
-		case GL_UNSIGNED_SHORT_5_5_5_1:
-		case GL_UNSIGNED_SHORT_5_6_5:
-			bytesPerPixel = 2;
-			break;
-			// GL_RGBA format
-			// GL_RGBA format
-			// GL_RGB format
-	}
-	SDL_Surface *surface;
-	surface = SDL_CreateRGBSurface(0, w, h, bytesPerPixel*8, rmask, gmask, bmask, amask);
-	if(surface == NULL) {
-		fprintf(stderr, "CreateRGBSurface failed: %s\n", SDL_GetError());
-		return NULL;
-	}
-
-
-	int line = 0;
-	for(line=0;line<h;line++){
-		GL_CHECK(gles2.glReadPixels(x,  y+line,  w,  1,  GL_RGBA, GL_UNSIGNED_BYTE,  (GLubyte*)(surface->pixels)+w*(h-line-1)*4));
-	}
-	//GL_CHECK(gles2.glReadPixels(x,  y,  w,  h,  GL_RGBA, GL_UNSIGNED_BYTE,  (GLubyte*)(surface->pixels)));
-	return surface;
-}
 
 #ifdef debug_sprite
 
@@ -1998,7 +1937,6 @@ static void mouseMove(SpriteEvent*e)
 	}
 }
 
-#include "teapot.h"
 #include "files.h"
 #include "SDL_image.h"
 int main(int argc, char *argv[])
@@ -2027,20 +1965,23 @@ int main(int argc, char *argv[])
 				data2D = Data3D_init();
 				Data3d_set(_data3D,data2D);
 			}
-			_data3D->numIndices = esGenSphere ( 20, .75f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
+			int numSlices = 20;
+			_data3D->numIndices = esGenSphere ( numSlices, .75f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
+			int numParallels = numSlices / 2;
+			_data3D->numVertices = ( numParallels + 1 ) * ( numSlices + 1 );
 			sprite->data3d = _data3D;
 			/*
-			_data3D->vertices = teapotPositions;
-			_data3D->normals = teapotBinormals;
-			_data3D->normals = teapotNormals;
-			_data3D->texCoords = teapotTexCoords;
-			_data3D->indices = teapotIndices;
-			_data3D->numIndices = sizeof(teapotIndices)/sizeof(int)/3;
+			   _data3D->vertices = teapotPositions;
+			   _data3D->normals = teapotBinormals;
+			   _data3D->normals = teapotNormals;
+			   _data3D->texCoords = teapotTexCoords;
+			   _data3D->indices = teapotIndices;
+			   _data3D->numIndices = sizeof(teapotIndices)/sizeof(int)/3;
 			//_data3D->numIndices = sizeof(teapotPositions)/sizeof(float)/3;
 
 			SDL_Log("%f,%f,%d",teapotBinormals[0],teapotTangents[0],_data3D->numIndices);
 
-			*/
+*/
 		}
 		sprite->alpha = 0.5;
 		Sprite*contener= Sprite_new();
@@ -2054,7 +1995,6 @@ int main(int argc, char *argv[])
 	}
 	Sprite*sprite3 = Sprite_new();
 	sprite3->surface = (SDL_LoadBMP(path));
-	sprite3->filter= 3;
 	sprite3->y = 0;
 	sprite3->x = 0;
 	sprite3->w = 100;

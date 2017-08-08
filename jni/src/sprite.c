@@ -424,7 +424,7 @@ static void initGL()
 	SDL_GL_SetAttribute(SDL_GL_ACCUM_ALPHA_SIZE, 0);
 	SDL_GL_SetAttribute(SDL_GL_STEREO, 0);
 	SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 1);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 
 	//#ifndef __MACOS__
@@ -711,6 +711,7 @@ static GLfloat * Sprite_getVertices(Sprite * sprite)
 				_x+_w,	_y,		0.0f	// Position 3	//top right
 			};
 
+			_data3D->numVertices = 4;
 			_data3D->vertices = (GLfloat*)malloc(sizeof(vertices));
 			memcpy(_data3D->vertices,vertices,sizeof(vertices));
 		}
@@ -875,9 +876,26 @@ static void Data3d_show(Sprite*sprite)
 	}
 
 	_data3D->indices = Sprite_getIndices(sprite);
-	if(_data3D->numIndices>0)
-		GL_CHECK(gles2.glDrawElements(GL_TRIANGLES, _data3D->numIndices, GL_UNSIGNED_INT, _data3D->indices));
 
+
+	if ( _data3D->vboIds[0] == 0 && _data3D->vboIds[1] == 0 )
+	{
+		GL_CHECK(gles2.glGenBuffers ( 2, _data3D->vboIds));
+		GL_CHECK(gles2.glBindBuffer ( GL_ARRAY_BUFFER, _data3D->vboIds[0] ));
+		GL_CHECK(gles2.glBufferData ( GL_ARRAY_BUFFER, 3*sizeof(GLfloat)*_data3D->numVertices, _data3D->vertices, GL_STATIC_DRAW ));
+		GL_CHECK(gles2.glBindBuffer ( GL_ELEMENT_ARRAY_BUFFER, _data3D->vboIds[1] ));
+		GL_CHECK(gles2.glBufferData ( GL_ELEMENT_ARRAY_BUFFER, 3*sizeof(GLushort)*_data3D->numIndices, _data3D->indices, GL_STATIC_DRAW ));
+	}
+	GL_CHECK(gles2.glBindBuffer ( GL_ARRAY_BUFFER, _data3D->vboIds[0] ));
+	GL_CHECK(gles2.glBindBuffer ( GL_ELEMENT_ARRAY_BUFFER, _data3D->vboIds[1] ));
+
+	if(_data3D->numIndices>0){
+		//GL_CHECK(gles2.glDrawElements(GL_TRIANGLES, _data3D->numIndices, GL_UNSIGNED_INT, _data3D->indices));
+		GL_CHECK(gles2.glDrawElements(GL_TRIANGLES, _data3D->numIndices, GL_UNSIGNED_INT,0));
+	}
+
+	GL_CHECK(gles2.glBindBuffer ( GL_ARRAY_BUFFER, 0 ));
+	GL_CHECK(gles2.glBindBuffer ( GL_ELEMENT_ARRAY_BUFFER, 0));
 	if(_data3D->positionLoc>=0)
 		GL_CHECK(gles2.glDisableVertexAttribArray(_data3D->positionLoc));
 	if(_data3D->normalLoc>=0)
@@ -1356,8 +1374,8 @@ void Sprite_destroyTexture(Sprite*sprite)
 	}
 	if(sprite->textureId){
 		GL_CHECK(gles2.glDeleteTextures(1,&(sprite->textureId)));
-		GL_CHECK(gles2.glDeleteRenderbuffers(1, &sprite->renderbuffer));
-		GL_CHECK(gles2.glDeleteFramebuffers(1, &sprite->framebuffer));
+		//GL_CHECK(gles2.glDeleteRenderbuffers(1, &sprite->renderbuffer));
+		//GL_CHECK(gles2.glDeleteFramebuffers(1, &sprite->framebuffer));
 
 		sprite->textureId = 0;
 	}

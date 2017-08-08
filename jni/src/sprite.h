@@ -80,6 +80,7 @@ typedef struct Point3d{
 
 typedef struct Data3d
 {//默认3d结构体
+	GLuint vboIds[2];
 	GLuint programObject;
 	GLint  positionLoc;
 	GLint  ambientLoc;//光照强度
@@ -91,6 +92,7 @@ typedef struct Data3d
 	GLint  alphaLoc;
 
 	int      numIndices;
+	int      numVertices;
 	GLfloat *vertices;
 	GLfloat *normals;
 	GLfloat *texCoords;
@@ -128,8 +130,8 @@ typedef struct Sprite{
 	Matrix3D  mvpMatrix;
 
 	GLuint textureId;
-	GLuint renderbuffer;
-	GLuint framebuffer;
+	//GLuint renderbuffer;
+	//GLuint framebuffer;
 
 	void *data3d;//默认是 Data3d 结构体
 	void (*showFunc)(struct Sprite*);// 其他3d显示

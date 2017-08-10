@@ -830,13 +830,6 @@ static void Data3d_show(Sprite*sprite)
 		return;
 	}
 
-	_data3D->vertices = Sprite_getVertices(sprite);
-	if(_data3D->vertices)
-	{
-		GL_CHECK(gles2.glVertexAttribPointer ( _data3D->positionLoc, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), _data3D->vertices));
-		GL_CHECK(gles2.glEnableVertexAttribArray ( _data3D->positionLoc ));
-	}
-
 	_data3D->normals = Sprite_getNormals(sprite);
 	if(_data3D->normals)
 	{
@@ -875,9 +868,9 @@ static void Data3d_show(Sprite*sprite)
 		GL_CHECK(gles2.glUniformMatrix4fv( _data3D->mvpLoc, 1, GL_FALSE, (GLfloat*) &sprite->mvpMatrix.rawData[0][0]));
 	}
 
+	_data3D->vertices = Sprite_getVertices(sprite);
 	_data3D->indices = Sprite_getIndices(sprite);
-
-
+	/*
 	if ( _data3D->vboIds[0] == 0 && _data3D->vboIds[1] == 0 )
 	{
 		GL_CHECK(gles2.glGenBuffers ( 2, _data3D->vboIds));
@@ -888,10 +881,18 @@ static void Data3d_show(Sprite*sprite)
 	}
 	GL_CHECK(gles2.glBindBuffer ( GL_ARRAY_BUFFER, _data3D->vboIds[0] ));
 	GL_CHECK(gles2.glBindBuffer ( GL_ELEMENT_ARRAY_BUFFER, _data3D->vboIds[1] ));
+	*/
+
+	if(_data3D->vertices)
+	{
+		GL_CHECK(gles2.glEnableVertexAttribArray ( _data3D->positionLoc ));
+		GL_CHECK(gles2.glVertexAttribPointer ( _data3D->positionLoc, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), _data3D->vertices));
+		//GL_CHECK(gles2.glVertexAttribPointer ( _data3D->positionLoc, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0));
+	}
 
 	if(_data3D->numIndices>0){
-		//GL_CHECK(gles2.glDrawElements(GL_TRIANGLES, _data3D->numIndices, GL_UNSIGNED_INT, _data3D->indices));
-		GL_CHECK(gles2.glDrawElements(GL_TRIANGLES, _data3D->numIndices, GL_UNSIGNED_INT,0));
+		GL_CHECK(gles2.glDrawElements(GL_TRIANGLES, _data3D->numIndices, GL_UNSIGNED_INT, _data3D->indices));
+		//GL_CHECK(gles2.glDrawElements(GL_TRIANGLES, _data3D->numIndices, GL_UNSIGNED_INT,0));
 	}
 
 	GL_CHECK(gles2.glBindBuffer ( GL_ARRAY_BUFFER, 0 ));
@@ -1376,6 +1377,7 @@ void Sprite_destroyTexture(Sprite*sprite)
 		GL_CHECK(gles2.glDeleteTextures(1,&(sprite->textureId)));
 		//GL_CHECK(gles2.glDeleteRenderbuffers(1, &sprite->renderbuffer));
 		//GL_CHECK(gles2.glDeleteFramebuffers(1, &sprite->framebuffer));
+		//GL_CHECK(gles2.glDeleteBuffers(sizeof(sprite->vboIds)/sizeof(GLuint), &sprite->vboIds));
 
 		sprite->textureId = 0;
 	}
@@ -1472,39 +1474,22 @@ int Stage_redraw()
 	return 0;
 }
 
-
 SDL_Surface * Surface_new(int width,int height)
 {
-	/* Create a 32-bit surface with the bytes of each pixel in R,G,B,A order,
-	   as expected by OpenGL for textures */
-	SDL_Surface *surface;
-	Uint32 rmask, gmask, bmask, amask;
-
-	/* SDL interprets each pixel as a 32-bit number, so our masks must depend
-	   on the endianness (byte order) of the machine */
+	return SDL_CreateRGBSurface(0, width, height, 32, 
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
-	rmask = 0xff000000;
-	gmask = 0x00ff0000;
-	bmask = 0x0000ff00;
-	amask = 0x000000ff;
+			0xff000000,
+			0x00ff0000,
+			0x0000ff00,
+			0x000000ff
 #else
-	rmask = 0x000000ff;
-	gmask = 0x0000ff00;
-	bmask = 0x00ff0000;
-	amask = 0xff000000;
+			0x000000ff,
+			0x0000ff00,
+			0x00ff0000,
+			0xff000000
 #endif
-
-	surface = SDL_CreateRGBSurface(0, width, height, 32, rmask, gmask, bmask, amask);
-	if(surface == NULL) {
-		fprintf(stderr, "CreateRGBSurface failed: %s\n", SDL_GetError());
-		return NULL;
-	}
-
-	/* or using the default masks for the depth: */
-	//surface = SDL_CreateRGBSurface(0,width,height,32,0,0,0,0);
-	return surface;
+			);
 }
-
 
 int Sprite_limitPosion(Sprite*target,SDL_Rect*rect)
 {
@@ -2266,6 +2251,10 @@ int main(int argc, char *argv[])
 			}
 			sprite->data3d = _data3D;
 			_data3D->numIndices = esGenSphere ( 20, .75f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
+			int numSlices = 20;
+			_data3D->numIndices = esGenSphere ( numSlices, .75f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
+			int numParallels = numSlices / 2;
+			_data3D->numVertices = ( numParallels + 1 ) * ( numSlices + 1 );
 			//_data3D->numIndices = esGenSphere ( 20, 15.f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
 			//_data3D->numIndices = esGenCube(  0.75f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
 		}

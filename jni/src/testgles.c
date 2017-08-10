@@ -1,7 +1,7 @@
 /**
- * @file sprite2.c
- gcc -g  -I"../SDL2/include/" -I"../SDL2_image/" sprite2.c matrix.c array.c -lSDL2 -lSDL2_image -lm -Ddebug_sprite && ./a.out
- gcc -g -Wall -I"../SDL2/include/" -I"." -D GLchar=char sprite2.c array.c matrix.c -lGLESv2 -lmingw32 -lSDL2main -lSDL2 -Ddebug_sprite && a
+ * @file testgles.c
+ gcc -g -Wall -I"../SDL2/include/" testgles.c matrix.c array.c -lSDL2 -lm -D debug_sprite && ./a.out
+ gcc -g -Wall -I"../SDL2/include/" -I"." -D GLchar=char testgles.c array.c matrix.c -lGLESv2 -lmingw32 -lSDL2main -lSDL2 -Ddebug_sprite && a
  apt-get install -y libpcap-dev libsqlite3-dev sqlite3 libpcap0.8-dev libssl-dev build-essential iw tshark
  */
 #ifndef sprite_h
@@ -150,31 +150,29 @@ typedef struct Sprite{
 	void * other;//其他属性
 } Sprite;
 
-typedef struct Stage{
+typedef struct Stage
+{
 	Sprite * currentTarget;
 	SDL_GLContext * GLEScontext;
 	SDL_Renderer * renderer;//renderer
 	SDL_Window * window;//
 	Sprite * focus;//舞台焦点
 	Sprite * sprite;//舞台焦点
-	SDL_Point*mouse;//鼠标位置
+	SDL_Point * mouse;//鼠标位置
 	int stage_w;
 	int stage_h;
 	unsigned int lastEventTime;
 	unsigned int numsprite;//
 	World3d * world;
-	void * sound;
+	Data3d * data2D;
 }Stage;
 
 typedef void (*EventFunc)(SpriteEvent*); 
 
-Data3d * Data3D_init();
-Data3d * Data3D_new();
-void Data3d_reset(Data3d * data3D);
-void Data3d_set(Data3d * data3D,Data3d * _data3D);
+GLuint esLoadProgram (GLbyte *vertShaderSrc, GLbyte *fragShaderSrc);
+Data3d * Data3d_set(Data3d * data3D,Data3d * _data3D);
 
-
-extern Stage *stage;
+extern Stage * stage;
 void Stage_loopEvents();
 
 extern GLES2_Context gles2;
@@ -222,14 +220,11 @@ int Sprite_getTextureId(Sprite * sprite);
 SDL_Surface * Surface_new(int width,int height);
 void quit(int rc);
 void Sprite_matrix(Sprite *sprite);
-int Window_resize(int w,int h);
 int Sprite_getVisible(Sprite*sprite);
 #endif
 
 GLES2_Context gles2;
 Stage * stage = NULL;
-
-static int _Stage_redraw();
 
 static int LoadContext(GLES2_Context * data)
 {
@@ -262,14 +257,13 @@ static int LoadContext(GLES2_Context * data)
 #undef SDL_PROC
 	return 0;
 }
-static Data3d * data2D;
 
 void quit(int rc)
 {
 	if(stage){
 		if (stage->GLEScontext != NULL) {
 			if (stage->GLEScontext) {
-				GL_CHECK(gles2.glDeleteProgram(data2D->programObject));
+				GL_CHECK(gles2.glDeleteProgram(stage->data2D->programObject));
 				SDL_GL_DeleteContext(stage->GLEScontext);
 			}
 			stage->GLEScontext = NULL;
@@ -405,17 +399,15 @@ void Sprite_matrix(Sprite *sprite)
 	// Generate a model view matrix to rotate/translate the cube
 	Matrix_identity( &modelview);
 
+	//scale
 	esScale(&modelview,p->scaleX/sprite->scaleX,p->scaleY/sprite->scaleY,p->scaleZ/sprite->scaleZ);
 	// Rotate 
 	esRotate( &modelview, -p->rotationX+sprite->rotationX, 1.0, 0.0, 0.0 );
 	esRotate( &modelview, -p->rotationY+sprite->rotationY, 0.0, 1.0, 0.0 );
 	esRotate( &modelview, -p->rotationZ+sprite->rotationZ, 0.0, 0.0, 1.0 );
-
+	//translate
 	esTranslate(&modelview, xto3d(p->x-sprite->x), yto3d(p->y-sprite->y), zto3d(p->z-sprite->z));
 
-
-	// Compute the final MVP by multiplying the 
-	// modevleiw and perspective matrices together
 	esMatrixMultiply( &sprite->mvpMatrix, &modelview, &stage->world->perspective);
 
 	esRotate( &sprite->mvpMatrix, -sprite->rotationX, 1.0, 0.0, 0.0 );
@@ -520,59 +512,9 @@ Sprite * Sprite_new()
 }
 
 
-static void initGL()
-{
-	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 5);
-	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 6);
-	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 5);
-	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 0);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-	SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 0);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
-	SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 0);//模板测试
-	SDL_GL_SetAttribute(SDL_GL_ACCUM_RED_SIZE, 0);
-	SDL_GL_SetAttribute(SDL_GL_ACCUM_GREEN_SIZE, 0);
-	SDL_GL_SetAttribute(SDL_GL_ACCUM_BLUE_SIZE, 0);
-	SDL_GL_SetAttribute(SDL_GL_ACCUM_ALPHA_SIZE, 0);
-	SDL_GL_SetAttribute(SDL_GL_STEREO, 0);
-	SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 1);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-#if !defined(__MACOS__)
-	SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);//or -1
-#endif
-#ifndef HAVE_OPENGL
-	//SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);//
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-#else
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
-#endif
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);//or 1
-	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 0);//or 1
-}
-
-int Window_resize(int w,int h)
-{
-#ifndef __ANDROID__
-	stage->stage_w = w;
-	stage->stage_h = h;
-	SDL_SetWindowSize(stage->window,w,h);
-	if(stage->world){
-		stage->world->aspect = (GLfloat)stage->stage_w/stage->stage_h; // Compute the window aspect ratio
-		stage->world->fovy = atan(4.0/3)*180/M_PI; // Generate a perspective matrix with a 53.13010235415598 degree FOV
-		stage->world->nearZ = 1.0f;
-		stage->world->farZ = 20.0f;
-		Matrix_identity(&stage->world->perspective);
-		esPerspective( &stage->world->perspective, stage->world->fovy, stage->world->aspect, stage->world->nearZ, stage->world->farZ);
-		esTranslate(&stage->world->perspective,0,0,-2.0);
-	}
-#endif
-	return 0;
-}
-
 Stage * Stage_init() 
 {
-	SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);
+	//SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);
 	if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_AUDIO) < 0) {
 		SDL_SetError("SDL_INIT_VIDEO ERROR!\n");
 		return NULL;
@@ -583,75 +525,84 @@ Stage * Stage_init()
 		memset(stage,0,sizeof(Stage));
 
 		stage->sprite = Sprite_new();
-		if(stage->GLEScontext == NULL)
-		{
-			SDL_DisplayMode mode;
-			SDL_GetCurrentDisplayMode(0, &mode);
-			SDL_Log("screen size:%dx%d\n",mode.w,mode.h);
-#ifdef __ANDROID__
-			stage->stage_w = mode.w;
-			stage->stage_h = mode.h;
-#else
-			stage->stage_w = 400;
-			stage->stage_h = (int)((float)stage->stage_w*16.0/12.0);
-#endif
+	}
 
-			stage->window = SDL_CreateWindow("title",
-					SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-					stage->stage_w, stage->stage_h,
-					SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
-#ifdef __ANDROID__
-			if(stage->window){
-				//SDL_ShowWindow(stage->window);
-				SDL_GetWindowSize(stage->window, &stage->stage_w, &stage->stage_h);
-			}else{
-				quit(1);
-				return NULL;
-			}
-#endif
+	if(stage->GLEScontext == NULL)
+	{
+		SDL_DisplayMode mode;
+		SDL_GetCurrentDisplayMode(0, &mode);
+		SDL_Log("screen size:%dx%d\n",mode.w,mode.h);
+		stage->stage_w = 400;
+		stage->stage_h = (int)((float)stage->stage_w*16.0/12.0);
 
-			//initGL();
-			stage->GLEScontext = SDL_GL_CreateContext(stage->window);
-			if (LoadContext(&gles2) < 0) {
-				SDL_Log("Could not load GLES2 functions\n");
-				quit(2);
-				return stage;
-			}
-			//SDL_GL_SetSwapInterval(0);  /* disable vsync. */
-			/*
-#ifdef HAVE_OPENGL
-			SDL_Log("OpenGL2.0");
-			gles2.glMatrixMode(GL_PROJECTION);//gl
-			gles2.glLoadIdentity();//gl
-			gles2.glOrtho(-1.0, 1.0, -1.0, 1.0, 1.0, 20.0);//gl
-			//gles2.gl(-1.0, 1.0, -1.0, 1.0, 1.0, 20.0);//gl
-			//gles2.glMatrixMode(GL_MODELVIEW);//gl
-			gles2.glMatrixMode(GL_PROJECTION);
-			gles2.glLoadIdentity();//gl
-			//gles2.glEnable(GL_DEPTH_TEST);
-			gles2.glDepthFunc(GL_LESS);
-			gles2.glShadeModel(GL_SMOOTH);//gl
-			gles2.glTranslatef(0,0,-2.0);
-#endif
-*/
-			printf("gl_version:%s\r\n",gles2.glGetString(GL_VERSION));
-			printf("GL_SHADING_LANGUAGE_VERSION:%s\r\n",gles2.glGetString(GL_SHADING_LANGUAGE_VERSION));
-			printf("GL_EXTENSIONS:%s\r\n",gles2.glGetString(GL_EXTENSIONS));
-			if(stage->world == NULL)
-			{
-				stage->world = (World3d *)malloc(sizeof(World3d));
-				stage->world->aspect = (GLfloat)stage->stage_w/stage->stage_h; // Compute the window aspect ratio
-				stage->world->fovy = atan(4.0/3)*180/M_PI; // Generate a perspective matrix with a 53.13010235415598 degree FOV
-				stage->world->nearZ = 1.0f;
-				stage->world->farZ = 20.0f;
-				Matrix_identity(&stage->world->perspective);
-				esPerspective( &stage->world->perspective, stage->world->fovy, stage->world->aspect, stage->world->nearZ, stage->world->farZ);
-				esTranslate(&stage->world->perspective,0,0,-2.0);
+		stage->window = SDL_CreateWindow("title",
+				SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+				stage->stage_w, stage->stage_h,
+				SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
+		SDL_GetWindowSize(stage->window, &stage->stage_w, &stage->stage_h);
 
-			}
-			Data3D_init();
+		stage->GLEScontext = SDL_GL_CreateContext(stage->window);
+		if (LoadContext(&gles2) < 0) {
+			SDL_Log("Could not load GLES2 functions\n");
+			quit(2);
+			return stage;
 		}
-		stage->sprite->visible = 1;
+	}
+	if(stage->world == NULL)
+	{
+		stage->world = (World3d *)malloc(sizeof(World3d));
+		stage->world->aspect = (GLfloat)stage->stage_w/stage->stage_h; // Compute the window aspect ratio
+		stage->world->fovy = atan(4.0/3)*180/M_PI; // Generate a perspective matrix with a 53.13010235415598 degree FOV
+		stage->world->nearZ = 1.0f;
+		stage->world->farZ = 20.0f;
+		Matrix_identity(&stage->world->perspective);
+		esPerspective( &stage->world->perspective, stage->world->fovy, stage->world->aspect, stage->world->nearZ, stage->world->farZ);
+		esTranslate(&stage->world->perspective,0,0,-2.0);
+
+		if(stage->data2D==NULL){
+			Data3d * data2D = Data3d_set(NULL,NULL);
+			stage->data2D = data2D;
+			GLbyte vShaderStr[] =  
+				"uniform mat4 u_mvpMatrix;    \n"
+				"attribute vec2 a_texCoord;   \n"
+				"attribute vec3 a_position;   \n"
+				"varying vec2 v_texCoord;     \n"
+				"varying mat4 v_matrix;     \n"
+				"void main()                  \n"
+				"{                            \n"
+				"	gl_Position = u_mvpMatrix * vec4(a_position,1.0);  \n"//
+				"	v_texCoord = a_texCoord;  \n"
+				"	v_matrix = u_mvpMatrix;  \n"
+				"}                            \n";
+
+			GLbyte fShaderStr[] =  
+#ifndef HAVE_OPENGL
+				"precision mediump float;                            \n"
+#endif
+				"varying mat4 v_matrix;     \n"
+				"uniform float u_alpha;   		\n"
+				"uniform sampler2D s_texture;                        \n"
+				"varying vec2 v_texCoord;                            \n"
+				"void main()                                         \n"
+				"{                                                   \n"
+				"	vec4 vsampler = texture2D( s_texture, v_texCoord );\n"
+				"	vec4 color = vsampler;"
+				"	float alpha = color.w;"
+				"	\n"
+				"	if(u_alpha>=0.0&&u_alpha<1.0)\n"
+				"		color =vec4(vec3(color),alpha*u_alpha);\n"
+				"	gl_FragColor = min(color,1.0);\n"
+				"}                                                  \n";
+
+			data2D->programObject = esLoadProgram ( vShaderStr, fShaderStr );
+			if(data2D->programObject){
+				data2D->texCoordLoc = GL_CHECK(gles2.glGetAttribLocation ( data2D->programObject, "a_texCoord" ));
+				data2D->samplerLoc = GL_CHECK(gles2.glGetUniformLocation ( data2D->programObject, "s_texture" ));
+				data2D->alphaLoc = GL_CHECK(gles2.glGetUniformLocation (data2D->programObject, "u_alpha"));
+				data2D->mvpLoc = GL_CHECK(gles2.glGetUniformLocation( data2D->programObject, "u_mvpMatrix" ));
+				data2D->positionLoc = GL_CHECK(gles2.glGetAttribLocation ( data2D->programObject, "a_position" ));
+			}
+		}
 	}
 	return stage;
 }
@@ -788,23 +739,14 @@ static GLfloat * Sprite_getTexCoords(Sprite * sprite)
 
 static void Data3d_show(Sprite*sprite)
 {
-	Data3d*_data3D = sprite->data3d;
-
-	//printf("%s\n",sprite->name);
-	if(_data3D==NULL){
-		_data3D = Data3D_new();
-		if(_data3D->programObject == 0){
-			Data3d * data2D = Data3D_init();
-			Data3d_set(_data3D,data2D);
-		}
-		sprite->data3d = _data3D;
+	if(sprite->data3d == NULL){
+		sprite->data3d = Data3d_set(NULL,stage->data2D);
 	}
+	Data3d * _data3D = sprite->data3d;
 
 	sprite->textureId = Sprite_getTextureId(sprite);
 	if(sprite->textureId==0)
 		return;
-
-
 
 	//贴图透明度
 	GL_CHECK(gles2.glEnable(GL_BLEND));
@@ -1452,34 +1394,19 @@ int Stage_redraw()
 
 SDL_Surface * Surface_new(int width,int height)
 {
-	/* Create a 32-bit surface with the bytes of each pixel in R,G,B,A order,
-	   as expected by OpenGL for textures */
-	SDL_Surface *surface;
-	Uint32 rmask, gmask, bmask, amask;
-
-	/* SDL interprets each pixel as a 32-bit number, so our masks must depend
-	   on the endianness (byte order) of the machine */
+	return SDL_CreateRGBSurface(0, width, height, 32, 
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
-	rmask = 0xff000000;
-	gmask = 0x00ff0000;
-	bmask = 0x0000ff00;
-	amask = 0x000000ff;
+			0xff000000,
+			0x00ff0000,
+			0x0000ff00,
+			0x000000ff
 #else
-	rmask = 0x000000ff;
-	gmask = 0x0000ff00;
-	bmask = 0x00ff0000;
-	amask = 0xff000000;
+			0x000000ff,
+			0x0000ff00,
+			0x00ff0000,
+			0xff000000
 #endif
-
-	surface = SDL_CreateRGBSurface(0, width, height, 32, rmask, gmask, bmask, amask);
-	if(surface == NULL) {
-		fprintf(stderr, "CreateRGBSurface failed: %s\n", SDL_GetError());
-		return NULL;
-	}
-
-	/* or using the default masks for the depth: */
-	//surface = SDL_CreateRGBSurface(0,width,height,32,0,0,0,0);
-	return surface;
+			);
 }
 
 
@@ -1646,7 +1573,6 @@ int PrintEvent(const SDL_Event * event)
 					SDL_Log("Window %d resized to %dx%d",
 							event->window.windowID, event->window.data1,
 							event->window.data2);
-					Window_resize(event->window.data1,event->window.data2);
 					//stage->stage_w = event->window.data1;
 					//stage->stage_h = event->window.data2;
 					_Stage_redraw();
@@ -1801,87 +1727,27 @@ GLuint esLoadProgram ( GLbyte *vertShaderSrc, GLbyte *fragShaderSrc )
 	return programObject;
 }
 
-void Data3d_reset(Data3d * data3D)
+Data3d * Data3d_set(Data3d * data3D,Data3d * _data3D)
 {
-	if(data3D)
-	{
+	if(data3D == NULL){
+		data3D = (Data3d*)malloc(sizeof(Data3d));
+		memset(data3D,0,sizeof(Data3d));
 		data3D->alphaLoc = -1;
 		data3D->mvpLoc= -1;
 		data3D->positionLoc = -1;
 		data3D->samplerLoc = -1;
 		data3D->texCoordLoc = -1;
 	}
-}
-void Data3d_set(Data3d * data3D,Data3d * _data3D)
-{
-	if(data3D)
-	{
+	if(_data3D){
 		data3D->programObject = _data3D->programObject;
-
 		data3D->alphaLoc = _data3D->alphaLoc;
 		data3D->mvpLoc= _data3D->mvpLoc;
 		data3D->positionLoc = _data3D->positionLoc;
 		data3D->samplerLoc = _data3D->samplerLoc;
 		data3D->texCoordLoc = _data3D->texCoordLoc;
 	}
-}
-Data3d* Data3D_new()
-{
-	Data3d * data3D = (Data3d*)malloc(sizeof(Data3d));
-	memset(data3D,0,sizeof(Data3d));
-	Data3d_reset(data3D);
 	return data3D;
 }
-
-Data3d * Data3D_init()
-{
-	if(data2D==NULL){
-		data2D = Data3D_new();
-		GLbyte vShaderStr[] =  
-			"uniform mat4 u_mvpMatrix;    \n"
-			"attribute vec2 a_texCoord;   \n"
-			"attribute vec3 a_position;   \n"
-			"varying vec2 v_texCoord;     \n"
-			"varying mat4 v_matrix;     \n"
-			"void main()                  \n"
-			"{                            \n"
-			"	gl_Position = u_mvpMatrix * vec4(a_position,1.0);  \n"//
-			"	v_texCoord = a_texCoord;  \n"
-			"	v_matrix = u_mvpMatrix;  \n"
-			"}                            \n";
-
-		GLbyte fShaderStr[] =  
-#ifndef HAVE_OPENGL
-			"precision mediump float;                            \n"
-#endif
-			"varying mat4 v_matrix;     \n"
-			"uniform float u_alpha;   		\n"
-			"uniform sampler2D s_texture;                        \n"
-			"varying vec2 v_texCoord;                            \n"
-			"void main()                                         \n"
-			"{                                                   \n"
-			"	vec4 vsampler = texture2D( s_texture, v_texCoord );\n"
-			"	vec4 color = vsampler;"//环境光
-			"	float alpha = color.w;"//环境光
-			"	\n"
-			"	if(u_alpha>=0.0&&u_alpha<1.0)\n"
-			"		color =vec4(vec3(color),alpha*u_alpha);\n"
-			"	gl_FragColor = min(color,1.0);\n"
-			"}                                                  \n";
-
-		data2D->programObject = esLoadProgram ( vShaderStr, fShaderStr );
-
-		if(data2D->programObject){
-			data2D->texCoordLoc = GL_CHECK(gles2.glGetAttribLocation ( data2D->programObject, "a_texCoord" ));
-			data2D->samplerLoc = GL_CHECK(gles2.glGetUniformLocation ( data2D->programObject, "s_texture" ));
-			data2D->alphaLoc = GL_CHECK(gles2.glGetUniformLocation (data2D->programObject, "u_alpha"));
-			data2D->mvpLoc = GL_CHECK(gles2.glGetUniformLocation( data2D->programObject, "u_mvpMatrix" ));
-			data2D->positionLoc = GL_CHECK(gles2.glGetAttribLocation ( data2D->programObject, "a_position" ));
-		}
-	}
-	return data2D;
-}
-
 
 void Sprite_rotate(Sprite*sprite,int _rotationX,int _rotationY,int _rotationZ)
 {
@@ -1908,13 +1774,7 @@ float zto3d(int z){
 	return z*1.0/stage->stage_w;
 }
 
-
-
-
 #ifdef debug_sprite
-
-
-#include "httploader.h"
 
 extern Data3d * data2D;
 static void mouseDown(SpriteEvent*e)
@@ -1945,51 +1805,25 @@ static void mouseMove(SpriteEvent*e)
 	}
 }
 
-#include "files.h"
-#include "SDL_image.h"
 int main(int argc, char *argv[])
 {
+	//printf("%c\r\n",0x33);
 	Stage_init();
-#if SDL_VERSION_ATLEAST(2,0,5)
-	printf("set opacity\n");
-#endif
-#ifdef HAVE_OPENGL
-	printf("HAVE_OPENGL\n");
-#else
-	printf("OPENGL_ES\n");
-#endif
 	Sprite_addEventListener(stage->sprite,SDL_MOUSEBUTTONDOWN,mouseDown);
 	char * path = ("1.bmp");
 	if(stage->GLEScontext){
 		Sprite*sprite = Sprite_new();
 		sprite->is3D = 1;
-		//sprite->surface = (SDL_LoadBMP(path));
-		sprite->surface = (IMG_Load("1.jpg"));
+		sprite->surface = (SDL_LoadBMP(path));
+		//sprite->surface = (IMG_Load("1.jpg"));
 		SDL_Log("surface size:%dx%d",sprite->surface->w,sprite->surface->h);
-		Data3d*_data3D = sprite->data3d;
-		if(_data3D==NULL){
-			_data3D = Data3D_new();
-			if(_data3D->programObject==0){
-				data2D = Data3D_init();
-				Data3d_set(_data3D,data2D);
-			}
+		if(sprite->data3d==NULL){
+			Data3d * _data3D = Data3d_set(NULL,stage->data2D);
 			int numSlices = 20;
 			_data3D->numIndices = esGenSphere ( numSlices, .75f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
 			int numParallels = numSlices / 2;
 			_data3D->numVertices = ( numParallels + 1 ) * ( numSlices + 1 );
 			sprite->data3d = _data3D;
-			/*
-			   _data3D->vertices = teapotPositions;
-			   _data3D->normals = teapotBinormals;
-			   _data3D->normals = teapotNormals;
-			   _data3D->texCoords = teapotTexCoords;
-			   _data3D->indices = teapotIndices;
-			   _data3D->numIndices = sizeof(teapotIndices)/sizeof(int)/3;
-			//_data3D->numIndices = sizeof(teapotPositions)/sizeof(float)/3;
-
-			SDL_Log("%f,%f,%d",teapotBinormals[0],teapotTangents[0],_data3D->numIndices);
-
-*/
 		}
 		sprite->alpha = 0.5;
 		Sprite*contener= Sprite_new();

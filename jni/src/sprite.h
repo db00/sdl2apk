@@ -271,4 +271,5 @@ void Sprite_matrix(Sprite *sprite);
 int Window_resize(int w,int h);
 int Sprite_getVisible(Sprite*sprite);
 void Sprite_stopPropagation(Sprite * target);
+GLuint esLoadProgram ( GLbyte *vertShaderSrc, GLbyte *fragShaderSrc );
 #endif

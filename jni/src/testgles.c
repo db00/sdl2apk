@@ -169,7 +169,6 @@ typedef struct Stage
 
 typedef void (*EventFunc)(SpriteEvent*); 
 
-GLuint esLoadProgram (GLbyte *vertShaderSrc, GLbyte *fragShaderSrc);
 Data3d * Data3d_set(Data3d * data3D,Data3d * _data3D);
 
 extern Stage * stage;
@@ -511,6 +510,59 @@ Sprite * Sprite_new()
 	return sprite;
 }
 
+static GLuint esLoadProgram ( GLbyte *vertShaderSrc, GLbyte *fragShaderSrc )
+{
+	GLuint vertexShader;
+	GLuint fragmentShader;
+	GLuint programObject;
+	GLint linked;
+	// Load the vertex/fragment shaders
+	vertexShader = LoadShader ( GL_VERTEX_SHADER, vertShaderSrc );
+	if ( vertexShader == 0 )
+	{
+		SDL_Log( "Error vertexShader ==0");            
+		return 0;
+	}
+	fragmentShader = LoadShader ( GL_FRAGMENT_SHADER, fragShaderSrc );
+	if ( fragmentShader == 0 )
+	{
+		GL_CHECK(gles2.glDeleteShader( vertexShader ));
+		SDL_Log( "Error fragmentShader==0");            
+		return 0;
+	}
+	// Create the program object
+	programObject = GL_CHECK(gles2.glCreateProgram ( ));
+	if ( programObject == 0 ){
+		SDL_Log( "Error programObject==0");            
+		return 0;
+	}
+	GL_CHECK(gles2.glAttachShader ( programObject, vertexShader ));
+	GL_CHECK(gles2.glAttachShader ( programObject, fragmentShader ));
+	// Link the program
+	GL_CHECK(gles2.glLinkProgram ( programObject ));
+	// Check the link status
+	GL_CHECK(gles2.glGetProgramiv ( programObject, GL_LINK_STATUS, &linked ));
+	if ( !linked ) 
+	{
+		GLint infoLen = 0;
+		GL_CHECK(gles2.glGetProgramiv ( programObject, GL_INFO_LOG_LENGTH, &infoLen ));
+		if ( infoLen > 1 )
+		{
+			char* infoLog = malloc (sizeof(char) * infoLen );
+			/*GL_CHECK(gles2.glGetProgramInfoLog ( programObject, infoLen, NULL, infoLog ));*/
+			SDL_Log( "Error linking program:\n%s\n", infoLog );            
+			free ( infoLog );
+		}
+		GL_CHECK(gles2.glDeleteProgram ( programObject ));
+		return 0;
+	}
+	// Free up no longer needed shader resources
+	GL_CHECK(gles2.glDeleteShader ( vertexShader ));
+	GL_CHECK(gles2.glDeleteShader ( fragmentShader ));
+	return programObject;
+}
+
+
 
 Stage * Stage_init() 
 {
@@ -576,11 +628,11 @@ Stage * Stage_init()
 				"}                            \n";
 
 			GLbyte fShaderStr[] =  
-#ifndef HAVE_OPENGL
-				"precision mediump float;                            \n"
-#endif
-				"varying mat4 v_matrix;     \n"
-				"uniform float u_alpha;   		\n"
+				"#ifdef GL_ES\n"
+				"precision mediump float;							\n"
+				"#endif												\n"
+				"varying mat4 v_matrix;								\n"
+				"uniform float u_alpha;								\n"
 				"uniform sampler2D s_texture;                        \n"
 				"varying vec2 v_texCoord;                            \n"
 				"void main()                                         \n"
@@ -1673,58 +1725,6 @@ GLuint LoadShader(GLenum type, GLbyte *shaderSrc)
 		return 0; 
 	} 
 	return shader; 
-}
-
-GLuint esLoadProgram ( GLbyte *vertShaderSrc, GLbyte *fragShaderSrc )
-{
-	GLuint vertexShader;
-	GLuint fragmentShader;
-	GLuint programObject;
-	GLint linked;
-	// Load the vertex/fragment shaders
-	vertexShader = LoadShader ( GL_VERTEX_SHADER, vertShaderSrc );
-	if ( vertexShader == 0 )
-	{
-		SDL_Log( "Error vertexShader ==0");            
-		return 0;
-	}
-	fragmentShader = LoadShader ( GL_FRAGMENT_SHADER, fragShaderSrc );
-	if ( fragmentShader == 0 )
-	{
-		GL_CHECK(gles2.glDeleteShader( vertexShader ));
-		SDL_Log( "Error fragmentShader==0");            
-		return 0;
-	}
-	// Create the program object
-	programObject = GL_CHECK(gles2.glCreateProgram ( ));
-	if ( programObject == 0 ){
-		SDL_Log( "Error programObject==0");            
-		return 0;
-	}
-	GL_CHECK(gles2.glAttachShader ( programObject, vertexShader ));
-	GL_CHECK(gles2.glAttachShader ( programObject, fragmentShader ));
-	// Link the program
-	GL_CHECK(gles2.glLinkProgram ( programObject ));
-	// Check the link status
-	GL_CHECK(gles2.glGetProgramiv ( programObject, GL_LINK_STATUS, &linked ));
-	if ( !linked ) 
-	{
-		GLint infoLen = 0;
-		GL_CHECK(gles2.glGetProgramiv ( programObject, GL_INFO_LOG_LENGTH, &infoLen ));
-		if ( infoLen > 1 )
-		{
-			char* infoLog = malloc (sizeof(char) * infoLen );
-			/*GL_CHECK(gles2.glGetProgramInfoLog ( programObject, infoLen, NULL, infoLog ));*/
-			SDL_Log( "Error linking program:\n%s\n", infoLog );            
-			free ( infoLog );
-		}
-		GL_CHECK(gles2.glDeleteProgram ( programObject ));
-		return 0;
-	}
-	// Free up no longer needed shader resources
-	GL_CHECK(gles2.glDeleteShader ( vertexShader ));
-	GL_CHECK(gles2.glDeleteShader ( fragmentShader ));
-	return programObject;
 }
 
 Data3d * Data3d_set(Data3d * data3D,Data3d * _data3D)

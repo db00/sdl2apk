@@ -424,7 +424,7 @@ static void initGL()
 	SDL_GL_SetAttribute(SDL_GL_ACCUM_ALPHA_SIZE, 0);
 	SDL_GL_SetAttribute(SDL_GL_STEREO, 0);
 	SDL_GL_SetAttribute(SDL_GL_RETAINED_BACKING, 1);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
 
 	//#ifndef __MACOS__
@@ -871,17 +871,17 @@ static void Data3d_show(Sprite*sprite)
 	_data3D->vertices = Sprite_getVertices(sprite);
 	_data3D->indices = Sprite_getIndices(sprite);
 	/*
-	if ( _data3D->vboIds[0] == 0 && _data3D->vboIds[1] == 0 )
-	{
-		GL_CHECK(gles2.glGenBuffers ( 2, _data3D->vboIds));
-		GL_CHECK(gles2.glBindBuffer ( GL_ARRAY_BUFFER, _data3D->vboIds[0] ));
-		GL_CHECK(gles2.glBufferData ( GL_ARRAY_BUFFER, 3*sizeof(GLfloat)*_data3D->numVertices, _data3D->vertices, GL_STATIC_DRAW ));
-		GL_CHECK(gles2.glBindBuffer ( GL_ELEMENT_ARRAY_BUFFER, _data3D->vboIds[1] ));
-		GL_CHECK(gles2.glBufferData ( GL_ELEMENT_ARRAY_BUFFER, 3*sizeof(GLushort)*_data3D->numIndices, _data3D->indices, GL_STATIC_DRAW ));
-	}
-	GL_CHECK(gles2.glBindBuffer ( GL_ARRAY_BUFFER, _data3D->vboIds[0] ));
-	GL_CHECK(gles2.glBindBuffer ( GL_ELEMENT_ARRAY_BUFFER, _data3D->vboIds[1] ));
-	*/
+	   if ( _data3D->vboIds[0] == 0 && _data3D->vboIds[1] == 0 )
+	   {
+	   GL_CHECK(gles2.glGenBuffers ( 2, _data3D->vboIds));
+	   GL_CHECK(gles2.glBindBuffer ( GL_ARRAY_BUFFER, _data3D->vboIds[0] ));
+	   GL_CHECK(gles2.glBufferData ( GL_ARRAY_BUFFER, 3*sizeof(GLfloat)*_data3D->numVertices, _data3D->vertices, GL_STATIC_DRAW ));
+	   GL_CHECK(gles2.glBindBuffer ( GL_ELEMENT_ARRAY_BUFFER, _data3D->vboIds[1] ));
+	   GL_CHECK(gles2.glBufferData ( GL_ELEMENT_ARRAY_BUFFER, 3*sizeof(GLushort)*_data3D->numIndices, _data3D->indices, GL_STATIC_DRAW ));
+	   }
+	   GL_CHECK(gles2.glBindBuffer ( GL_ARRAY_BUFFER, _data3D->vboIds[0] ));
+	   GL_CHECK(gles2.glBindBuffer ( GL_ELEMENT_ARRAY_BUFFER, _data3D->vboIds[1] ));
+	   */
 
 	if(_data3D->vertices)
 	{
@@ -1984,9 +1984,12 @@ Data3d * Data3D_init()
 
 		/* fragment shader */
 		GLbyte fShaderStr[] =  
-#ifndef HAVE_OPENGL
-			"precision mediump float;                            \n"
-#endif
+			//#ifndef HAVE_OPENGL
+			//"precision mediump float;                            \n"
+			//#endif
+			"#ifdef GL_ES\n"
+			"precision mediump float;							\n"
+			"#endif												\n"
 			//"uniform mat4 u_mvpMatrix;    \n"
 			"varying mat4 v_matrix;     \n"
 			"uniform vec3 lightDirection;    \n"

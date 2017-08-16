@@ -1,6 +1,6 @@
 /**
  * @file framebuffer.c
- gcc framebuffer.c sprite.c matrix.c array.c -lSDL2 -lm -I"../SDL2/include/" && ./a.out  
+ gcc -g -Wall framebuffer.c sprite.c matrix.c array.c -lSDL2 -lm -I"../SDL2/include/" && ./a.out  
  * @author db0@qq.com
  * @version 1.0.1
  * @date 2017-08-11
@@ -36,7 +36,7 @@ int OFFSCREEN_HEIGHT = 256;
 GLint program;
 
 typedef struct Buffer{
-	GLint buffer;
+	GLuint buffer;
 	GLint num;
 	GLint type;
 }Buffer;
@@ -50,6 +50,7 @@ typedef struct Object{
 	Buffer * vertexBuffer;
 	Buffer * texCoordBuffer;
 	Buffer * indexBuffer;
+	Sprite * sprite;
 	GLint numIndices;
 }Object;
 Object * Object_new()
@@ -133,7 +134,7 @@ Object * initVertexBuffersForCube() {
 	o->texCoordBuffer = initArrayBufferForLaterUse( texCoords, 2, GL_FLOAT);
 	o->indexBuffer = initElementArrayBufferForLaterUse( indices,6*6, GL_UNSIGNED_BYTE);
 
-	o->numIndices = sizeof(indices)/sizeof(GLint);
+	o->numIndices = sizeof(indices)/sizeof(GLuint);
 
 	// Unbind the buffer object
 	gles2.glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -158,7 +159,7 @@ Object * initVertexBuffersForPlane() {
 	GLfloat texCoords[] = {1.0, 1.0,   0.0, 1.0,   0.0, 0.0,   1.0, 0.0};
 
 	// Indices of the vertices
-	GLint indices[] = {0, 1, 2,   0, 2, 3};
+	GLuint indices[] = {0, 1, 2,   0, 2, 3};
 
 	Object * o = Object_new(); // Create the "Object" object to return multiple objects.
 
@@ -176,19 +177,6 @@ Object * initVertexBuffersForPlane() {
 	return o;
 }
 
-GLuint initTextures(Sprite * sprite)
-{
-
-	return SDL_GL_LoadTexture(sprite, NULL);
-}
-
-
-
-
-
-
-
-
 GLuint initFramebufferObject() {
 	GLuint framebuffer, texture, depthBuffer;
 	// Create a frame buffer object (FBO)
@@ -200,25 +188,25 @@ GLuint initFramebufferObject() {
 	gles2.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, OFFSCREEN_WIDTH, OFFSCREEN_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 	gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	/*
-	framebuffer.texture = texture; // Store the texture object
+	   framebuffer.texture = texture; // Store the texture object
+	   */
 
 	// Create a renderbuffer object and Set its size and parameters
-	depthBuffer = gles2.createRenderbuffer(); // Create a renderbuffer object
-	gles2.bindRenderbuffer(RENDERBUFFER, depthBuffer); // Bind the object to target
-	gles2.renderbufferStorage(RENDERBUFFER, DEPTH_COMPONENT16, OFFSCREEN_WIDTH, OFFSCREEN_HEIGHT);
+	//depthBuffer = gles2.createRenderbuffer(); // Create a renderbuffer object
+	gles2.glGenRenderbuffers(1,&depthBuffer);
+	gles2.glBindRenderbuffer(GL_RENDERBUFFER, depthBuffer); // Bind the object to target
+	gles2.glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, OFFSCREEN_WIDTH, OFFSCREEN_HEIGHT);
 
 	// Attach the texture and the renderbuffer object to the FBO
-	gles2.bindFramebuffer(FRAMEBUFFER, framebuffer);
-	gles2.framebufferTexture2D(FRAMEBUFFER, COLOR_ATTACHMENT0, TEXTURE_2D, texture, 0);
-	gles2.framebufferRenderbuffer(FRAMEBUFFER, DEPTH_ATTACHMENT, RENDERBUFFER, depthBuffer);
+	gles2.glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	gles2.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
+	gles2.glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthBuffer);
 
 	// Check if FBO is configured correctly
-	GLuint e = gles2.checkFramebufferStatus(FRAMEBUFFER);
-	if (FRAMEBUFFER_COMPLETE !== e) {
-	console.log('Frame buffer object is incomplete: ' + e.toString());
-	return ;
+	GLuint e = gles2.glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (GL_FRAMEBUFFER_COMPLETE != e) {
+		return 0;
 	}
-*/
 
 	// Unbind the buffer object
 	gles2.glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -239,16 +227,15 @@ void initAttributeVariable(GLuint a_attribute,Buffer * buffer) {
 
 /*
 // Coordinate transformation matrix
-Matrix4 * g_modelMatrix = Matrix4_new();
-Matrix4 * g_mvpMatrix = Matrix();
 */
+Matrix3D g_modelMatrix;// = Matrix4_new();
+Matrix3D g_mvpMatrix;// = Matrix();
 
 void drawTexturedObject( Object * o, GLuint texture) {
 	// Assign the buffer objects and enable the assignment
-	/*
-	initAttributeVariable( program.a_Position, o->vertexBuffer);    // Vertex coordinates
-	initAttributeVariable( program.a_TexCoord, o->texCoordBuffer);  // Texture coordinates
-	*/
+	Data3d * data2D = o->sprite->data3d;//Data3D_new();
+	initAttributeVariable( data2D->positionLoc, o->vertexBuffer);    // Vertex coordinates
+	initAttributeVariable( data2D->texCoordLoc, o->texCoordBuffer);  // Texture coordinates
 	// Bind the texture object to the target
 	gles2.glActiveTexture(GL_TEXTURE0);
 	gles2.glBindTexture(GL_TEXTURE_2D, texture);
@@ -259,6 +246,7 @@ void drawTexturedObject( Object * o, GLuint texture) {
 }
 
 void drawTexturedCube(Object * o, float angle, GLuint texture, Matrix3D * viewProjMatrix) {
+	Data3d * data2D = o->sprite->data3d;//Data3D_new();
 	/*
 	// Calculate a model matrix
 	g_modelMatrix.setRotate(20.0, 1.0, 0.0, 0.0);
@@ -266,12 +254,14 @@ void drawTexturedCube(Object * o, float angle, GLuint texture, Matrix3D * viewPr
 	// Calculate the model view project matrix and pass it to u_MvpMatrix
 	g_mvpMatrix.set(viewProjMatrix);
 	g_mvpMatrix.multiply(g_modelMatrix);
-	gles2.uniformMatrix4fv(program.u_MvpMatrix, 0, g_mvpMatrix.elements);
 
-	*/
+*/
+	//gles2.glUniformMatrix4fv(program.u_MvpMatrix, 0, g_mvpMatrix.elements);
+	gles2.glUniformMatrix4fv(data2D->mvpLoc,1, GL_FALSE, &g_mvpMatrix.rawData[0][0]);
 	drawTexturedObject(o, texture);
 }
 void drawTexturedPlane( Object * o, float angle, GLuint texture, Matrix3D * viewProjMatrix) {
+	Data3d * data2D = o->sprite->data3d;//Data3D_new();
 	/*
 	// Calculate a model matrix
 	g_modelMatrix.setTranslate(0, 0, 1);
@@ -281,10 +271,11 @@ void drawTexturedPlane( Object * o, float angle, GLuint texture, Matrix3D * view
 	// Calculate the model view project matrix and pass it to u_MvpMatrix
 	g_mvpMatrix.set(viewProjMatrix);
 	g_mvpMatrix.multiply(g_modelMatrix);
-	gles2.uniformMatrix4fv(program.u_MvpMatrix, 0, g_mvpMatrix.elements);
+	*/
+	//GL_CHECK(gles2.glUniformMatrix4fv( data2D->mvpLoc, 1, GL_FALSE, (GLfloat*) &sprite->mvpMatrix.rawData[0][0]));
+	gles2.glUniformMatrix4fv(data2D->mvpLoc,1, GL_FALSE, &g_mvpMatrix.rawData[0][0]);
 
 	drawTexturedObject( o, texture);
-	*/
 }
 void draw(GLuint fbo,Object * plane,Object * cube,float angle,GLuint texture, Matrix3D * viewProjMatrix, Matrix3D * viewProjMatrixFBO) {
 	gles2.glBindRenderbuffer(GL_FRAMEBUFFER, fbo);              // Change the drawing destination to FBO
@@ -308,19 +299,34 @@ void draw(GLuint fbo,Object * plane,Object * cube,float angle,GLuint texture, Ma
 
 
 void drawTexturedCube2( Object * o,float angle,GLuint texture, Matrix3D * viewpProjMatrix,Matrix3D * u_MvpMatrix) {
+	Data3d * data2D = o->sprite->data3d;//Data3D_new();
 	// Calculate a model matrix
 	/*
-	g_modelMatrix.rotate(20.0, 1.0, 0.0, 0.0);
-	g_modelMatrix.rotate(angle, 0.0, 1.0, 0.0);
-	g_modelMatrix.scale(1, 1, 1);
+	   g_modelMatrix.rotate(20.0, 1.0, 0.0, 0.0);
+	   g_modelMatrix.rotate(angle, 0.0, 1.0, 0.0);
+	   g_modelMatrix.scale(1, 1, 1);
 
 	// Calculate the model view project matrix and pass it to u_MvpMatrix
 	g_mvpMatrix.set(vpMatrix);
 	g_mvpMatrix.multiply(g_modelMatrix);
 
-	gles2.glUniformMatrix4fv(u_MvpMatrix, 0, g_mvpMatrix.elements);
 	*/
+	//gles2.glUniformMatrix4fv(u_MvpMatrix, 0, g_mvpMatrix.elements);
+	gles2.glUniformMatrix4fv(data2D->mvpLoc,1, GL_FALSE, &g_mvpMatrix.rawData[0][0]);
 	drawTexturedObject(o, texture);
+}
+
+GLuint fbo;
+Object * plane;
+Object * cube;
+GLuint texture;
+Matrix3D viewProjMatrix;// = new Matrix4();   // Prepare view projection matrix for color buffer
+Matrix3D viewProjMatrixFBO;// = new Matrix4();   // Prepare view projection matrix for FBO
+
+void showFunc(Sprite * sprite)
+{
+	float currentAngle = 0.0;  // Update current rotation angle
+	draw( fbo, plane, cube, currentAngle, texture, &viewProjMatrix, &viewProjMatrixFBO);
 }
 
 int main()
@@ -329,36 +335,41 @@ int main()
 
 
 	Sprite * sprite = Sprite_new();
+	sprite->is3D = SDL_TRUE;
 	sprite->surface = SDL_LoadBMP("1.bmp");
-	Data3d * data2D = sprite->data3d;//Data3D_new();
+	Sprite_addChild(stage->sprite,sprite);
+	//sprite->showFunc = showFunc;
+	Data3d * data2D = Data3D_new();
+	Data3d_reset(data2D);
 	data2D->programObject = esLoadProgram( VSHADER_SOURCE, FSHADER_SOURCE);
 	program = data2D->programObject;
 	if(data2D->programObject){
 		data2D->positionLoc = GL_CHECK(gles2.glGetAttribLocation ( data2D->programObject, "a_Position" ));
 		data2D->texCoordLoc = GL_CHECK(gles2.glGetAttribLocation ( data2D->programObject, "a_TexCoord" ));
 		data2D->mvpLoc = GL_CHECK(gles2.glGetUniformLocation( data2D->programObject, "u_MvpMatrix" ));
-
 		data2D->samplerLoc= gles2.glGetUniformLocation(data2D->programObject, "u_Sampler");
 	}
-	Object * cube = initVertexBuffersForCube();
-	Object * plane = initVertexBuffersForPlane();
+	sprite->data3d = data2D;
+	cube = initVertexBuffersForCube();
+	cube->sprite = sprite;
+	plane = initVertexBuffersForPlane();
+	plane->sprite = sprite;
 	gles2.glUniform1i(data2D->samplerLoc, 0);
-	GLuint texture = initTextures(sprite);
-	GLuint fbo = initFramebufferObject(data2D);
+	texture = SDL_GL_LoadTexture(sprite, NULL);
+	return 0;
+	fbo = initFramebufferObject(data2D);
 	gles2.glEnable(GL_DEPTH_TEST);   //  gles2.enable(CULL_FACE);
 
-	Matrix3D viewProjMatrix;// = new Matrix4();   // Prepare view projection matrix for color buffer
+	Matrix_identity(&g_modelMatrix);
+	Matrix_identity(&g_mvpMatrix);
 	Matrix_identity(&viewProjMatrix);
 	//viewProjMatrix.setPerspective(30, canvas.width/canvas.height, 1.0, 100.0);
 	//viewProjMatrix.lookAt(0.0, 0.0, 7.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
-	Matrix3D viewProjMatrixFBO;// = new Matrix4();   // Prepare view projection matrix for FBO
 	Matrix_identity(&viewProjMatrixFBO);
 	//viewProjMatrixFBO.setPerspective(30.0, OFFSCREEN_WIDTH/OFFSCREEN_HEIGHT, 1.0, 100.0);
 	//viewProjMatrixFBO.lookAt(0.0, 2.0, 7.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
-	float currentAngle = 0.0;  // Update current rotation angle
-	draw( fbo, plane, cube, currentAngle, texture, &viewProjMatrix, &viewProjMatrixFBO);
 
 	Stage_loopEvents();
 	return 0;

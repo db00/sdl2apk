@@ -171,7 +171,7 @@ typedef struct Sprite{
 
 typedef struct Stage{
 	Sprite * currentTarget;
-	SDL_GLContext GLEScontext;
+	SDL_GLContext * GLEScontext;
 	SDL_Renderer * renderer;//renderer
 	SDL_Window* window;//
 	Sprite* focus;//舞台焦点
@@ -254,7 +254,7 @@ int zfrom3d(float z);
 SDL_UserEvent*UserEvent_new(Uint32 type,Sint32 code,void*data1,void*data2);
 void UserEvent_clear(SDL_UserEvent * event);
 
-GLuint LoadShader(GLenum type, GLbyte *shaderSrc);
+GLuint LoadShader(GLenum type, char *shaderSrc);
 
 void Sprite_translate(Sprite*sprite,int _x,int _y,int _z);
 void Sprite_rotate(Sprite*sprite,int _rotationX,int _rotationY,int _rotationZ);
@@ -271,5 +271,5 @@ void Sprite_matrix(Sprite *sprite);
 int Window_resize(int w,int h);
 int Sprite_getVisible(Sprite*sprite);
 void Sprite_stopPropagation(Sprite * target);
-GLuint esLoadProgram ( GLbyte *vertShaderSrc, GLbyte *fragShaderSrc );
+GLuint esLoadProgram ( char *vertShaderSrc, char *fragShaderSrc );
 #endif

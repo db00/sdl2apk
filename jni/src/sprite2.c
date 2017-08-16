@@ -620,10 +620,10 @@ Stage * Stage_init()
 			//SDL_GL_SetSwapInterval(0);  /* disable vsync. */
 			/*
 #ifdef HAVE_OPENGL
-			SDL_Log("OpenGL2.0");
-			gles2.glMatrixMode(GL_PROJECTION);//gl
-			gles2.glLoadIdentity();//gl
-			gles2.glOrtho(-1.0, 1.0, -1.0, 1.0, 1.0, 20.0);//gl
+SDL_Log("OpenGL2.0");
+gles2.glMatrixMode(GL_PROJECTION);//gl
+gles2.glLoadIdentity();//gl
+gles2.glOrtho(-1.0, 1.0, -1.0, 1.0, 1.0, 20.0);//gl
 			//gles2.gl(-1.0, 1.0, -1.0, 1.0, 1.0, 20.0);//gl
 			//gles2.glMatrixMode(GL_MODELVIEW);//gl
 			gles2.glMatrixMode(GL_PROJECTION);
@@ -1960,38 +1960,25 @@ int main(int argc, char *argv[])
 #endif
 	Sprite_addEventListener(stage->sprite,SDL_MOUSEBUTTONDOWN,mouseDown);
 	char * path = ("1.bmp");
-	if(stage->GLEScontext){
-		Sprite*sprite = Sprite_new();
-		sprite->is3D = 1;
-		//sprite->surface = (SDL_LoadBMP(path));
-		sprite->surface = (IMG_Load("1.jpg"));
-		SDL_Log("surface size:%dx%d",sprite->surface->w,sprite->surface->h);
-		Data3d*_data3D = sprite->data3d;
-		if(_data3D==NULL){
-			_data3D = Data3D_new();
-			if(_data3D->programObject==0){
-				data2D = Data3D_init();
-				Data3d_set(_data3D,data2D);
-			}
-			int numSlices = 20;
-			_data3D->numIndices = esGenSphere ( numSlices, .75f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
-			int numParallels = numSlices / 2;
-			_data3D->numVertices = ( numParallels + 1 ) * ( numSlices + 1 );
-			sprite->data3d = _data3D;
-			/*
-			   _data3D->vertices = teapotPositions;
-			   _data3D->normals = teapotBinormals;
-			   _data3D->normals = teapotNormals;
-			   _data3D->texCoords = teapotTexCoords;
-			   _data3D->indices = teapotIndices;
-			   _data3D->numIndices = sizeof(teapotIndices)/sizeof(int)/3;
-			//_data3D->numIndices = sizeof(teapotPositions)/sizeof(float)/3;
+	if(stage->GLEScontext==NULL)
+		return 0;
 
-			SDL_Log("%f,%f,%d",teapotBinormals[0],teapotTangents[0],_data3D->numIndices);
-
-*/
+	Sprite*sprite = Sprite_new();
+	sprite->is3D = 1;
+	sprite->surface = (SDL_LoadBMP(path));
+	SDL_Log("surface size:%dx%d",sprite->surface->w,sprite->surface->h);
+	Data3d*_data3D = sprite->data3d;
+	if(_data3D==NULL){
+		_data3D = Data3D_new();
+		if(_data3D->programObject==0){
+			data2D = Data3D_init();
+			Data3d_set(_data3D,data2D);
 		}
-		sprite->alpha = 0.5;
+		int numSlices = 20;
+		_data3D->numIndices = esGenSphere ( numSlices, .75f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
+		int numParallels = numSlices / 2;
+		_data3D->numVertices = ( numParallels + 1 ) * ( numSlices + 1 );
+		sprite->data3d = _data3D;
 		Sprite*contener= Sprite_new();
 		Sprite_addChild(stage->sprite,contener);
 		Sprite_addChild(contener,sprite);
@@ -2001,6 +1988,35 @@ int main(int argc, char *argv[])
 		contener->h = stage->stage_h;
 		Sprite_addEventListener(sprite,SDL_MOUSEMOTION,mouseMove);
 	}
+
+	/*
+	Sprite*sprite4 = Sprite_new();
+	sprite4->is3D = 1;
+	sprite4->surface = (SDL_LoadBMP(path));
+	_data3D = sprite4->data3d;
+	if(_data3D==NULL){
+		_data3D = Data3D_new();
+		sprite4->data3d = _data3D;
+		//if(_data3D->programObject==0)
+		{
+			//data2D = Data3D_init();
+			Data3d_set(_data3D,data2D);
+		}
+		int numSlices = 20;
+		_data3D->numIndices = esGenSphere ( numSlices, .75f, &_data3D->vertices, &_data3D->normals, &_data3D->texCoords, &_data3D->indices );
+		int numParallels = numSlices / 2;
+		_data3D->numVertices = ( numParallels + 1 ) * ( numSlices + 1 );
+		//sprite4->alpha = 0.5;
+		Sprite*contener= Sprite_new();
+		Sprite_addChild(stage->sprite,contener);
+		Sprite_addChild(contener,sprite4);
+		contener->x = stage->stage_w;
+		contener->y = stage->stage_h/2;
+		contener->w = stage->stage_w;
+		contener->h = stage->stage_h;
+		Sprite_addEventListener(sprite4,SDL_MOUSEMOTION,mouseMove);
+	}*/
+
 	Sprite*sprite3 = Sprite_new();
 	sprite3->surface = (SDL_LoadBMP(path));
 	sprite3->y = 0;

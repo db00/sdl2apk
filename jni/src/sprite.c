@@ -186,7 +186,6 @@ GLuint SDL_GL_LoadTexture(Sprite * sprite, GLfloat * texcoord)
 
 	/* Create an OpenGL texture for the image */
 	GL_CHECK(gles2.glGenTextures(1, &texture));
-
 	GL_CHECK(gles2.glBindTexture(GL_TEXTURE_2D, texture));
 	GL_CHECK(gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
 	GL_CHECK(gles2.glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
@@ -195,57 +194,7 @@ GLuint SDL_GL_LoadTexture(Sprite * sprite, GLfloat * texcoord)
 	GL_CHECK(gles2.glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, image->pixels));
 	GL_CHECK(gles2.glBindTexture(GL_TEXTURE_2D, 0));
 
-
 	SDL_FreeSurface(image);     /* No longer needed */
-
-
-
-
-	/*
-	   GL_CHECK(gles2.glGenFramebuffers(1, &sprite->framebuffer));
-	   GL_CHECK(gles2.glGenRenderbuffers(1, &sprite->renderbuffer));
-	   GL_CHECK(gles2.glBufferData(GL_ARRAY_BUFFER, w*h*4,image->pixels , GL_STATIC_DRAW));  
-	   GL_CHECK(gles2.glBindBuffer(GL_ARRAY_BUFFER, 0));  
-
-	// bind sprite->renderbuffer and create a 16-bit depth buffer
-	// width and height of sprite->renderbuffer = width and height of
-	// the texture
-	GL_CHECK(gles2.glBindRenderbuffer(GL_RENDERBUFFER, sprite->renderbuffer));
-	GL_CHECK(gles2.glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, surface->w, surface->h));
-	// bind the sprite->framebuffer
-	GL_CHECK(gles2.glBindFramebuffer(GL_FRAMEBUFFER, sprite->framebuffer));
-
-	// specify texture as color attachment
-	GL_CHECK(gles2.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, sprite->textureId, 0));
-	//glFramebufferTexture3DOES(GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level, GLint zoffset)
-	// specify depth_renderbufer as depth attachment
-	GL_CHECK(gles2.glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, sprite->renderbuffer));
-	// check for sprite->framebuffer complete
-	GLenum status = GL_CHECK(gles2.glCheckFramebufferStatus(GL_FRAMEBUFFER));
-	if(status == GL_FRAMEBUFFER_COMPLETE)
-	{
-	// render to texture using FBO
-	// clear color and depth buffer
-	//GL_CHECK(gles2.glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
-	//GL_CHECK(gles2.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-	// load uniforms for vertex and fragment shader
-	// used to render to FBO. The vertex shader is the
-	// ES 1.1 vertex shader described as Example 8-8 in
-	// Chapter 8. The fragment shader outputs the color
-	// computed by vertex shader as fragment color and
-	// is described as Example 1-2 in Chapter 1.
-	//set_fbo_texture_shader_and_uniforms();
-	// drawing commands to the sprite->framebuffer object
-	//draw_teapot();
-	// render to window system provided sprite->framebuffer
-	GL_CHECK(gles2.glBindFramebuffer(GL_FRAMEBUFFER, 0));
-	}
-	*/
-
-
-
-
-
 	return texture;
 }
 
@@ -1841,7 +1790,7 @@ void Stage_loopEvents()
 	}
 }
 
-GLuint LoadShader(GLenum type, GLbyte *shaderSrc)
+GLuint LoadShader(GLenum type, char *shaderSrc)
 {
 	GLuint shader; 
 	GLint compiled; 
@@ -1872,7 +1821,7 @@ GLuint LoadShader(GLenum type, GLbyte *shaderSrc)
 	return shader; 
 }
 
-GLuint esLoadProgram ( GLbyte *vertShaderSrc, GLbyte *fragShaderSrc )
+GLuint esLoadProgram ( char *vertShaderSrc, char *fragShaderSrc )
 {
 	GLuint vertexShader;
 	GLuint fragmentShader;
@@ -1966,7 +1915,7 @@ Data3d * Data3D_init()
 {
 	if(data2D==NULL){
 		data2D = Data3D_new();
-		GLbyte vShaderStr[] =  
+		char vShaderStr[] =  
 			"uniform mat4 u_mvpMatrix;    \n"
 			"attribute vec2 a_texCoord;   \n"
 			"attribute vec3 a_position;   \n"
@@ -1983,7 +1932,7 @@ Data3d * Data3D_init()
 			"}                            \n";
 
 		/* fragment shader */
-		GLbyte fShaderStr[] =  
+		char fShaderStr[] =  
 			//#ifndef HAVE_OPENGL
 			//"precision mediump float;                            \n"
 			//#endif

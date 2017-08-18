@@ -1949,6 +1949,16 @@ static void mouseMove(SpriteEvent*e)
 #include "SDL_image.h"
 int main(int argc, char *argv[])
 {
+	/*
+	if(1)
+		if(0)printf("null");
+	else
+		printf("end,%s %s\r\n",__DATE__,__TIME__);
+	char a[]={};
+	char b[]={'\0',};
+	printf("%d,%d\n",sizeof(a),sizeof(b));
+	return 0;
+	*/
 	Stage_init();
 #if SDL_VERSION_ATLEAST(2,0,5)
 	printf("set opacity\n");

@@ -119,8 +119,8 @@ typedef struct UserData
 	float particleData[ NUM_PARTICLES * PARTICLE_SIZE ];
 	float time;
 } UserData;
-void Draw ( UserData*userData);
-int Init ( UserData*userData);
+void Draw ( UserData * userData);
+int Init ( UserData * userData);
 GLuint LoadShader(GLenum type, const char *shaderSrc)
 {
 	GLuint shader; 

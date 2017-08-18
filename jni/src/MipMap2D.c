@@ -20,8 +20,6 @@
 //#include <stdlib.h>
 #include "gles2base.h"
 
-
-
 ///
 //  From an RGB8 source image, generate the next level mipmap
 //
@@ -162,7 +160,7 @@ GLuint CreateMipMappedTexture2D( )
 int Init ( UserData*userData)
 {
    //UserData *userData = esContext->userData;
-   GLbyte vShaderStr[] =
+   char vShaderStr[] =
       "uniform float u_offset;      \n"
       "attribute vec4 a_position;   \n"
       "attribute vec2 a_texCoord;   \n"
@@ -174,7 +172,7 @@ int Init ( UserData*userData)
       "   v_texCoord = a_texCoord;  \n"
       "}                            \n";
    
-   GLbyte fShaderStr[] =  
+   char fShaderStr[] =  
       "precision mediump float;                            \n"
       "varying vec2 v_texCoord;                            \n"
       "uniform sampler2D s_texture;                        \n"
